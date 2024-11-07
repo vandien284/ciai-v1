@@ -214,7 +214,6 @@ const Home = () => {
   return (
     <div id="app">
       <section className="flex h-full sec-main">
-      <Header page="content" messages={messages} toggleSidebar={toggleSidebar} setToggleSidebar={setToggleSidebar}setMessages={setMessages}></Header>
         <div className="grow flex flex-col h-screen">
           <nav className="w-full bg-white relative z-50">
             <div className="h-full px-6 py-3 flex items-center justify-between bar">
