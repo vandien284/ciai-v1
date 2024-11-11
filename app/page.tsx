@@ -128,7 +128,7 @@ const Home = () => {
         data: {
           name: namePrompt.current,
           uid: uid,
-          prompt: content,
+          prompt: prompt,
           type: type.current
         },
       });
