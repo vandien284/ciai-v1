@@ -289,7 +289,7 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         </div>
                         <div className="pl-6 recent-post">
                             {
-                                data.map.slice(0,10).((item) => (
+                                data.slice(0,10).map((item) => (
                                     <div className="sidebar-menu" key={item.id}>
                                         <Button
                                             component="a"
