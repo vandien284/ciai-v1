@@ -3,9 +3,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDropDownOutlined } from "@mui/icons-material";
 
 import { useTheme } from "../../context/ThemeContext";
+import ThemeToggle from "../../components/ThemeToggle";
 
 import {
   Button,
@@ -33,7 +33,43 @@ import {
   CardActions,
   Typography,
 } from "@mui/joy";
-import { Tooltip, Popover, TablePagination } from "@mui/material";
+import { Switch, styled, Tooltip, Popover } from "@mui/material";
+const MaterialUISwitch = styled(Switch)(({ theme }) => ({
+  "&.MuiSwitch-root": {
+    width: "64px",
+  },
+  "& .MuiSwitch-thumb": {
+    backgroundColor: "var(--cl-neutral-80)",
+    "&::before": {
+      content: "''",
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+      left: 0,
+      top: 0,
+      background: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24"  fill="white"><path d="M19,13H5V11H19V13Z"/></svg>') center no-repeat`,
+    },
+  },
+  "& .MuiSwitch-track": {
+    backgroundColor: "var(--cl-neutral-30)",
+    opacity: 1,
+  },
+  "& .MuiSwitch-switchBase": {
+    "&.Mui-checked": {
+      transform: "translateX(24px)",
+      "& .MuiSwitch-thumb": {
+        backgroundColor: "var(--cl-primary-30)",
+        "&::before": {
+          backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>')`,
+        },
+      },
+      "& + .MuiSwitch-track": {
+        opacity: 1,
+        backgroundColor: "var(--cl-primary-70)",
+      },
+    },
+  },
+}));
 
 import { useOutsideClick } from "outsideclick-react";
 
@@ -119,7 +155,7 @@ function PopoverAccount() {
   );
 }
 
-const Library = () => {
+const Settings = () => {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
 
@@ -160,29 +196,6 @@ const Library = () => {
       inputTitleRef.current?.focus();
     }
   }, [showModalEditHeading]);
-
-  // Search bar
-  const [inputValue, setInputValue] = useState("");
-  const handleInputSearchChange = (event: any) => {
-    setInputValue(event.target.value);
-  };
-
-  // Pagination
-  const [page, setPage] = React.useState(2);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
-  const handleChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
-    setPage(newPage);
-  };
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
 
   return (
     <div id="app">
@@ -293,7 +306,7 @@ const Library = () => {
                         background: "var(--cl-surface-container-lowest)",
                       },
                     }}
-                    className="w-full sidebar-btn active"
+                    className="w-full sidebar-btn"
                   >
                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                       <span className="material-symbols-outlined">
@@ -475,7 +488,7 @@ const Library = () => {
                       background: "var(--cl-surface-container-lowest)",
                     },
                   }}
-                  className="w-full sidebar-btn"
+                  className="w-full sidebar-btn active"
                 >
                   <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                     <span className="material-symbols-outlined">settings</span>
@@ -631,7 +644,7 @@ const Library = () => {
                 )}
                 <div className="sm:flex sm:items-center gap-x-2 overflow-hidden">
                   <h1 className="text-2xl font-normal truncate heading-title">
-                    My library
+                    Settings
                   </h1>
                 </div>
               </div>
@@ -760,477 +773,25 @@ const Library = () => {
             </div>
           </nav>
           <main className="w-full grow flex" id="main-content">
-            <div className="grow overflow-auto p-5 lg:p-6 all-posts">
+            <div className="grow overflow-auto p-5 lg:p-6 settings">
               <div className="container">
-                <Box className="list-posts">
-                  <div className="sm:flex items-center justify-between mb-4 page-heading">
-                    <h2 className="text-xl font-normal mb-3 sm:mb-0 heading-title">
-                      All files
-                    </h2>
-                    <div className="sm:flex items-center gap-x-3">
-                      <div className="hidden sm:block">
-                        <Button
-                          component="a"
-                          variant="plain"
-                          aria-label="Drive Folder"
-                          href="/html/home"
-                          sx={{
-                            px: 1,
-                            fontFamily: "var(--font)",
-                            fontWeight: 400,
-                            color: "var(--cl-primary)",
-                            lineHeight: "24px",
-                            borderRadius: "8px",
-                            "&:hover": {
-                              background: "var(--bg-color)",
-                            },
-                          }}
-                          className="gap-x-1.5 transition font-medium"
-                        >
-                          <span className="material-symbols-outlined">
-                            add_to_drive
-                          </span>
-                          <span className="hidden md:inline-block">
-                            Drive Folder
-                          </span>
-                        </Button>
-                      </div>
-                      <div
-                        role="search"
-                        className="h-9 flex items-center rounded-lg px-3 search-bar"
-                      >
-                        <span className="material-symbols-outlined">
-                          search
-                        </span>
-                        <input
-                          placeholder="Search"
-                          aria-label="Search field for prompts"
-                          className="grow w-44 bg-transparent search-bar-input"
-                          onChange={(e) => handleInputSearchChange(e)}
-                        />
-                        <div className={`${inputValue ? "" : "opacity-0"}`}>
-                          <IconButton
-                            variant="plain"
-                            aria-label="Click to clear search query"
-                            className="close-button"
-                            sx={{
-                              minWidth: "28px",
-                              minHeight: "28px",
-                              borderRadius: "100%",
-                              "&:hover": {
-                                background: "var(--bg-color)",
-                              },
-                            }}
-                          >
-                            <span className="material-symbols-outlined">
-                              close
-                            </span>
-                          </IconButton>
-                        </div>
-                      </div>
+                <Box className="theme-options">
+                  <h2 className="text-base font-medium my-6">
+                    General app settings
+                  </h2>
+                  <div className="flex items-center max-w-sm pl-3 choose-theme">
+                    <p className="mr-6 md:mr-16">Theme</p>
+                    <ThemeToggle />
+                  </div>
+                  <h2 className="text-base font-medium my-6">Save Settings</h2>
+                  <div className="pl-3">
+                    <p className="mb-3">Autosaving Enabled</p>
+                    <div className="-ml-3">
+                      <MaterialUISwitch
+                        defaultChecked
+                        inputProps={{ "aria-label": "Autosaving Enabled" }}
+                      />
                     </div>
-                  </div>
-                  <div className="overflow-auto">
-                    <table className="table-auto w-full data-table tbl-mb whitespace-nowrap tbl-library">
-                      <thead>
-                        <tr>
-                          <th></th>
-                          <th>
-                            <div className="flex items-center">
-                              <span className="font-medium">Name</span>
-                              <IconButton
-                                variant="plain"
-                                aria-label="Move up"
-                                sx={{
-                                  borderRadius: "100%",
-                                  minWidth: "24px",
-                                  minHeight: "24px",
-                                  color: "var(--cl-neutral-60)",
-                                  "&:hover": {
-                                    background: "var(--bg-color)",
-                                    color: "var(--cl-neutral-60)",
-                                  },
-                                }}
-                                className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
-                              >
-                                <span className="material-symbols-outlined">
-                                  arrow_upward
-                                </span>
-                                {/* <span className="material-symbols-outlined">
-                                  arrow_downward
-                                </span> */}
-                              </IconButton>
-                            </div>
-                          </th>
-                          <th>
-                            <div className="flex items-center">
-                              <span className="font-medium">Description</span>
-                              <IconButton
-                                variant="plain"
-                                aria-label="Move up"
-                                sx={{
-                                  borderRadius: "100%",
-                                  minWidth: "24px",
-                                  minHeight: "24px",
-                                  color: "var(--cl-neutral-60)",
-                                  "&:hover": {
-                                    background: "var(--bg-color)",
-                                    color: "var(--cl-neutral-60)",
-                                  },
-                                }}
-                                className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
-                              >
-                                <span className="material-symbols-outlined">
-                                  arrow_upward
-                                </span>
-                                {/* <span className="material-symbols-outlined">
-                                  arrow_downward
-                                </span> */}
-                              </IconButton>
-                            </div>
-                          </th>
-                          <th>
-                            <div className="flex items-center">
-                              <span className="font-medium">Type</span>
-                              <IconButton
-                                variant="plain"
-                                aria-label="Move up"
-                                sx={{
-                                  borderRadius: "100%",
-                                  minWidth: "24px",
-                                  minHeight: "24px",
-                                  color: "var(--cl-neutral-60)",
-                                  "&:hover": {
-                                    background: "var(--bg-color)",
-                                    color: "var(--cl-neutral-60)",
-                                  },
-                                }}
-                                className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
-                              >
-                                <span className="material-symbols-outlined">
-                                  arrow_upward
-                                </span>
-                                {/* <span className="material-symbols-outlined">
-                                  arrow_downward
-                                </span> */}
-                              </IconButton>
-                            </div>
-                          </th>
-                          <th>
-                            <div className="flex items-center">
-                              <span className="font-medium">Updated</span>
-                              <IconButton
-                                variant="plain"
-                                aria-label="Move up"
-                                sx={{
-                                  borderRadius: "100%",
-                                  minWidth: "24px",
-                                  minHeight: "24px",
-                                  color: "var(--cl-neutral-60)",
-                                  "&:hover": {
-                                    background: "var(--bg-color)",
-                                    color: "var(--cl-neutral-60)",
-                                  },
-                                }}
-                                className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
-                              >
-                                <span className="material-symbols-outlined">
-                                  arrow_upward
-                                </span>
-                                {/* <span className="material-symbols-outlined">
-                                  arrow_downward
-                                </span> */}
-                              </IconButton>
-                            </div>
-                          </th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          className="cursor-pointer"
-                          onClick={() => router.push("/html/library/detail")}
-                        >
-                          <td className="w-12 text-center">
-                            <span className="material-symbols-outlined mt-1 prompt-icon">
-                              chat_bubble
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="text-left font-medium truncate tend"
-                            >
-                              Microfinance in Hyderabad
-                            </button>
-                          </td>
-                          <td></td>
-                          <td>Chat prompt</td>
-                          <td>1 hour ago</td>
-                          <td className="actions">
-                            <Dropdown>
-                              <MenuButton
-                                className="flex items-center justify-center w-10 h-10"
-                                sx={{
-                                  p: 0,
-                                  border: "none",
-                                  borderRadius: "100%",
-                                  minHeight: "40px",
-                                  color: "var(--cl-primary)",
-                                  "&:hover": {
-                                    background: "var(--bg-color)",
-                                  },
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <span className="material-symbols-outlined">
-                                  more_vert
-                                </span>
-                              </MenuButton>
-                              <Menu
-                                placement="bottom-end"
-                                className="dropdown-menu"
-                                sx={{
-                                  py: 0,
-                                  bgcolor: "var(--cl-bg-dropdown)",
-                                  borderColor: "var(--cl-neutral-8)",
-                                }}
-                              >
-                                <MenuItem
-                                  className="flex"
-                                  sx={{
-                                    background: "none",
-                                    p: 1.25,
-                                    minHeight: "auto",
-                                    fontSize: 15,
-                                    gap: 1.25,
-                                    color: "var(--cl-primary)",
-                                    "&:hover": {
-                                      background:
-                                        "var(--cl-item-dropdown) !important",
-                                      color: "var(--cl-primary) !important",
-                                    },
-                                  }}
-                                >
-                                  <span className="material-symbols-outlined">
-                                    delete
-                                  </span>
-                                  Delete prompt
-                                </MenuItem>
-                              </Menu>
-                            </Dropdown>
-                          </td>
-                        </tr>
-                        <tr
-                          className="cursor-pointer"
-                          onClick={() => router.push("/html/library/detail")}
-                        >
-                          <td className="w-12 text-center">
-                            <span className="material-symbols-outlined mt-1 prompt-icon">
-                              model_training
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="text-left font-medium truncate tend"
-                            >
-                              Bubble Sort Optimization
-                            </button>
-                          </td>
-                          <td></td>
-                          <td>Model</td>
-                          <td>1 hour ago</td>
-                          <td className="actions">
-                            <Dropdown>
-                              <MenuButton
-                                className="flex items-center justify-center w-10 h-10"
-                                sx={{
-                                  p: 0,
-                                  border: "none",
-                                  borderRadius: "100%",
-                                  minHeight: "40px",
-                                  color: "var(--cl-primary)",
-                                  "&:hover": {
-                                    background: "var(--bg-color)",
-                                  },
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <span className="material-symbols-outlined">
-                                  more_vert
-                                </span>
-                              </MenuButton>
-                              <Menu
-                                placement="bottom-end"
-                                className="dropdown-menu"
-                                sx={{
-                                  py: 0,
-                                  bgcolor: "var(--cl-bg-dropdown)",
-                                  borderColor: "var(--cl-neutral-8)",
-                                }}
-                              >
-                                <MenuItem
-                                  className="flex"
-                                  sx={{
-                                    background: "none",
-                                    p: 1.25,
-                                    minHeight: "auto",
-                                    fontSize: 15,
-                                    gap: 1.25,
-                                    color: "var(--cl-primary)",
-                                    "&:hover": {
-                                      background:
-                                        "var(--cl-item-dropdown) !important",
-                                      color: "var(--cl-primary) !important",
-                                    },
-                                  }}
-                                >
-                                  <span className="material-symbols-outlined">
-                                    delete
-                                  </span>
-                                  Delete prompt
-                                </MenuItem>
-                              </Menu>
-                            </Dropdown>
-                          </td>
-                        </tr>
-                        <tr
-                          className="cursor-pointer"
-                          onClick={() => router.push("/html/library/detail")}
-                        >
-                          <td className="w-12 text-center">
-                            <span className="material-symbols-outlined mt-1 prompt-icon">
-                              chat_bubble
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="text-left font-medium truncate tend"
-                            >
-                              Microfinance in Hyderabad
-                            </button>
-                          </td>
-                          <td></td>
-                          <td>Chat prompt</td>
-                          <td>1 hour ago</td>
-                          <td className="actions">
-                            <Dropdown>
-                              <MenuButton
-                                className="flex items-center justify-center w-10 h-10"
-                                sx={{
-                                  p: 0,
-                                  border: "none",
-                                  borderRadius: "100%",
-                                  minHeight: "40px",
-                                  color: "var(--cl-primary)",
-                                  "&:hover": {
-                                    background: "var(--bg-color)",
-                                  },
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <span className="material-symbols-outlined">
-                                  more_vert
-                                </span>
-                              </MenuButton>
-                              <Menu
-                                placement="bottom-end"
-                                className="dropdown-menu"
-                                sx={{
-                                  py: 0,
-                                  bgcolor: "var(--cl-bg-dropdown)",
-                                  borderColor: "var(--cl-neutral-8)",
-                                }}
-                              >
-                                <MenuItem
-                                  className="flex"
-                                  sx={{
-                                    background: "none",
-                                    p: 1.25,
-                                    minHeight: "auto",
-                                    fontSize: 15,
-                                    gap: 1.25,
-                                    color: "var(--cl-primary)",
-                                    "&:hover": {
-                                      background:
-                                        "var(--cl-item-dropdown) !important",
-                                      color: "var(--cl-primary) !important",
-                                    },
-                                  }}
-                                >
-                                  <span className="material-symbols-outlined">
-                                    delete
-                                  </span>
-                                  Delete prompt
-                                </MenuItem>
-                              </Menu>
-                            </Dropdown>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="flex justify-start flex-shrink-0 pt-6">
-                    <TablePagination
-                      component="div"
-                      className="navi-pagi"
-                      count={100}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      rowsPerPage={rowsPerPage}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                      sx={{
-                        color: "var(--cl-primary)",
-                        "& .MuiToolbar-root": {
-                          pl: 0,
-                        },
-                        "& .MuiTablePagination-toolbar": {
-                          minHeight: 36,
-                          "& .MuiTablePagination-actions": {
-                            ml: 1,
-                            "&>button": {
-                              p: 0.5,
-                            },
-                          },
-                        },
-                        "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                          {
-                            fontSize: "0.75rem",
-                          },
-                        "& .MuiTablePagination-input": {
-                          ml: 1,
-                          mr: 2,
-                          bgcolor: "#FFF",
-                          borderRadius: "3px",
-                          border: "1px solid #bdc1ca",
-                          fontSize: "0.75rem",
-                          color: "#000",
-                        },
-                      }}
-                      SelectProps={{
-                        MenuProps: {
-                          PaperProps: {
-                            sx: {
-                              "& .MuiMenuItem-root": {
-                                fontSize: "0.75rem",
-                                minHeight: 32,
-                                "&.Mui-selected": {
-                                  bgcolor: "#f2f4fd",
-                                },
-                              },
-                            },
-                          },
-                        },
-                      }}
-                    />
                   </div>
                 </Box>
               </div>
@@ -1345,4 +906,4 @@ const Library = () => {
   );
 };
 
-export default Library;
+export default Settings;

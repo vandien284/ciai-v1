@@ -3,25 +3,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  MenuOutlined,
-  CloseOutlined,
-  ChatBubbleOutlineOutlined,
-  TocOutlined,
-  WorkOutlineOutlined,
-  DatasetOutlined,
-  LocalLibraryOutlined,
-  HistoryOutlined,
-  LightbulbOutlined,
-  ExploreOutlined,
-  WarningAmber,
-  ContentCopyOutlined,
-  QuestionAnswerOutlined,
-  SearchOutlined,
-  FolderOutlined,
-  PublishOutlined,
-  ArrowDropDownOutlined,
-} from "@mui/icons-material";
+import { ArrowDropDownOutlined } from "@mui/icons-material";
+
+import { useTheme } from "../../../context/ThemeContext";
 
 import {
   Button,
@@ -67,10 +51,6 @@ import { useOutsideClick } from "outsideclick-react";
 import sanitizeHtml from "sanitize-html";
 import ContentEditable from "react-contenteditable";
 
-import dynamic from "next/dynamic";
-const QuillEditor = dynamic(() => import("react-quill"), { ssr: false });
-import "react-quill/dist/quill.snow.css";
-
 const useViewport = () => {
   const [width, setWidth] = React.useState(
     typeof window !== "undefined" ? window.innerWidth : 0
@@ -97,6 +77,8 @@ function PopoverAccount() {
         width: 260,
         maxWidth: "100%",
         borderRadius: "8px",
+        bgcolor: "var(--cl-bg-dropdown)",
+        borderColor: "var(--cl-neutral-20)",
       }}
     >
       <CardContent sx={{ alignItems: "center", textAlign: "center" }}>
@@ -107,11 +89,14 @@ function PopoverAccount() {
         <Typography
           level="title-md"
           className="mt-2"
-          sx={{ color: "#3c4043", lineHeight: 1.3 }}
+          sx={{ color: "var(--cl-neutral-90)", lineHeight: 1.3 }}
         >
           Đào Lê
         </Typography>
-        <Typography level="body-md" sx={{ color: "#5f6368", lineHeight: 1.3 }}>
+        <Typography
+          level="body-md"
+          sx={{ color: "var(--cl-neutral-80)", lineHeight: 1.3 }}
+        >
           dao.le@caready.vn
         </Typography>
       </CardContent>
@@ -130,12 +115,13 @@ function PopoverAccount() {
               minHeight: "36px",
               fontFamily: "var(--font)",
               fontWeight: 500,
-              color: "var(--cl-drak-blue)",
+              color: "var(--cl-primary-70)",
               borderRadius: "8px",
-              borderColor: "rgb(218,220,224)",
+              borderColor: "var(--cl-neutral-30)",
               "&:hover": {
-                background: "#f5f7f9",
-                borderColor: "#000f31",
+                background: "var(--cl-neutral-8)",
+                borderColor: "var(--cl-primary-70)",
+                color: "var(--cl-primary-70)",
               },
             }}
           >
@@ -148,6 +134,7 @@ function PopoverAccount() {
 }
 
 const Detail = () => {
+  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
 
   // Collapse Menu
@@ -159,46 +146,25 @@ const Detail = () => {
   const handleClickSidebarRight = () => {
     setToggleSidebarRight(!toggleSidebarRight);
   };
-  const handleOutsideClick = () => {
+  const handleOutsideClickSideLeft = () => {
     setToggleSidebarLeft(true);
   };
-  const sideNavRef = useOutsideClick(handleOutsideClick);
+  const handleOutsideClickSideRight = () => {
+    setToggleSidebarRight(true);
+  };
+  const sideLeftRef = useOutsideClick(handleOutsideClickSideLeft);
+  const sideRightRef = useOutsideClick(handleOutsideClickSideRight);
+  const refNull = useRef(null);
   const viewPort = useViewport();
   const isMobile = typeof window !== "undefined" && viewPort.width <= 1100;
 
-  const [showUrlPrompt, setShowUrlPrompt] = React.useState(true);
-  const [showTypePrompt, setShowTypePrompt] = React.useState(false);
-  const [showContentPrompt, setShowContentPrompt] = React.useState(false);
-  const handleClickPrompt = () => {
-    if (!showTypePrompt) {
-      setShowUrlPrompt(false);
-      setShowTypePrompt(true);
-      setShowContentPrompt(false);
-    }
-  };
-  const handleClickContentPrompt = () => {
-    setShowContentPrompt(true);
-  };
-
-  const handleOutsidePromptClick = () => {
-    setShowTypePrompt(false);
-    setShowContentPrompt(false);
-  };
-  const promptRef = useOutsideClick(handleOutsidePromptClick);
-
   const [showEditPrompt, setShowEditPrompt] = React.useState(false);
-  const [showEditArticle, setShowEditArticle] = React.useState(false);
+
   const handleClickEditPrompt = () => {
     setShowEditPrompt(true);
   };
   const handleClickCancelPrompt = () => {
     setShowEditPrompt(false);
-  };
-  const handleClickEditArticle = () => {
-    setShowEditArticle(true);
-  };
-  const handleClickCancelArticle = () => {
-    setShowEditArticle(false);
   };
 
   // Toggle role
@@ -214,51 +180,13 @@ const Detail = () => {
     setContent(sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf));
   }, []);
 
-  // Quill
-  const [contentArticle, setContentArticle] = useState("");
-  const quillModules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"],
-      [{ align: [] }],
-      [{ color: [] }],
-      ["code-block"],
-      ["clean"],
-    ],
-  };
-  const quillFormats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "blockquote",
-    "list",
-    "bullet",
-    "link",
-    "image",
-    "align",
-    "color",
-    "code-block",
-  ];
-  const handleEditorChange = (newContent: any) => {
-    setContentArticle(newContent);
-  };
-
   // Popover
   const [popoverAccount, setPopoverAccount] = React.useState<CustomPopover>({
     anchorEl: null,
     child: <PopoverAccount />,
   });
 
-  // Drawer
-  const [openDrawerRename, setOpenDrawerRename] = React.useState(false);
-  const [openDrawerPublish, setOpenDrawerPublish] = React.useState(false);
-
   // Modal
-  const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEditHeading, setShowModalEditHeading] = useState(false);
 
   // Focus Input
@@ -268,39 +196,6 @@ const Detail = () => {
       inputTitleRef.current?.focus();
     }
   }, [showModalEditHeading]);
-
-  const handleSpanClick = (e: React.MouseEvent<HTMLSpanElement>) => {
-    const target = e.target as HTMLSpanElement;
-
-    document.querySelectorAll(".keyword").forEach((el) => {
-      el.classList.remove("border-keyword");
-    });
-
-    target.classList.add("border-keyword");
-
-    const range = document.createRange();
-    const selection = window.getSelection();
-    range.selectNodeContents(target);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-
-    const contentEditable = target.closest('[contentEditable="true"]');
-    if (contentEditable) {
-      const handleInput = () => {
-        const selection = window.getSelection();
-        if (selection) {
-          const anchorNode = selection.anchorNode;
-
-          if (anchorNode && target.contains(anchorNode)) {
-            target.classList.remove("border-keyword");
-            contentEditable.removeEventListener("input", handleInput);
-          }
-        }
-      };
-
-      contentEditable.addEventListener("input", handleInput);
-    }
-  };
 
   const onKeyPressHandler = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -325,258 +220,69 @@ const Detail = () => {
   return (
     <div id="app">
       <section className="flex h-full sec-main">
-        {!isMobile && (
-          <aside
-            className={
-              toggleSidebarLeft
-                ? "h-screen flex-shrink-0 sidebar expanded"
-                : "h-screen flex-shrink-0 sidebar compact"
-            }
-            id="sidebar-left"
+        <aside
+          className={`flex-shrink-0 sidebar ${
+            toggleSidebarLeft ? "expanded" : "compact"
+          }`}
+          id="sidebar-left"
+        >
+          <div
+            className="w-full h-full flex flex-col justify-between inner"
+            ref={isMobile ? sideLeftRef : refNull}
           >
-            <div className="w-full h-full flex flex-col justify-between inner">
-              <div className="h-16 flex-shrink-0 flex items-center nav-logo">
-                <a
-                  href="/html/home"
-                  className="flex flex-start cursor-pointer logo"
-                >
-                  <Image
-                    src="/images/favicon.png"
-                    priority
-                    alt="CIAI"
-                    width={32}
-                    height={31}
-                    className="i1"
-                  />
-                  <Image
-                    src="/images/logo.png"
-                    priority
-                    alt="CIAI"
-                    width={80}
-                    height={31}
-                    className="i2"
-                  />
-                </a>
-              </div>
-              <div className="w-full grow overflow-y-auto top-sidebar">
-                <div className="py-6 overflow-hidden menus">
-                  <div className="sidebar-menu">
-                    <Button
-                      component="a"
-                      variant="plain"
-                      aria-label="New Prompt"
-                      href="/html/home"
-                      sx={{
-                        pl: 0,
-                        pr: 1,
-                        py: 0,
-                        justifyContent: "flex-start",
-                        fontFamily: "var(--font)",
-                        color: "var(--cl-main)",
-                        borderRadius: "20px",
-                        "&.MuiButton-root:hover": {
-                          background: "#fff",
-                        },
-                      }}
-                      className="w-full sidebar-btn active"
-                    >
-                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined">
-                          add_circle
-                        </span>
-                      </span>
-                      <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                        New Prompt
-                      </span>
-                    </Button>
-                  </div>
-                  <div className="sidebar-menu">
-                    <Button
-                      component="a"
-                      variant="plain"
-                      aria-label="My Library"
-                      href="/html/library"
-                      sx={{
-                        pl: 0,
-                        pr: 1,
-                        py: 0,
-                        justifyContent: "flex-start",
-                        fontFamily: "var(--font)",
-                        color: "var(--cl-main)",
-                        borderRadius: "20px",
-                        "&.MuiButton-root:hover": {
-                          background: "#fff",
-                        },
-                      }}
-                      className="w-full sidebar-btn"
-                    >
-                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined">
-                          home_storage
-                        </span>
-                      </span>
-                      <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                        My Library
-                      </span>
-                    </Button>
-                  </div>
-                  <div className="pl-6 recent-post">
-                    <div className="sidebar-menu">
-                      <Button
-                        component="a"
-                        variant="plain"
-                        aria-label="Croissant Recipe in JSON"
-                        href="/html/home"
-                        sx={{
-                          pl: 0,
-                          pr: 1,
-                          py: 0,
-                          justifyContent: "flex-start",
-                          fontFamily: "var(--font)",
-                          color: "var(--cl-main)",
-                          borderRadius: "20px",
-                          "&.MuiButton-root:hover": {
-                            background: "#fff",
-                          },
-                        }}
-                        className="w-full sidebar-btn"
-                      >
-                        <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                          <span className="material-symbols-outlined">
-                            chat_bubble
-                          </span>
-                        </span>
-                        <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
-                          Croissant Recipe in JSON
-                        </span>
-                      </Button>
-                    </div>
-                    <div className="sidebar-menu">
-                      <Button
-                        component="a"
-                        variant="plain"
-                        aria-label="Croissant Recipe: JSON Format"
-                        href="/html/home"
-                        sx={{
-                          pl: 0,
-                          pr: 1,
-                          py: 0,
-                          justifyContent: "flex-start",
-                          fontFamily: "var(--font)",
-                          color: "var(--cl-main)",
-                          borderRadius: "20px",
-                          "&.MuiButton-root:hover": {
-                            background: "#fff",
-                          },
-                        }}
-                        className="w-full sidebar-btn"
-                      >
-                        <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                          <span className="material-symbols-outlined">
-                            chat_bubble
-                          </span>
-                        </span>
-                        <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
-                          Croissant Recipe: JSON Format
-                        </span>
-                      </Button>
-                    </div>
-                    <div className="sidebar-menu">
-                      <Button
-                        component="a"
-                        variant="plain"
-                        aria-label="Write an article about include relevant statistics
-                            (add the links of the sources you use) and consider
-                            diverse perspectives"
-                        href="/html/home"
-                        sx={{
-                          pl: 0,
-                          pr: 1,
-                          py: 0,
-                          justifyContent: "flex-start",
-                          fontFamily: "var(--font)",
-                          color: "var(--cl-main)",
-                          borderRadius: "20px",
-                          "&.MuiButton-root:hover": {
-                            background: "#fff",
-                          },
-                        }}
-                        className="w-full sidebar-btn"
-                      >
-                        <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                          <span className="material-symbols-outlined">
-                            chat_bubble
-                          </span>
-                        </span>
-                        <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
-                          Write an article about include relevant statistics
-                          (add the links of the sources you use) and consider
-                          diverse perspectives
-                        </span>
-                      </Button>
-                    </div>
-                    <div className="sidebar-menu">
-                      <Button
-                        component="a"
-                        variant="plain"
-                        aria-label="View more"
-                        href="/html/home"
-                        sx={{
-                          pl: 1.25,
-                          pr: 1,
-                          py: 0,
-                          justifyContent: "flex-start",
-                          fontFamily: "var(--font)",
-                          color: "var(--cl-main)",
-                          borderRadius: "20px",
-                          "&.MuiButton-root:hover": {
-                            background: "#fff",
-                          },
-                        }}
-                        className="w-full sidebar-btn"
-                      >
-                        <span className="whitespace-nowrap opacity-transition font-normal leading-snug name more">
-                          View all
-                        </span>
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="sidebar-menu">
-                    <Button
-                      component="a"
-                      variant="plain"
-                      aria-label="My Connectors"
-                      href="/html/home"
-                      sx={{
-                        pl: 0,
-                        pr: 1,
-                        py: 0,
-                        justifyContent: "flex-start",
-                        fontFamily: "var(--font)",
-                        color: "var(--cl-main)",
-                        borderRadius: "20px",
-                        "&.MuiButton-root:hover": {
-                          background: "#fff",
-                        },
-                      }}
-                      className="w-full sidebar-btn"
-                    >
-                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined">share</span>
-                      </span>
-                      <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                        My Connectors
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full pt-2 pb-4 border-t border-solid border-gray-300 bot-sidebar">
+            <div className="h-16 flex-shrink-0 flex items-center nav-logo">
+              <a
+                href="/html/home"
+                className="flex flex-start cursor-pointer logo"
+              >
+                {theme === "light" ? (
+                  <>
+                    <Image
+                      src="/images/favicon.png"
+                      priority
+                      alt="CIAI"
+                      width={32}
+                      height={31}
+                      className="i1 hide-mb"
+                    />
+                    <Image
+                      src="/images/logo.png"
+                      priority
+                      alt="CIAI"
+                      width={80}
+                      height={31}
+                      className="i2"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      src="/images/favicon-white.png"
+                      priority
+                      alt="CIAI"
+                      width={32}
+                      height={31}
+                      className="i1 hide-mb"
+                    />
+                    <Image
+                      src="/images/logo-white.png"
+                      priority
+                      alt="CIAI"
+                      width={80}
+                      height={31}
+                      className="i2"
+                    />
+                  </>
+                )}
+              </a>
+            </div>
+            <div className="w-full grow overflow-y-auto top-sidebar">
+              <div className="py-6 overflow-hidden menus">
                 <div className="sidebar-menu">
                   <Button
                     component="a"
                     variant="plain"
-                    aria-label="Settings"
+                    aria-label="New Prompt"
                     href="/html/home"
                     sx={{
                       pl: 0,
@@ -584,166 +290,630 @@ const Detail = () => {
                       py: 0,
                       justifyContent: "flex-start",
                       fontFamily: "var(--font)",
-                      color: "var(--cl-main)",
+                      color: "var(--cl-neutral-80)",
                       borderRadius: "20px",
                       "&.MuiButton-root:hover": {
-                        background: "#fff",
+                        background: "var(--cl-surface-container-lowest)",
                       },
                     }}
                     className="w-full sidebar-btn"
                   >
                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                       <span className="material-symbols-outlined">
-                        settings
+                        add_circle
                       </span>
                     </span>
                     <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      Settings
+                      New Prompt
                     </span>
                   </Button>
                 </div>
-                <div className="mt-2 mb-3 profile">
-                  <button
-                    type="button"
-                    className="flex items-center info-account"
-                    onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-                      setPopoverAccount({
-                        ...popoverAccount,
-                        anchorEl: event.currentTarget,
-                      })
-                    }
-                    aria-describedby="descriptionPopover"
-                    aria-haspopup="true"
-                  >
-                    <Avatar
-                      alt="Avatar"
-                      src="https://mui.com/static/images/avatar/3.jpg"
-                      sx={{ "--Avatar-size": "2.25rem" }}
-                    />
-                    <p className="whitespace-nowrap opacity-transition pl-2 name">
-                      daole.ci1985@gmail.com
-                    </p>
-                  </button>
-                  <Popover
-                    id="descriptionPopover"
-                    open={Boolean(popoverAccount.anchorEl)}
-                    onClose={() =>
-                      setPopoverAccount({ ...popoverAccount, anchorEl: null })
-                    }
-                    anchorEl={popoverAccount.anchorEl}
-                    disableRestoreFocus
-                    anchorOrigin={{
-                      vertical: "top",
-                      horizontal: "left",
-                    }}
-                    transformOrigin={{
-                      vertical: "bottom",
-                      horizontal: "left",
-                    }}
+                <div className="sidebar-menu">
+                  <Button
+                    component="a"
+                    variant="plain"
+                    aria-label="My Library"
+                    href="/html/library"
                     sx={{
-                      "& .MuiPaper-root": {
-                        borderRadius: "8px",
+                      pl: 0,
+                      pr: 1,
+                      py: 0,
+                      justifyContent: "flex-start",
+                      fontFamily: "var(--font)",
+                      color: "var(--cl-neutral-80)",
+                      borderRadius: "20px",
+                      "&.MuiButton-root:hover": {
+                        background: "var(--cl-surface-container-lowest)",
                       },
                     }}
+                    className="w-full sidebar-btn active"
                   >
-                    {popoverAccount.child}
-                  </Popover>
+                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined">
+                        home_storage
+                      </span>
+                    </span>
+                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
+                      My Library
+                    </span>
+                  </Button>
                 </div>
-                <div className="hide-mb btn-click-menu">
-                  {toggleSidebarLeft ? (
-                    <IconButton
+                <div className="pl-6 recent-post">
+                  <div className="sidebar-menu">
+                    <Button
+                      component="a"
                       variant="plain"
-                      onClick={handleClickSidebarLeft}
-                      className="w-8 h-8 flex items-center justify-center transition"
+                      aria-label="Croissant Recipe in JSON"
+                      href="/html/library/detail"
                       sx={{
-                        borderRadius: "9999px",
-                        minWidth: "32px",
-                        minHeight: "32px",
-                        "&.MuiIconButton-root:hover": { bgcolor: "#e5e7eb" },
+                        pl: 0,
+                        pr: 1,
+                        py: 0,
+                        justifyContent: "flex-start",
+                        fontFamily: "var(--font)",
+                        color: "var(--cl-neutral-80)",
+                        borderRadius: "20px",
+                        "&.MuiButton-root:hover": {
+                          background: "var(--cl-surface-container-lowest)",
+                        },
                       }}
+                      className="w-full sidebar-btn"
                     >
-                      <span className="material-symbols-outlined">
-                        chevron_left
+                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined">
+                          chat_bubble
+                        </span>
                       </span>
-                    </IconButton>
-                  ) : (
-                    <IconButton
+                      <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
+                        Croissant Recipe in JSON
+                      </span>
+                    </Button>
+                  </div>
+                  <div className="sidebar-menu">
+                    <Button
+                      component="a"
                       variant="plain"
-                      onClick={handleClickSidebarLeft}
-                      className="w-8 h-8 flex items-center justify-center transition"
+                      aria-label="Croissant Recipe: JSON Format"
+                      href="/html/library/detail"
                       sx={{
-                        borderRadius: "9999px",
-                        minWidth: "32px",
-                        minHeight: "32px",
-                        "&.MuiIconButton-root:hover": { bgcolor: "#e5e7eb" },
+                        pl: 0,
+                        pr: 1,
+                        py: 0,
+                        justifyContent: "flex-start",
+                        fontFamily: "var(--font)",
+                        color: "var(--cl-neutral-80)",
+                        borderRadius: "20px",
+                        "&.MuiButton-root:hover": {
+                          background: "var(--cl-surface-container-lowest)",
+                        },
                       }}
+                      className="w-full sidebar-btn"
                     >
-                      <span className="material-symbols-outlined">
-                        chevron_right
+                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined">
+                          chat_bubble
+                        </span>
                       </span>
-                    </IconButton>
-                  )}
+                      <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
+                        Croissant Recipe: JSON Format
+                      </span>
+                    </Button>
+                  </div>
+                  <div className="sidebar-menu">
+                    <Button
+                      component="a"
+                      variant="plain"
+                      aria-label="Write an article about include relevant statistics
+                            (add the links of the sources you use) and consider
+                            diverse perspectives"
+                      href="/html/library/detail"
+                      sx={{
+                        pl: 0,
+                        pr: 1,
+                        py: 0,
+                        justifyContent: "flex-start",
+                        fontFamily: "var(--font)",
+                        color: "var(--cl-neutral-80)",
+                        borderRadius: "20px",
+                        "&.MuiButton-root:hover": {
+                          background: "var(--cl-surface-container-lowest)",
+                        },
+                      }}
+                      className="w-full sidebar-btn"
+                    >
+                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined">
+                          chat_bubble
+                        </span>
+                      </span>
+                      <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
+                        Write an article about include relevant statistics (add
+                        the links of the sources you use) and consider diverse
+                        perspectives
+                      </span>
+                    </Button>
+                  </div>
+                  <div className="sidebar-menu">
+                    <Button
+                      component="a"
+                      variant="plain"
+                      aria-label="View more"
+                      href="/html/library"
+                      sx={{
+                        pl: 1.25,
+                        pr: 1,
+                        py: 0,
+                        justifyContent: "flex-start",
+                        fontFamily: "var(--font)",
+                        color: "var(--cl-neutral-80)",
+                        borderRadius: "20px",
+                        "&.MuiButton-root:hover": {
+                          background: "var(--cl-surface-container-lowest)",
+                        },
+                      }}
+                      className="w-full sidebar-btn"
+                    >
+                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name more">
+                        View all
+                      </span>
+                    </Button>
+                  </div>
+                </div>
+                <div className="sidebar-menu">
+                  <Button
+                    component="a"
+                    variant="plain"
+                    aria-label="My Connectors"
+                    href="/html/connectors"
+                    sx={{
+                      pl: 0,
+                      pr: 1,
+                      py: 0,
+                      justifyContent: "flex-start",
+                      fontFamily: "var(--font)",
+                      color: "var(--cl-neutral-80)",
+                      borderRadius: "20px",
+                      "&.MuiButton-root:hover": {
+                        background: "var(--cl-surface-container-lowest)",
+                      },
+                    }}
+                    className="w-full sidebar-btn"
+                  >
+                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined">share</span>
+                    </span>
+                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
+                      My Connectors
+                    </span>
+                  </Button>
                 </div>
               </div>
             </div>
-          </aside>
-        )}
-        <div className="grow flex flex-col h-screen">
-          <nav className="w-full h-16 bg-white relative z-50">
-            <div className="h-full px-6 py-3 flex items-center justify-between border-b border-solid border-gray-300 bar">
-              <div className="flex items-center gap-x-2 bar-left">
-                <h1 className="text-2xl font-normal heading-title">
-                  Untitled prompt
-                </h1>
-                <Tooltip
-                  componentsProps={{
-                    tooltip: {
-                      sx: {
-                        maxWidth: "12rem",
-                        backgroundColor: "var(--cl-neutral-8)",
-                        fontFamily: "var(--font)",
-                        color: "var(--cl-neutral-80)",
-                      },
+            <div className="w-full pt-2 pb-4 border-t border-solid border-color bot-sidebar">
+              <div className="sidebar-menu">
+                <Button
+                  component="a"
+                  variant="plain"
+                  aria-label="Settings"
+                  href="/html/settings"
+                  sx={{
+                    pl: 0,
+                    pr: 1,
+                    py: 0,
+                    justifyContent: "flex-start",
+                    fontFamily: "var(--font)",
+                    color: "var(--cl-neutral-80)",
+                    borderRadius: "20px",
+                    "&.MuiButton-root:hover": {
+                      background: "var(--cl-surface-container-lowest)",
                     },
                   }}
-                  placement="right"
-                  title="Edit title and description"
+                  className="w-full sidebar-btn"
                 >
+                  <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined">settings</span>
+                  </span>
+                  <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
+                    Settings
+                  </span>
+                </Button>
+              </div>
+              <div className="mt-2 mb-3 profile">
+                <button
+                  type="button"
+                  className="flex items-center info-account"
+                  onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+                    setPopoverAccount({
+                      ...popoverAccount,
+                      anchorEl: event.currentTarget,
+                    })
+                  }
+                  aria-describedby="descriptionPopover"
+                  aria-haspopup="true"
+                >
+                  <Avatar
+                    alt="Avatar"
+                    src="https://mui.com/static/images/avatar/3.jpg"
+                    sx={{ "--Avatar-size": "2.25rem" }}
+                  />
+                  <p className="whitespace-nowrap opacity-transition pl-2 name">
+                    daole.ci1985@gmail.com
+                  </p>
+                </button>
+                <Popover
+                  id="descriptionPopover"
+                  open={Boolean(popoverAccount.anchorEl)}
+                  onClose={() =>
+                    setPopoverAccount({ ...popoverAccount, anchorEl: null })
+                  }
+                  anchorEl={popoverAccount.anchorEl}
+                  disableRestoreFocus
+                  anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  sx={{
+                    "& .MuiPaper-root": {
+                      borderRadius: "8px",
+                      bgcolor: "var(--cl-bg-dropdown)",
+                    },
+                  }}
+                >
+                  {popoverAccount.child}
+                </Popover>
+              </div>
+              <div className="btn-click-menu">
+                {isMobile && (
                   <IconButton
                     variant="plain"
-                    onClick={() => setShowModalEditHeading(true)}
+                    onClick={handleClickSidebarLeft}
+                    className="w-8 h-8 flex items-center justify-center transition"
                     sx={{
-                      minWidth: "40px",
-                      minHeight: "40px",
-                      borderRadius: "100%",
-                      "&:hover": {
-                        background: "var(--bg-color)",
+                      borderRadius: "9999px",
+                      minWidth: "32px",
+                      minHeight: "32px",
+                      color: "var(--cl-primary)",
+                      "&.MuiIconButton-root:hover": {
+                        bgcolor: "var(--cl-neutral-20)",
+                        color: "var(--cl-primary)",
                       },
                     }}
                   >
-                    <span className="material-symbols-outlined">edit</span>
+                    <span className="material-symbols-outlined">
+                      chevron_left
+                    </span>
                   </IconButton>
-                </Tooltip>
+                )}
+                {!isMobile && (
+                  <div>
+                    {toggleSidebarLeft ? (
+                      <IconButton
+                        variant="plain"
+                        onClick={handleClickSidebarLeft}
+                        className="w-8 h-8 flex items-center justify-center transition"
+                        sx={{
+                          borderRadius: "9999px",
+                          minWidth: "32px",
+                          minHeight: "32px",
+                          color: "var(--cl-primary)",
+                          "&.MuiIconButton-root:hover": {
+                            bgcolor: "var(--cl-neutral-20)",
+                            color: "var(--cl-primary)",
+                          },
+                        }}
+                      >
+                        <span className="material-symbols-outlined">
+                          chevron_left
+                        </span>
+                      </IconButton>
+                    ) : (
+                      <IconButton
+                        variant="plain"
+                        onClick={handleClickSidebarLeft}
+                        className="w-8 h-8 flex items-center justify-center transition"
+                        sx={{
+                          borderRadius: "9999px",
+                          minWidth: "32px",
+                          minHeight: "32px",
+                          color: "var(--cl-primary)",
+                          "&.MuiIconButton-root:hover": {
+                            bgcolor: "var(--cl-neutral-20)",
+                            color: "var(--cl-primary)",
+                          },
+                        }}
+                      >
+                        <span className="material-symbols-outlined">
+                          chevron_right
+                        </span>
+                      </IconButton>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </aside>
+        <div className="grow flex flex-col h-screen overflow-hidden">
+          <nav className="w-full h-16 relative z-50">
+            <div className="h-full px-3 lg:px-6 py-3 flex items-center justify-between gap-x-3 border-b border-solid bar">
+              <div className="flex items-center gap-x-2 overflow-hidden bar-left">
+                {isMobile && (
+                  <div className="btn-click-menu">
+                    <IconButton
+                      variant="plain"
+                      onClick={handleClickSidebarLeft}
+                      sx={{
+                        mr: 0.5,
+                        minWidth: "40px",
+                        minHeight: "40px",
+                        borderRadius: "100%",
+                        color: "var(--cl-primary)",
+                        "&:hover": {
+                          background: "var(--bg-color)",
+                          color: "var(--cl-primary)",
+                        },
+                      }}
+                    >
+                      <span className="material-symbols-outlined">menu</span>
+                    </IconButton>
+                  </div>
+                )}
+                <div className="hidden sm:flex sm:items-center gap-x-2 overflow-hidden">
+                  <h1 className="text-2xl font-normal truncate heading-title">
+                    Dockerfile for Python 3.10 Environment
+                  </h1>
+                  <Tooltip
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          maxWidth: "12rem",
+                          bgcolor: "var(--cl-neutral-8)",
+                          fontFamily: "var(--font)",
+                          color: "var(--cl-neutral-80)",
+                        },
+                      },
+                    }}
+                    placement="right"
+                    title="Edit title and description"
+                  >
+                    <IconButton
+                      variant="plain"
+                      onClick={() => setShowModalEditHeading(true)}
+                      sx={{
+                        minWidth: "40px",
+                        minHeight: "40px",
+                        borderRadius: "100%",
+                        color: "var(--cl-primary)",
+                        "&:hover": {
+                          background: "var(--bg-color)",
+                          color: "var(--cl-primary)",
+                        },
+                      }}
+                    >
+                      <span className="material-symbols-outlined">edit</span>
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="grow max-w-xs sm:hidden">
+                <FormControl className="w-full px-4">
+                  <Select
+                    indicator={<ArrowDropDownOutlined />}
+                    className="w-full custom-select"
+                    name="select-models"
+                    placeholder="Select Models"
+                    defaultValue="chatgpt"
+                    sx={{
+                      fontFamily: "var(--font)",
+                      fontSize: "0.875rem",
+                      "& .MuiSelect-button": {
+                        opacity: 1,
+                      },
+                      [`& .${selectClasses.indicator}`]: {
+                        transition: "0.2s",
+                        color: "var(--cl-primary)",
+                        [`&.${selectClasses.expanded}`]: {
+                          transform: "rotate(-180deg)",
+                        },
+                      },
+                    }}
+                    slotProps={{
+                      listbox: {
+                        sx: {
+                          py: 0,
+                          borderColor: "#e2e2e5",
+                          borderRadius: "8px",
+                          width: "100%",
+                          fontFamily: "var(--font)",
+                          fontSize: "0.875rem",
+                          "& .MuiOption-root.Mui-selected": {
+                            bgcolor: "#f5f5f5",
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    <Option value="chatgpt">ChatGPT 4o-mini</Option>
+                    <Option value="germini">Germini 1.5</Option>
+                  </Select>
+                </FormControl>
               </div>
               <div className="bar-right">
-                <Button
-                  variant="plain"
-                  sx={{
-                    px: 1,
-                    fontFamily: "var(--font)",
-                    fontWeight: 400,
-                    color: "var(--cl-main)",
-                    lineHeight: "24px",
-                    borderRadius: "8px",
-                    "&:hover": {
-                      background: "#d3d4d4",
-                    },
-                  }}
-                  className="gap-x-1.5 transition font-medium"
-                >
-                  <span className="material-symbols-outlined">save</span>
-                  Save
-                </Button>
+                {!isMobile && (
+                  <div className="flex items-center gap-x-3">
+                    <div className="btn-save">
+                      <Button
+                        variant="plain"
+                        sx={{
+                          px: 1,
+                          fontFamily: "var(--font)",
+                          fontWeight: 400,
+                          color: "var(--cl-primary)",
+                          lineHeight: "24px",
+                          borderRadius: "8px",
+                          "&:hover": {
+                            background: "var(--bg-color)",
+                          },
+                        }}
+                        className="gap-x-1.5 transition font-medium"
+                      >
+                        <span className="material-symbols-outlined">save</span>
+                        Save
+                      </Button>
+                    </div>
+                    <Dropdown>
+                      <Tooltip
+                        componentsProps={{
+                          tooltip: {
+                            sx: {
+                              maxWidth: "12rem",
+                              bgcolor: "var(--cl-neutral-8)",
+                              fontFamily: "var(--font)",
+                              color: "var(--cl-neutral-80)",
+                            },
+                          },
+                        }}
+                        placement="left"
+                        title="Open menu options"
+                      >
+                        <MenuButton
+                          className="flex items-center justify-center w-10 h-10"
+                          sx={{
+                            p: 0,
+                            border: "none",
+                            borderRadius: "100%",
+                            minHeight: "40px",
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--bg-color)",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            more_vert
+                          </span>
+                        </MenuButton>
+                      </Tooltip>
+                      <Menu
+                        placement="bottom-end"
+                        className="dropdown-menu"
+                        sx={{
+                          py: 0,
+                          bgcolor: "var(--cl-bg-dropdown)",
+                          borderColor: "var(--cl-neutral-8)",
+                        }}
+                      >
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            save
+                          </span>
+                          Save
+                        </MenuItem>
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            share
+                          </span>
+                          Share
+                        </MenuItem>
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            assignment
+                          </span>
+                          Terms of service
+                        </MenuItem>
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            shield_person
+                          </span>
+                          Privacy policy
+                        </MenuItem>
+                      </Menu>
+                    </Dropdown>
+                  </div>
+                )}
+                {isMobile && (
+                  <div className="btn-click-menu">
+                    <IconButton
+                      variant="plain"
+                      onClick={handleClickSidebarRight}
+                      className="w-8 h-8 flex items-center justify-center transition"
+                      sx={{
+                        borderRadius: "9999px",
+                        minWidth: "40px",
+                        minHeight: "40px",
+                        color: "var(--cl-primary)",
+                        "&.MuiIconButton-root:hover": {
+                          bgcolor: "var(--bg-color)",
+                          color: "var(--cl-primary)",
+                        },
+                      }}
+                    >
+                      <span className="material-symbols-outlined">
+                        settings
+                      </span>
+                    </IconButton>
+                  </div>
+                )}
               </div>
             </div>
           </nav>
@@ -768,7 +938,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -799,7 +969,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -834,7 +1004,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -850,6 +1020,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -863,7 +1038,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -879,6 +1054,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -893,7 +1073,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -909,6 +1089,11 @@ const Detail = () => {
                                     borderRadius: "100%",
                                     minWidth: "24px",
                                     minHeight: "24px",
+                                    color: "var(--cl-neutral-80)",
+                                    ":hover": {
+                                      background: "var(--cl-neutral-8)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
                                   }}
                                   className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   onClick={() => handleClickEditPrompt()}
@@ -925,7 +1110,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -941,6 +1126,11 @@ const Detail = () => {
                                     borderRadius: "100%",
                                     minWidth: "24px",
                                     minHeight: "24px",
+                                    color: "var(--cl-neutral-80)",
+                                    ":hover": {
+                                      background: "var(--cl-neutral-8)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
                                   }}
                                   className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   onClick={() => handleClickCancelPrompt()}
@@ -956,7 +1146,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -972,6 +1162,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -1097,7 +1292,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1128,7 +1323,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1163,7 +1358,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -1179,6 +1374,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -1192,7 +1392,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -1208,6 +1408,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -1222,7 +1427,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1238,6 +1443,11 @@ const Detail = () => {
                                     borderRadius: "100%",
                                     minWidth: "24px",
                                     minHeight: "24px",
+                                    color: "var(--cl-neutral-80)",
+                                    ":hover": {
+                                      background: "var(--cl-neutral-8)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
                                   }}
                                   className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   onClick={() => handleClickEditPrompt()}
@@ -1254,7 +1464,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1270,6 +1480,11 @@ const Detail = () => {
                                     borderRadius: "100%",
                                     minWidth: "24px",
                                     minHeight: "24px",
+                                    color: "var(--cl-neutral-80)",
+                                    ":hover": {
+                                      background: "var(--cl-neutral-8)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
                                   }}
                                   className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   onClick={() => handleClickCancelPrompt()}
@@ -1285,7 +1500,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -1301,6 +1516,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -1327,7 +1547,7 @@ const Detail = () => {
                                     tooltip: {
                                       sx: {
                                         maxWidth: "12rem",
-                                        backgroundColor: "var(--cl-neutral-8)",
+                                        bgcolor: "var(--cl-neutral-8)",
                                         fontFamily: "var(--font)",
                                         color: "var(--cl-neutral-80)",
                                       },
@@ -1340,7 +1560,7 @@ const Detail = () => {
                                     aria-label="Remove image"
                                     sx={{
                                       borderRadius: "100%",
-                                      backgroundColor: "var(--cl-neutral-60)",
+                                      bgcolor: "var(--cl-neutral-60)",
                                       color: "#FFF",
                                       minWidth: "24px",
                                       minHeight: "24px",
@@ -1373,7 +1593,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1404,7 +1624,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1439,7 +1659,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -1455,6 +1675,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -1468,7 +1693,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -1484,6 +1709,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -1498,7 +1728,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1514,6 +1744,11 @@ const Detail = () => {
                                     borderRadius: "100%",
                                     minWidth: "24px",
                                     minHeight: "24px",
+                                    color: "var(--cl-neutral-80)",
+                                    ":hover": {
+                                      background: "var(--cl-neutral-8)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
                                   }}
                                   className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   onClick={() => handleClickEditPrompt()}
@@ -1530,7 +1765,7 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1546,6 +1781,11 @@ const Detail = () => {
                                     borderRadius: "100%",
                                     minWidth: "24px",
                                     minHeight: "24px",
+                                    color: "var(--cl-neutral-80)",
+                                    ":hover": {
+                                      background: "var(--cl-neutral-8)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
                                   }}
                                   className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   onClick={() => handleClickCancelPrompt()}
@@ -1561,7 +1801,7 @@ const Detail = () => {
                                 tooltip: {
                                   sx: {
                                     maxWidth: "12rem",
-                                    backgroundColor: "var(--cl-neutral-8)",
+                                    bgcolor: "var(--cl-neutral-8)",
                                     fontFamily: "var(--font)",
                                     color: "var(--cl-neutral-80)",
                                   },
@@ -1577,6 +1817,11 @@ const Detail = () => {
                                   borderRadius: "100%",
                                   minWidth: "24px",
                                   minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
                               >
@@ -2008,32 +2253,35 @@ const Detail = () => {
                               </pre>
                             </div>
                             <div
-                              className="flex items-center justify-between bg-white pr-4"
-                              style={{ fontSize: "0.7rem" }}
+                              className="flex items-center justify-between pr-4 note-highlighted-code"
+                              style={{
+                                fontSize: "0.7rem",
+                              }}
                             >
                               <Tooltip
                                 componentsProps={{
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      backgroundColor: "var(--cl-neutral-8)",
+                                      bgcolor: "var(--cl-neutral-8)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
                                   },
                                 }}
-                                placement="right"
+                                placement="bottom"
                                 title="Copy to clipboard"
                               >
                                 <IconButton
                                   variant="plain"
-                                  onClick={() => setShowModalEditHeading(true)}
                                   sx={{
                                     minWidth: "40px",
                                     minHeight: "40px",
                                     borderRadius: "100%",
+                                    color: "var(--cl-primary)",
                                     "&:hover": {
-                                      background: "var(--bg-color)",
+                                      background: "var(--cl-neutral-8)",
+                                      color: "var(--cl-primary)",
                                     },
                                   }}
                                 >
@@ -2064,10 +2312,7 @@ const Detail = () => {
               </div>
               <div className="py-4 chat-prompt">
                 <div className="px-4 lg:px-6">
-                  <div
-                    className="w-full pl-6 py-2 border border-solid rounded-4xl overflow-hidden flex items-end justify-between actions-prompt"
-                    ref={promptRef}
-                  >
+                  <div className="w-full pl-6 py-2 border border-solid rounded-4xl overflow-hidden flex items-end justify-between actions-prompt">
                     <div className="grow max-h-28 overflow-y-auto pb-1.5 type-prompt">
                       <ContentEditable
                         onChange={onContentChange}
@@ -2085,12 +2330,13 @@ const Detail = () => {
                             tooltip: {
                               sx: {
                                 maxWidth: "12rem",
-                                backgroundColor: "var(--cl-neutral-8)",
+                                bgcolor: "var(--cl-neutral-8)",
                                 fontFamily: "var(--font)",
                                 color: "var(--cl-neutral-80)",
                               },
                             },
                           }}
+                          placement="left"
                           title="Insert assets such as images, videos, folders, files, or audio"
                         >
                           <MenuButton
@@ -2100,6 +2346,10 @@ const Detail = () => {
                               border: "none",
                               borderRadius: "100%",
                               minHeight: "36px",
+                              color: "var(--cl-primary)",
+                              "&:hover": {
+                                background: "var(--bg-color)",
+                              },
                             }}
                           >
                             <span
@@ -2111,10 +2361,12 @@ const Detail = () => {
                           </MenuButton>
                         </Tooltip>
                         <Menu
-                          placement="bottom-end"
+                          placement="bottom-start"
                           className="dropdown-menu"
                           sx={{
                             py: 0,
+                            bgcolor: "var(--cl-bg-dropdown)",
+                            borderColor: "var(--cl-neutral-8)",
                           }}
                         >
                           <Tooltip
@@ -2122,7 +2374,7 @@ const Detail = () => {
                               tooltip: {
                                 sx: {
                                   maxWidth: "12rem",
-                                  backgroundColor: "var(--cl-neutral-8)",
+                                  bgcolor: "var(--cl-neutral-8)",
                                   fontFamily: "var(--font)",
                                   color: "var(--cl-neutral-80)",
                                 },
@@ -2139,9 +2391,11 @@ const Detail = () => {
                                 minHeight: "auto",
                                 fontSize: 15,
                                 gap: 1.25,
+                                color: "var(--cl-primary)",
                                 "&:hover": {
-                                  background: "#F6F6F6!important",
-                                  color: "#000!important",
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
                                 },
                               }}
                             >
@@ -2156,7 +2410,7 @@ const Detail = () => {
                               tooltip: {
                                 sx: {
                                   maxWidth: "12rem",
-                                  backgroundColor: "var(--cl-neutral-8)",
+                                  bgcolor: "var(--cl-neutral-8)",
                                   fontFamily: "var(--font)",
                                   color: "var(--cl-neutral-80)",
                                 },
@@ -2173,9 +2427,11 @@ const Detail = () => {
                                 minHeight: "auto",
                                 fontSize: 15,
                                 gap: 1.25,
+                                color: "var(--cl-primary)",
                                 "&:hover": {
-                                  background: "#F6F6F6!important",
-                                  color: "#000!important",
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
                                 },
                               }}
                             >
@@ -2193,9 +2449,11 @@ const Detail = () => {
                               minHeight: "auto",
                               fontSize: 15,
                               gap: 1.25,
+                              color: "var(--cl-primary)",
                               "&:hover": {
-                                background: "#F6F6F6!important",
-                                color: "#000!important",
+                                background:
+                                  "var(--cl-item-dropdown) !important",
+                                color: "var(--cl-primary) !important",
                               },
                             }}
                           >
@@ -2212,9 +2470,11 @@ const Detail = () => {
                               minHeight: "auto",
                               fontSize: 15,
                               gap: 1.25,
+                              color: "var(--cl-primary)",
                               "&:hover": {
-                                background: "#F6F6F6!important",
-                                color: "#000!important",
+                                background:
+                                  "var(--cl-item-dropdown) !important",
+                                color: "var(--cl-primary) !important",
                               },
                             }}
                           >
@@ -2231,9 +2491,11 @@ const Detail = () => {
                               minHeight: "auto",
                               fontSize: 15,
                               gap: 1.25,
+                              color: "var(--cl-primary)",
                               "&:hover": {
-                                background: "#F6F6F6!important",
-                                color: "#000!important",
+                                background:
+                                  "var(--cl-item-dropdown) !important",
+                                color: "var(--cl-primary) !important",
                               },
                             }}
                           >
@@ -2249,7 +2511,7 @@ const Detail = () => {
                           tooltip: {
                             sx: {
                               maxWidth: "12rem",
-                              backgroundColor: "var(--cl-neutral-8)",
+                              bgcolor: "var(--cl-neutral-8)",
                               fontFamily: "var(--font)",
                               color: "var(--cl-neutral-80)",
                             },
@@ -2259,7 +2521,7 @@ const Detail = () => {
                       >
                         <button
                           type="button"
-                          className="flex items-center justify-center gap-x-2 px-1 md:pl-3 md:pr-5 h-8 md:h-9 rounded-3xl transition text-white font-medium btn-color"
+                          className="flex items-center justify-center gap-x-2 px-1 md:pl-3 md:pr-5 h-8 md:h-9 rounded-3xl transition font-medium btn-color"
                           onClick={() => router.push("/html/library/detail")}
                         >
                           <svg
@@ -2270,7 +2532,7 @@ const Detail = () => {
                           >
                             <path
                               d="M12 21.5C12 20.1833 11.75 18.95 11.25 17.8C10.75 16.6333 10.075 15.625 9.225 14.775C8.375 13.925 7.36667 13.25 6.2 12.75C5.05 12.25 3.81667 12 2.5 12C3.81667 12 5.05 11.75 6.2 11.25C7.36667 10.75 8.375 10.075 9.225 9.225C10.075 8.375 10.75 7.375 11.25 6.225C11.75 5.05833 12 3.81667 12 2.5C12 3.81667 12.25 5.05833 12.75 6.225C13.25 7.375 13.925 8.375 14.775 9.225C15.625 10.075 16.625 10.75 17.775 11.25C18.9417 11.75 20.1833 12 21.5 12C20.1833 12 18.9417 12.25 17.775 12.75C16.625 13.25 15.625 13.925 14.775 14.775C13.925 15.625 13.25 16.6333 12.75 17.8C12.25 18.95 12 20.1833 12 21.5Z"
-                              fill="#FFF"
+                              fill="var(--bg-body)"
                             ></path>
                           </svg>
                           <span className="hidden md:inline-block">Run</span>
@@ -2282,31 +2544,158 @@ const Detail = () => {
               </div>
             </div>
             <aside
-              className={
-                toggleSidebarRight
-                  ? "flex-shrink-0 expanded sidebar"
-                  : "flex-shrink-0 compact sidebar"
-              }
+              className={`flex-shrink-0 sidebar ${
+                toggleSidebarRight ? "expanded" : "compact"
+              }`}
               id="sidebar-right"
             >
-              <div className="w-full h-full flex flex-col justify-between inner">
-                <div className="h-11 border-b border-solid border-gray-300 flex items-center justify-between">
-                  <h2 className="text-base font-medium">Run settings</h2>
+              <div
+                className="w-full h-full flex flex-col justify-between inner"
+                ref={isMobile ? sideRightRef : refNull}
+              >
+                <div className="h-11 border-b border-solid border-gray-300 flex items-center justify-between whitespace-nowrap">
+                  <h2 className="grow text-base font-medium">Run settings</h2>
                   <Button
                     variant="plain"
                     sx={{
                       fontFamily: "var(--font)",
                       fontWeight: 400,
-                      color: "var(--cl-main)",
+                      color: "var(--cl-primary)",
                       borderRadius: "8px",
                       minHeight: "32px",
                       "&:hover": {
-                        background: "#d3d4d4",
+                        background: "var(--bg-color)",
                       },
                     }}
                   >
                     Reset
                   </Button>
+                  {isMobile && (
+                    <Dropdown>
+                      <Tooltip
+                        componentsProps={{
+                          tooltip: {
+                            sx: {
+                              maxWidth: "12rem",
+                              bgcolor: "var(--cl-neutral-8)",
+                              fontFamily: "var(--font)",
+                              color: "var(--cl-neutral-80)",
+                            },
+                          },
+                        }}
+                        placement="left"
+                        title="Open menu options"
+                      >
+                        <MenuButton
+                          className="flex items-center justify-center w-10 h-10"
+                          sx={{
+                            p: 0,
+                            border: "none",
+                            borderRadius: "100%",
+                            minHeight: "40px",
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--bg-color)",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            more_vert
+                          </span>
+                        </MenuButton>
+                      </Tooltip>
+                      <Menu
+                        placement="bottom-end"
+                        className="dropdown-menu"
+                        sx={{
+                          py: 0,
+                          bgcolor: "var(--cl-bg-dropdown)",
+                          borderColor: "var(--cl-neutral-8)",
+                        }}
+                      >
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            save
+                          </span>
+                          Save
+                        </MenuItem>
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            share
+                          </span>
+                          Share
+                        </MenuItem>
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            assignment
+                          </span>
+                          Terms of service
+                        </MenuItem>
+                        <MenuItem
+                          className="flex"
+                          sx={{
+                            background: "none",
+                            p: 1.25,
+                            minHeight: "auto",
+                            fontSize: 15,
+                            gap: 1.25,
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            shield_person
+                          </span>
+                          Privacy policy
+                        </MenuItem>
+                      </Menu>
+                    </Dropdown>
+                  )}
                 </div>
                 <div className="w-full grow overflow-y-auto top-sidebar">
                   <div className="py-4 overflow-hidden settings">
@@ -2325,7 +2714,7 @@ const Detail = () => {
                               className="w-full custom-select"
                               name="select-models"
                               placeholder="Select Models"
-                              defaultValue={"chatgpt"}
+                              defaultValue="chatgpt"
                               sx={{
                                 fontFamily: "var(--font)",
                                 fontSize: "0.875rem",
@@ -2334,7 +2723,7 @@ const Detail = () => {
                                 },
                                 [`& .${selectClasses.indicator}`]: {
                                   transition: "0.2s",
-                                  color: "var(--cl-main)",
+                                  color: "var(--cl-primary)",
                                   [`&.${selectClasses.expanded}`]: {
                                     transform: "rotate(-180deg)",
                                   },
@@ -2344,13 +2733,23 @@ const Detail = () => {
                                 listbox: {
                                   sx: {
                                     py: 0,
-                                    borderColor: "#e2e2e5",
+                                    border: "none",
+                                    bgcolor: "var(--cl-bg-dropdown)",
                                     borderRadius: "8px",
                                     width: "100%",
                                     fontFamily: "var(--font)",
                                     fontSize: "0.875rem",
+                                    "& .MuiOption-root": {
+                                      color: "var(--cl-primary)",
+                                    },
+                                    "& .MuiOption-root:hover": {
+                                      bgcolor:
+                                        "var(--cl-item-dropdown)!important",
+                                      color: "var(--cl-primary)!important",
+                                    },
                                     "& .MuiOption-root.Mui-selected": {
-                                      bgcolor: "#f5f5f5",
+                                      bgcolor: "var(--cl-item-dropdown)",
+                                      color: "var(--cl-primary-70)!important",
                                     },
                                   },
                                 },
@@ -2374,7 +2773,7 @@ const Detail = () => {
                               className="w-full custom-select"
                               name="select-company"
                               placeholder="Select Company"
-                              defaultValue={"caready"}
+                              defaultValue="caready"
                               sx={{
                                 fontFamily: "var(--font)",
                                 fontSize: "0.875rem",
@@ -2383,7 +2782,7 @@ const Detail = () => {
                                 },
                                 [`& .${selectClasses.indicator}`]: {
                                   transition: "0.2s",
-                                  color: "var(--cl-main)",
+                                  color: "var(--cl-primary)",
                                   [`&.${selectClasses.expanded}`]: {
                                     transform: "rotate(-180deg)",
                                   },
@@ -2393,13 +2792,23 @@ const Detail = () => {
                                 listbox: {
                                   sx: {
                                     py: 0,
-                                    borderColor: "#e2e2e5",
+                                    border: "none",
+                                    bgcolor: "var(--cl-bg-dropdown)",
                                     borderRadius: "8px",
                                     width: "100%",
                                     fontFamily: "var(--font)",
                                     fontSize: "0.875rem",
+                                    "& .MuiOption-root": {
+                                      color: "var(--cl-primary)",
+                                    },
+                                    "& .MuiOption-root:hover": {
+                                      bgcolor:
+                                        "var(--cl-item-dropdown)!important",
+                                      color: "var(--cl-primary)!important",
+                                    },
                                     "& .MuiOption-root.Mui-selected": {
-                                      bgcolor: "#f5f5f5",
+                                      bgcolor: "var(--cl-item-dropdown)",
+                                      color: "var(--cl-primary-70)!important",
                                     },
                                   },
                                 },
@@ -2435,7 +2844,7 @@ const Detail = () => {
                                   },
                                   [`& .${selectClasses.indicator}`]: {
                                     transition: "0.2s",
-                                    color: "var(--cl-main)",
+                                    color: "var(--cl-primary)",
                                     [`&.${selectClasses.expanded}`]: {
                                       transform: "rotate(-180deg)",
                                     },
@@ -2445,13 +2854,23 @@ const Detail = () => {
                                   listbox: {
                                     sx: {
                                       py: 0,
-                                      borderColor: "#e2e2e5",
+                                      border: "none",
+                                      bgcolor: "var(--cl-bg-dropdown)",
                                       borderRadius: "8px",
                                       width: "100%",
                                       fontFamily: "var(--font)",
                                       fontSize: "0.875rem",
+                                      "& .MuiOption-root": {
+                                        color: "var(--cl-primary)",
+                                      },
+                                      "& .MuiOption-root:hover": {
+                                        bgcolor:
+                                          "var(--cl-item-dropdown)!important",
+                                        color: "var(--cl-primary)!important",
+                                      },
                                       "& .MuiOption-root.Mui-selected": {
-                                        bgcolor: "#f5f5f5",
+                                        bgcolor: "var(--cl-item-dropdown)",
+                                        color: "var(--cl-primary-70)!important",
                                       },
                                     },
                                   },
@@ -2483,14 +2902,16 @@ const Detail = () => {
                                     fontSize: "0.875rem",
                                     "&.MuiRadio-root": {
                                       gap: "6px",
+                                      color: "var(--cl-primary)",
                                     },
                                     "& .MuiRadio-radio": {
-                                      borderColor: "var(--cl-main)",
+                                      background: "none",
+                                      borderColor: "var(--cl-primary)",
                                       ":hover": {
                                         background: "none",
                                       },
                                       "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-main)",
+                                        bgcolor: "var(--cl-primary)",
                                       },
                                     },
                                   }}
@@ -2504,14 +2925,16 @@ const Detail = () => {
                                     fontSize: "0.875rem",
                                     "&.MuiRadio-root": {
                                       gap: "6px",
+                                      color: "var(--cl-primary)",
                                     },
                                     "& .MuiRadio-radio": {
-                                      borderColor: "var(--cl-main)",
+                                      background: "none",
+                                      borderColor: "var(--cl-primary)",
                                       ":hover": {
                                         background: "none",
                                       },
                                       "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-main)",
+                                        bgcolor: "var(--cl-primary)",
                                       },
                                     },
                                   }}
@@ -2535,14 +2958,16 @@ const Detail = () => {
                                     fontSize: "0.875rem",
                                     "&.MuiRadio-root": {
                                       gap: "6px",
+                                      color: "var(--cl-primary)",
                                     },
                                     "& .MuiRadio-radio": {
-                                      borderColor: "var(--cl-main)",
+                                      background: "none",
+                                      borderColor: "var(--cl-primary)",
                                       ":hover": {
                                         background: "none",
                                       },
                                       "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-main)",
+                                        bgcolor: "var(--cl-primary)",
                                       },
                                     },
                                   }}
@@ -2556,14 +2981,16 @@ const Detail = () => {
                                     fontSize: "0.875rem",
                                     "&.MuiRadio-root": {
                                       gap: "6px",
+                                      color: "var(--cl-primary)",
                                     },
                                     "& .MuiRadio-radio": {
-                                      borderColor: "var(--cl-main)",
+                                      background: "none",
+                                      borderColor: "var(--cl-primary)",
                                       ":hover": {
                                         background: "none",
                                       },
                                       "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-main)",
+                                        bgcolor: "var(--cl-primary)",
                                       },
                                     },
                                   }}
@@ -2578,7 +3005,7 @@ const Detail = () => {
                 </div>
                 <div className="w-full py-3 flex justify-end bot-sidebar">
                   <div className="btn-click-menu">
-                    {toggleSidebarRight ? (
+                    {isMobile && (
                       <IconButton
                         variant="plain"
                         onClick={handleClickSidebarRight}
@@ -2587,29 +3014,62 @@ const Detail = () => {
                           borderRadius: "9999px",
                           minWidth: "40px",
                           minHeight: "40px",
-                          "&.MuiIconButton-root:hover": { bgcolor: "#e5e7eb" },
+                          color: "var(--cl-primary)",
+                          "&.MuiIconButton-root:hover": {
+                            bgcolor: "var(--cl-neutral-20)",
+                            color: "var(--cl-primary)",
+                          },
                         }}
                       >
                         <span className="material-symbols-outlined">
                           chevron_right
                         </span>
                       </IconButton>
-                    ) : (
-                      <IconButton
-                        variant="plain"
-                        onClick={handleClickSidebarRight}
-                        className="w-9 h-9 flex items-center justify-center transition"
-                        sx={{
-                          borderRadius: "9999px",
-                          minWidth: "40px",
-                          minHeight: "40px",
-                          "&.MuiIconButton-root:hover": { bgcolor: "#e5e7eb" },
-                        }}
-                      >
-                        <span className="material-symbols-outlined">
-                          chevron_left
-                        </span>
-                      </IconButton>
+                    )}
+                    {!isMobile && (
+                      <div>
+                        {toggleSidebarRight ? (
+                          <IconButton
+                            variant="plain"
+                            onClick={handleClickSidebarRight}
+                            className="w-9 h-9 flex items-center justify-center transition"
+                            sx={{
+                              borderRadius: "9999px",
+                              minWidth: "40px",
+                              minHeight: "40px",
+                              color: "var(--cl-primary)",
+                              "&.MuiIconButton-root:hover": {
+                                bgcolor: "var(--cl-neutral-20)",
+                                color: "var(--cl-primary)",
+                              },
+                            }}
+                          >
+                            <span className="material-symbols-outlined">
+                              chevron_right
+                            </span>
+                          </IconButton>
+                        ) : (
+                          <IconButton
+                            variant="plain"
+                            onClick={handleClickSidebarRight}
+                            className="w-9 h-9 flex items-center justify-center transition"
+                            sx={{
+                              borderRadius: "9999px",
+                              minWidth: "40px",
+                              minHeight: "40px",
+                              color: "var(--cl-primary)",
+                              "&.MuiIconButton-root:hover": {
+                                bgcolor: "var(--cl-neutral-20)",
+                                color: "var(--cl-primary)",
+                              },
+                            }}
+                          >
+                            <span className="material-symbols-outlined">
+                              chevron_left
+                            </span>
+                          </IconButton>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -2632,6 +3092,8 @@ const Detail = () => {
               maxWidth: "480px",
               fontFamily: "var(--font)",
               fontSize: "0.875rem",
+              bgcolor: "var(--cl-bg-dropdown)",
+              borderColor: "var(--cl-surface-container-low)",
             },
           }}
         >
@@ -2639,13 +3101,18 @@ const Detail = () => {
             sx={{ top: 14, right: 16, zIndex: 3 }}
             className="modal-close"
           />
-          <DialogTitle>
+          <DialogTitle sx={{ color: "var(--cl-primary)" }}>
             <span className="text-base font-medium">Save prompt</span>
           </DialogTitle>
           <Divider />
           <DialogContent className="py-3">
             <FormControl className="mb-4">
-              <FormLabel className="form-label">Prompt name</FormLabel>
+              <FormLabel
+                className="form-label"
+                sx={{ color: "var(--cl-primary)" }}
+              >
+                Prompt name
+              </FormLabel>
               <Input
                 type="text"
                 className="input"
@@ -2659,7 +3126,12 @@ const Detail = () => {
               />
             </FormControl>
             <FormControl className="mb-4">
-              <FormLabel className="form-label">Description</FormLabel>
+              <FormLabel
+                className="form-label"
+                sx={{ color: "var(--cl-primary)" }}
+              >
+                Description
+              </FormLabel>
               <Textarea
                 placeholder="optional"
                 minRows={3}
@@ -2678,11 +3150,13 @@ const Detail = () => {
               variant="solid"
               sx={{
                 px: 3,
-                bgcolor: "var(--cl-blue)",
+                bgcolor: "var(--cl-primary-70)",
+                color: "var(--cl-neutral-10)",
                 borderRadius: "8px",
                 fontWeight: 400,
                 "&:hover": {
-                  background: "var(--cl-dark-blue)",
+                  bgcolor: "var(--cl-primary-80)",
+                  color: "var(--cl-neutral-10)",
                 },
               }}
             >
@@ -2692,7 +3166,15 @@ const Detail = () => {
               variant="plain"
               color="neutral"
               onClick={() => setShowModalEditHeading(false)}
-              sx={{ borderRadius: "8px", fontWeight: 400 }}
+              sx={{
+                borderRadius: "8px",
+                fontWeight: 400,
+                color: "var(--cl-neutral-90)",
+                "&:hover": {
+                  bgcolor: "var(--cl-item-dropdown)",
+                  color: "var(--cl-neutral-90)",
+                },
+              }}
             >
               Cancel
             </Button>
