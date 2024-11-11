@@ -420,6 +420,15 @@ const Detail = () => {
     }
   }
 
+  const resultAreaRef = useRef(null);
+  const latestResultItemRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (latestResultItemRef.current) {
+      latestResultItemRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [posts]);
+
   return (
     <div id="app">
       <section className="flex h-full sec-main">
@@ -691,7 +700,7 @@ const Detail = () => {
             <div className="grow flex flex-col">
               <div className="grow overflow-auto detail-post">
                 <div className="pt-4 px-4">
-                  <div className="result-area">
+                  <div className="result-area" ref={resultAreaRef}>
                     {
                       posts.map((item, index) => (
                         <div className="result-item" key={index}>
