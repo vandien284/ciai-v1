@@ -93,7 +93,7 @@ const Library = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=100`
       );
       setMessages(response.data.data);
     } catch (e) {
