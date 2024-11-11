@@ -93,7 +93,7 @@ const Home = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));
-      createMessage()
+      createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
     }
     if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
@@ -121,7 +121,7 @@ const Home = () => {
     }
   }, [fetchMessages]);
 
-  async function createMessage() {
+  async function createMessage(prompt: string) {
     const uid = generateRandomUid();
     try {
       const response = await axios.post(`https://cms.ciai.byte.vn/api/messages`, {
@@ -725,7 +725,7 @@ const Home = () => {
                         <button
                           type="button"
                           className="flex items-center justify-center gap-x-2 px-1 md:pl-3 md:pr-5 h-8 md:h-9 rounded-3xl transition text-white font-medium btn-color"
-                          onClick={() => createMessage()}
+                          onClick={() => createMessage(content)}
                         >
                           <svg
                             width="24"
