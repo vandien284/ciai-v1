@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useTheme } from "@/app/context/ThemeContext";
-import ThemeToggle from "@/app/components/ThemeToggle";
+import { useTheme } from "next-themes";
 import {
     Button,
     IconButton,
@@ -139,7 +138,6 @@ interface ChildProps {
 }
 
 const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggleSidebarLeft }) => {
-    const { theme, toggleTheme } = useTheme();
     // Collapse Menu
     const handleClickSidebarLeft = () => {
         setToggleSidebarLeft(!toggleSidebarLeft);
@@ -184,45 +182,38 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         href="/"
                         className="flex flex-start cursor-pointer logo"
                     >
-                        {theme === "light" ? (
-                            <>
-                                <Image
-                                    src="/images/favicon.png"
-                                    priority
-                                    alt="CIAI"
-                                    width={32}
-                                    height={31}
-                                    className="i1 hide-mb"
-                                />
-                                <Image
-                                    src="/images/logo.png"
-                                    priority
-                                    alt="CIAI"
-                                    width={80}
-                                    height={31}
-                                    className="i2"
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <Image
-                                    src="/images/favicon-white.png"
-                                    priority
-                                    alt="CIAI"
-                                    width={32}
-                                    height={31}
-                                    className="i1 hide-mb"
-                                />
-                                <Image
-                                    src="/images/logo-white.png"
-                                    priority
-                                    alt="CIAI"
-                                    width={80}
-                                    height={31}
-                                    className="i2"
-                                />
-                            </>
-                        )}
+                        <Image
+                  src="/images/favicon.png"
+                  priority
+                  alt="CIAI"
+                  width={32}
+                  height={31}
+                  className="light-logo i1 hide-mb"
+                />
+                <Image
+                  src="/images/logo.png"
+                  priority
+                  alt="CIAI"
+                  width={80}
+                  height={31}
+                  className="light-logo i2"
+                />
+                <Image
+                  src="/images/favicon-white.png"
+                  priority
+                  alt="CIAI"
+                  width={32}
+                  height={31}
+                  className="dark-logo i1 hide-mb"
+                />
+                <Image
+                  src="/images/logo-white.png"
+                  priority
+                  alt="CIAI"
+                  width={80}
+                  height={31}
+                  className="dark-logo i2"
+                />
                     </a>
                 </div>
                 <div className="w-full grow overflow-y-auto top-sidebar">

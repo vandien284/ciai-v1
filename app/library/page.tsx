@@ -93,7 +93,7 @@ const Library = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=100`
+        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=100`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -555,9 +555,9 @@ const Library = () => {
                           },
                         },
                         "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                        {
-                          fontSize: "0.75rem",
-                        },
+                          {
+                            fontSize: "0.75rem",
+                          },
                         "& .MuiTablePagination-input": {
                           ml: 1,
                           mr: 2,

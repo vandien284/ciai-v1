@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef,useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 import Image from "next/image";
-import { useTheme } from "@/app/context/ThemeContext";
-import ThemeToggle from "@/app/components/ThemeToggle";
+import { useTheme } from "next-themes";
+import { ThemeSwitcher } from "@/app/components/theme-switcher";
 import {
   Button,
   ButtonGroup,
@@ -79,7 +79,6 @@ const useViewport = () => {
 
 const Settings = () => {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const handleClickSidebarLeft = () => {
@@ -102,7 +101,7 @@ const Settings = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -285,7 +284,7 @@ const Settings = () => {
                   </h2>
                   <div className="flex items-center max-w-sm pl-3 choose-theme">
                     <p className="mr-6 md:mr-16">Theme</p>
-                    <ThemeToggle />
+                    <ThemeSwitcher />
                   </div>
                   <h2 className="text-base font-medium my-6">Save Settings</h2>
                   <div className="pl-3">

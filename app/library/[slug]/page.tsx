@@ -92,7 +92,6 @@ const Detail = () => {
     }
   }, [showModalEditHeading]);
 
-  // handle features
   const [activities, setActivities] = useState('');
   const type = useRef('content');
   const namePrompt = useRef('Untitled prompt')
@@ -101,10 +100,10 @@ const Detail = () => {
   const hasFetched = useRef(false);
   const [messages, setMessages] = useState(Array<any>);
   const [isPost, setIdPost] = useState(0);
-  // setup api get content
+
   const setupApiContent = (prompt: string, type: string) => {
     const newPrompt = prompt.replace(/<br\s*\/?>/gi, '.');
-    let api = '';
+    let api = ''; 
     let body = {}
     if (type == 'content') {
       api = 'https://gelding-mature-severely.ngrok-free.app/api/content';
@@ -135,7 +134,6 @@ const Detail = () => {
   }
 
 
-  // api get content
   const fetchContent = async (prompt: string, type: string) => {
     const { api, body } = setupApiContent(prompt, type)
     try {
@@ -146,10 +144,9 @@ const Detail = () => {
     }
   }
 
-  // api create post
   async function fetchPost(prompt: string, message: number, type: string) {
     try {
-      const response = await axios.post(`https://cms.ciai.byte.vn/api/posts`, {
+      const response = await axios.post(`http://localhost:1337/api/posts`, {
         data: {
           prompt: prompt,
           message: message,
@@ -163,8 +160,8 @@ const Detail = () => {
     }
   }
 
-  // api update post
-  const fetchNamePost = async (id: number, prompt: string) => {
+  
+  const fetchNamePost = async (id:number, prompt: string) => {
     try {
 
     } catch (e) {
@@ -172,21 +169,21 @@ const Detail = () => {
     }
   }
 
-  const fetchContentPost = async (id: number, content: any) => {
+  const fetchContentPost = async (id:number, content: any) => {
     try {
       const response = await axios.put(
-        `https://cms.ciai.byte.vn/api/posts/${id}`,
+        `http://localhost:1337/api/posts/${id}`,
         {
           data: {
             content: [
               {
-                "type": "paragraph",
-                "children": [
-                  {
-                    "text": content,
-                    "type": "text"
-                  }
-                ]
+                  "type": "paragraph",
+                  "children": [
+                      {
+                          "text": content,
+                          "type": "text"
+                      }
+                  ]
               }
             ]
           }
@@ -198,7 +195,7 @@ const Detail = () => {
     }
   }
 
-  // api update message
+
   const fetchMessage = async (name: string) => {
     try {
 
@@ -207,7 +204,7 @@ const Detail = () => {
     }
   }
 
-  const checkPosts = useCallback(async (value: Array<any>) => {
+  const checkPosts = async (value: Array<any>) => {
     if (!value[0].attributes.content) {
       const content = await fetchContent(value[0].attributes.prompt, value[0].attributes.type);
       if (content) {
@@ -219,13 +216,12 @@ const Detail = () => {
         return;
       }
     }
-  }, []);
+  };
 
-  // api get list post
   const fetchPosts = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages/${slug}?populate=*`
+        `http://localhost:1337/api/messages/${slug}?populate=*`
       );
       setPosts(response.data.data.attributes.posts.data);
       message.current = response.data.data.id;
@@ -234,13 +230,12 @@ const Detail = () => {
     } catch (e) {
       console.log(e);
     }
-  }, [checkPosts, slug]);
+  }, [slug]);
 
-  // api get list message
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -256,7 +251,6 @@ const Detail = () => {
     }
   }, [fetchMessages, fetchPosts]);
 
-  // activity content format: chatbox + content 
   function formatContent(content: any) {
     const formattedContent = content
       .replace(/^\s*\* /gm, '')
@@ -279,7 +273,6 @@ const Detail = () => {
     return formattedContent;
   }
 
-  // activity content format: scraping 
   const renderContent = (content: any) => {
     const elements = content.split('\n').map((line: any, index: any) => {
 
@@ -359,11 +352,9 @@ const Detail = () => {
     return elements;
   };
 
-  // update name message
   const handleUpdateNameMessage = async () => {
   }
 
-  // create new post
   const handleCreatePost = async (value: string) => {
     if (value != "") {
       const post = await fetchPost(value, message.current, type.current);
@@ -383,7 +374,6 @@ const Detail = () => {
     }
   }
 
-  // key press enter
   const onKeyPressHandler = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -396,7 +386,6 @@ const Detail = () => {
     }
   };
 
-  // copy content
   const handleCopyContent = (content: string) => {
     const formatted = formatContent(content);
     const tempDiv = document.createElement("div");
@@ -703,7 +692,7 @@ const Detail = () => {
                   <div className="result-area" ref={resultAreaRef}>
                     {
                       posts.map((item, index) => (
-                        <div className="result-item" key={index}>
+                        <div className="result-item" key={index} ref={index === posts.length - 1 ? latestResultItemRef : null}>
                           <div
                             className={`${showEditPrompt != item.id
                               ? "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role"
@@ -800,6 +789,11 @@ const Detail = () => {
                                       borderRadius: "100%",
                                       minWidth: "24px",
                                       minHeight: "24px",
+                                      color: "var(--cl-neutral-80)",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
                                     }}
                                     className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   >
@@ -829,6 +823,11 @@ const Detail = () => {
                                       borderRadius: "100%",
                                       minWidth: "24px",
                                       minHeight: "24px",
+                                      color: "var(--cl-neutral-80)",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
                                     }}
                                     className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   >
@@ -859,6 +858,11 @@ const Detail = () => {
                                         borderRadius: "100%",
                                         minWidth: "24px",
                                         minHeight: "24px",
+                                        color: "var(--cl-neutral-80)",
+                                        ":hover": {
+                                          background: "var(--cl-neutral-8)",
+                                          color: "var(--cl-neutral-80)",
+                                        },
                                       }}
                                       className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                       onClick={() => setShowEditPrompt(item.id)}
@@ -891,6 +895,11 @@ const Detail = () => {
                                         borderRadius: "100%",
                                         minWidth: "24px",
                                         minHeight: "24px",
+                                        color: "var(--cl-neutral-80)",
+                                        ":hover": {
+                                          background: "var(--cl-neutral-8)",
+                                          color: "var(--cl-neutral-80)",
+                                        },
                                       }}
                                       className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                       onClick={() => setShowEditPrompt(0)}
@@ -922,6 +931,11 @@ const Detail = () => {
                                       borderRadius: "100%",
                                       minWidth: "24px",
                                       minHeight: "24px",
+                                      color: "var(--cl-neutral-80)",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
                                     }}
                                     className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   >
@@ -934,10 +948,10 @@ const Detail = () => {
                             </div>
                             {showEditPrompt != item.id && (
                               <div className="px-2 leading-relaxed word-break info-prompt"
-                                dangerouslySetInnerHTML={{
-                                  __html: item.attributes.prompt,
-                                }}>
-
+                              >
+                                {
+                                  renderContent(item.attributes.prompt)
+                                }
                               </div>
                             )}
                             {showEditPrompt == item.id && (
@@ -946,10 +960,10 @@ const Detail = () => {
                                 <div
                                   contentEditable
                                   data-placeholder="What do you want to create?"
-                                  dangerouslySetInnerHTML={{
-                                    __html: item.attributes.prompt,
-                                  }}
-                                >
+                                  
+                                >{
+                                  renderContent(item.attributes.prompt)
+                                }
                                 </div>
                               </div>
                             )}
@@ -1326,6 +1340,11 @@ const Detail = () => {
                                       borderRadius: "100%",
                                       minWidth: "24px",
                                       minHeight: "24px",
+                                      color: "var(--cl-neutral-80)",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
                                     }}
                                     className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   >
@@ -1355,6 +1374,11 @@ const Detail = () => {
                                       borderRadius: "100%",
                                       minWidth: "24px",
                                       minHeight: "24px",
+                                      color: "var(--cl-neutral-80)",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
                                     }}
                                     className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   >
@@ -1385,6 +1409,11 @@ const Detail = () => {
                                         borderRadius: "100%",
                                         minWidth: "24px",
                                         minHeight: "24px",
+                                        color: "var(--cl-neutral-80)",
+                                        ":hover": {
+                                          background: "var(--cl-neutral-8)",
+                                          color: "var(--cl-neutral-80)",
+                                        },
                                       }}
                                       className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                       onClick={() => setShowEditContent(item.id)}
@@ -1417,6 +1446,11 @@ const Detail = () => {
                                         borderRadius: "100%",
                                         minWidth: "24px",
                                         minHeight: "24px",
+                                        color: "var(--cl-neutral-80)",
+                                        ":hover": {
+                                          background: "var(--cl-neutral-8)",
+                                          color: "var(--cl-neutral-80)",
+                                        },
                                       }}
                                       className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                       onClick={() => setShowEditContent(0)}
@@ -1448,6 +1482,11 @@ const Detail = () => {
                                       borderRadius: "100%",
                                       minWidth: "24px",
                                       minHeight: "24px",
+                                      color: "var(--cl-neutral-80)",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
                                     }}
                                     className="flex items-center justify-center w-6 h-6 rounded-full transition"
                                   >
@@ -1725,7 +1764,7 @@ const Detail = () => {
                 type="text"
                 className="input"
                 defaultValue={namePrompt.current}
-                onChange={(e) => namePrompt.current = e.target.value}
+                onChange={(e) => namePrompt.current = e.target.value }
                 slotProps={{
                   input: {
                     ref: inputTitleRef,

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, MutableRefObject } from "react";
 import { ArrowDropDownOutlined } from "@mui/icons-material";
-import { useTheme } from "@/app/context/ThemeContext";
+import { useTheme } from "next-themes";
 import {
     Button,
     IconButton,
@@ -42,7 +42,6 @@ interface ChildProps {
 }
 
 const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRight, type }) => {
-    const { theme, toggleTheme } = useTheme();
     // Collapse Menu
     const handleClickSidebarRight = () => {
         setToggleSidebarRight(!toggleSidebarRight);

@@ -1,7 +1,8 @@
 "use client";
 import "./globals.css";
 import "./layout.css";
-import { ThemeProvider } from "./context/ThemeContext";
+import { ThemeProvider } from "./components/theme-provider";
+
 
 export default function RootLayout({
   children,
@@ -24,7 +25,8 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      {children}</ThemeProvider>
       </body>
     </html>
   );

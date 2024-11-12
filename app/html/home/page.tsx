@@ -1,11 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowDropDownOutlined } from "@mui/icons-material";
-
-import { useTheme } from "../../context/ThemeContext";
 
 import {
   Button,
@@ -39,7 +38,7 @@ import {
   RadioGroup,
   Radio,
 } from "@mui/joy";
-import { Tooltip, Popover } from "@mui/material";
+import { Collapse, Tooltip, Popover } from "@mui/material";
 
 import { useOutsideClick } from "outsideclick-react";
 
@@ -129,7 +128,7 @@ function PopoverAccount() {
 }
 
 const Home = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const router = useRouter();
 
   // Collapse Menu
@@ -153,14 +152,43 @@ const Home = () => {
   const viewPort = useViewport();
   const isMobile = typeof window !== "undefined" && viewPort.width <= 1100;
 
+  // Collapse Button
+  const [expanded, setExpanded] = React.useState(true);
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
+
   // React ContentEditable
-  const [content, setContent] = React.useState("");
-  const onContentChange = React.useCallback((evt: any) => {
+  const [contentInstructions, setContentInstructions] = React.useState("");
+  const [contentPrompt, setContentPrompt] = React.useState("");
+  const onContentInstructionsChange = React.useCallback((evt: any) => {
+    const sanitizeConf = {
+      allowedTags: ["p", "br"],
+      allowedAttributes: {},
+    };
+    setContentInstructions(
+      sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf)
+    );
+  }, []);
+  const handleKeyDown = (event: any) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent default Enter behavior
+      document.execCommand("insertHTML", false, "<br><br>"); // Insert new line
+    }
+  };
+  const onContentPromptChange = React.useCallback((evt: any) => {
     const sanitizeConf = {
       allowedTags: ["b", "i", "a", "p", "br"],
       allowedAttributes: { a: ["href"] },
     };
-    setContent(sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf));
+    setContentPrompt(sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf));
+  }, []);
+  const contentEditableRef = React.useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    // Focus the ContentEditable element when the component mounts
+    if (contentEditableRef?.current) {
+      contentEditableRef.current?.focus();
+    }
   }, []);
 
   // Popover
@@ -218,45 +246,38 @@ const Home = () => {
                 href="/html/home"
                 className="flex flex-start cursor-pointer logo"
               >
-                {theme === "light" ? (
-                  <>
-                    <Image
-                      src="/images/favicon.png"
-                      priority
-                      alt="CIAI"
-                      width={32}
-                      height={31}
-                      className="i1 hide-mb"
-                    />
-                    <Image
-                      src="/images/logo.png"
-                      priority
-                      alt="CIAI"
-                      width={80}
-                      height={31}
-                      className="i2"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Image
-                      src="/images/favicon-white.png"
-                      priority
-                      alt="CIAI"
-                      width={32}
-                      height={31}
-                      className="i1 hide-mb"
-                    />
-                    <Image
-                      src="/images/logo-white.png"
-                      priority
-                      alt="CIAI"
-                      width={80}
-                      height={31}
-                      className="i2"
-                    />
-                  </>
-                )}
+                <Image
+                  src="/images/favicon.png"
+                  priority
+                  alt="CIAI"
+                  width={32}
+                  height={31}
+                  className="light-logo i1 hide-mb"
+                />
+                <Image
+                  src="/images/logo.png"
+                  priority
+                  alt="CIAI"
+                  width={80}
+                  height={31}
+                  className="light-logo i2"
+                />
+                <Image
+                  src="/images/favicon-white.png"
+                  priority
+                  alt="CIAI"
+                  width={32}
+                  height={31}
+                  className="dark-logo i1 hide-mb"
+                />
+                <Image
+                  src="/images/logo-white.png"
+                  priority
+                  alt="CIAI"
+                  width={80}
+                  height={31}
+                  className="dark-logo i2"
+                />
               </a>
             </div>
             <div className="w-full grow overflow-y-auto top-sidebar">
@@ -441,6 +462,34 @@ const Home = () => {
                       </span>
                     </Button>
                   </div>
+                </div>
+                <div className="sidebar-menu">
+                  <Button
+                    component="a"
+                    variant="plain"
+                    aria-label="My Connectors"
+                    href="/html/prompt-gallery"
+                    sx={{
+                      pl: 0,
+                      pr: 1,
+                      py: 0,
+                      justifyContent: "flex-start",
+                      fontFamily: "var(--font)",
+                      color: "var(--cl-neutral-80)",
+                      borderRadius: "20px",
+                      "&.MuiButton-root:hover": {
+                        background: "var(--cl-surface-container-lowest)",
+                      },
+                    }}
+                    className="w-full sidebar-btn"
+                  >
+                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined">book_2</span>
+                    </span>
+                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
+                      Prompt Gallery
+                    </span>
+                  </Button>
                 </div>
                 <div className="sidebar-menu">
                   <Button
@@ -708,13 +757,22 @@ const Home = () => {
                       listbox: {
                         sx: {
                           py: 0,
-                          borderColor: "#e2e2e5",
+                          border: "none",
+                          bgcolor: "var(--cl-bg-dropdown)",
                           borderRadius: "8px",
                           width: "100%",
                           fontFamily: "var(--font)",
                           fontSize: "0.875rem",
+                          "& .MuiOption-root": {
+                            color: "var(--cl-primary)",
+                          },
+                          "& .MuiOption-root:hover": {
+                            bgcolor: "var(--cl-item-dropdown)!important",
+                            color: "var(--cl-primary)!important",
+                          },
                           "& .MuiOption-root.Mui-selected": {
-                            bgcolor: "#f5f5f5",
+                            bgcolor: "var(--cl-item-dropdown)",
+                            color: "var(--cl-primary-70)!important",
                           },
                         },
                       },
@@ -902,6 +960,56 @@ const Home = () => {
           </nav>
           <main className="w-full grow flex" id="main-content">
             <div className="grow flex flex-col">
+              <div className="w-full px-3 border-b border-solid border-color">
+                <div className="flex items-center gap-x-1">
+                  <IconButton
+                    variant="plain"
+                    aria-label="Show more"
+                    onClick={handleExpandClick}
+                    className="w-9 h-9 flex items-center justify-center transition show-more"
+                    aria-expanded={expanded ? "true" : "false"}
+                    sx={{
+                      minWidth: "40px",
+                      minHeight: "40px",
+                      borderRadius: "100%",
+                      color: "var(--cl-primary)",
+
+                      "&:hover": {
+                        background: "var(--bg-color)",
+                        color: "var(--cl-primary)",
+                      },
+                    }}
+                  >
+                    <span className="material-symbols-outlined">
+                      keyboard_arrow_up
+                    </span>
+                  </IconButton>
+                  <span className="py-2.5 text-base font-medium">
+                    System Instructions
+                  </span>
+                </div>
+                <Collapse in={expanded} timeout="auto" unmountOnExit>
+                  <div className="sys-ins">
+                    <div
+                      className="ml-12 mb-2 lg:mb-3 overflow-auto"
+                      style={{
+                        minHeight: "20px",
+                        maxHeight: "200px",
+                      }}
+                    >
+                      <ContentEditable
+                        onChange={onContentInstructionsChange}
+                        onBlur={onContentInstructionsChange}
+                        onKeyDown={handleKeyDown}
+                        html={contentInstructions}
+                        data-placeholder="Optional tone and style instructions for the model"
+                        suppressContentEditableWarning={true}
+                        style={{ whiteSpace: "pre-wrap", outline: "none" }}
+                      />
+                    </div>
+                  </div>
+                </Collapse>
+              </div>
               <div className="grow overflow-auto guide-prompt">
                 <div className="h-full flex data-area">
                   <div className="w-full px-6 py-3 lg:py-4 mt-auto sm:my-auto">
@@ -919,8 +1027,8 @@ const Home = () => {
                         py: 2,
                       }}
                     >
-                      <div className="flex flex-wrap gap-y-4 -mx-2">
-                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item">
+                      <div className="flex flex-wrap gap-y-2 sm:gap-y-6 -mx-3">
+                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-3 item">
                           <Link
                             className="w-full h-full"
                             href="/html/library/detail"
@@ -946,7 +1054,7 @@ const Home = () => {
                             </div>
                           </Link>
                         </div>
-                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item">
+                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-3 item">
                           <Link
                             className="w-full h-full"
                             href="/html/library/detail"
@@ -972,7 +1080,7 @@ const Home = () => {
                             </div>
                           </Link>
                         </div>
-                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item">
+                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-3 item">
                           <Link
                             className="w-full h-full"
                             href="/html/library/detail"
@@ -1008,9 +1116,10 @@ const Home = () => {
                   <div className="w-full pl-6 py-2 border border-solid rounded-4xl overflow-hidden flex items-end justify-between actions-prompt">
                     <div className="grow max-h-28 overflow-y-auto pb-1.5 type-prompt">
                       <ContentEditable
-                        onChange={onContentChange}
-                        onBlur={onContentChange}
-                        html={content}
+                        onChange={onContentPromptChange}
+                        onBlur={onContentPromptChange}
+                        html={contentPrompt}
+                        innerRef={contentEditableRef}
                         data-placeholder="Type something"
                         suppressContentEditableWarning={true}
                         onKeyPress={onKeyPressHandler}
@@ -1246,7 +1355,7 @@ const Home = () => {
                 className="w-full h-full flex flex-col justify-between inner"
                 ref={isMobile ? sideRightRef : refNull}
               >
-                <div className="h-11 border-b border-solid border-gray-300 flex items-center justify-between whitespace-nowrap">
+                <div className="h-11 border-b border-solid border-color flex items-center justify-between whitespace-nowrap">
                   <h2 className="grow text-base font-medium">Run settings</h2>
                   <Button
                     variant="plain"
@@ -1426,7 +1535,7 @@ const Home = () => {
                                 listbox: {
                                   sx: {
                                     py: 0,
-                                    border: "none",
+                                    borderColor: "var(--cl-neutral-20)",
                                     bgcolor: "var(--cl-bg-dropdown)",
                                     borderRadius: "8px",
                                     width: "100%",
@@ -1485,7 +1594,7 @@ const Home = () => {
                                 listbox: {
                                   sx: {
                                     py: 0,
-                                    border: "none",
+                                    borderColor: "var(--cl-neutral-20)",
                                     bgcolor: "var(--cl-bg-dropdown)",
                                     borderRadius: "8px",
                                     width: "100%",
@@ -1547,7 +1656,7 @@ const Home = () => {
                                   listbox: {
                                     sx: {
                                       py: 0,
-                                      border: "none",
+                                      borderColor: "var(--cl-neutral-20)",
                                       bgcolor: "var(--cl-bg-dropdown)",
                                       borderRadius: "8px",
                                       width: "100%",

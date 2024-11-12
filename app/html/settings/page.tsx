@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useTheme } from "../../context/ThemeContext";
-import ThemeToggle from "../../components/ThemeToggle";
+import { ThemeSwitcher } from "../../components/theme-switcher";
 
 import {
   Button,
@@ -156,7 +156,7 @@ function PopoverAccount() {
 }
 
 const Settings = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const router = useRouter();
 
   // Collapse Menu
@@ -215,45 +215,38 @@ const Settings = () => {
                 href="/html/home"
                 className="flex flex-start cursor-pointer logo"
               >
-                {theme === "light" ? (
-                  <>
-                    <Image
-                      src="/images/favicon.png"
-                      priority
-                      alt="CIAI"
-                      width={32}
-                      height={31}
-                      className="i1 hide-mb"
-                    />
-                    <Image
-                      src="/images/logo.png"
-                      priority
-                      alt="CIAI"
-                      width={80}
-                      height={31}
-                      className="i2"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Image
-                      src="/images/favicon-white.png"
-                      priority
-                      alt="CIAI"
-                      width={32}
-                      height={31}
-                      className="i1 hide-mb"
-                    />
-                    <Image
-                      src="/images/logo-white.png"
-                      priority
-                      alt="CIAI"
-                      width={80}
-                      height={31}
-                      className="i2"
-                    />
-                  </>
-                )}
+                <Image
+                  src="/images/favicon.png"
+                  priority
+                  alt="CIAI"
+                  width={32}
+                  height={31}
+                  className="light-logo i1 hide-mb"
+                />
+                <Image
+                  src="/images/logo.png"
+                  priority
+                  alt="CIAI"
+                  width={80}
+                  height={31}
+                  className="light-logo i2"
+                />
+                <Image
+                  src="/images/favicon-white.png"
+                  priority
+                  alt="CIAI"
+                  width={32}
+                  height={31}
+                  className="dark-logo i1 hide-mb"
+                />
+                <Image
+                  src="/images/logo-white.png"
+                  priority
+                  alt="CIAI"
+                  width={80}
+                  height={31}
+                  className="dark-logo i2"
+                />
               </a>
             </div>
             <div className="w-full grow overflow-y-auto top-sidebar">
@@ -438,6 +431,34 @@ const Settings = () => {
                       </span>
                     </Button>
                   </div>
+                </div>
+                <div className="sidebar-menu">
+                  <Button
+                    component="a"
+                    variant="plain"
+                    aria-label="My Connectors"
+                    href="/html/prompt-gallery"
+                    sx={{
+                      pl: 0,
+                      pr: 1,
+                      py: 0,
+                      justifyContent: "flex-start",
+                      fontFamily: "var(--font)",
+                      color: "var(--cl-neutral-80)",
+                      borderRadius: "20px",
+                      "&.MuiButton-root:hover": {
+                        background: "var(--cl-surface-container-lowest)",
+                      },
+                    }}
+                    className="w-full sidebar-btn"
+                  >
+                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined">book_2</span>
+                    </span>
+                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
+                      Prompt Gallery
+                    </span>
+                  </Button>
                 </div>
                 <div className="sidebar-menu">
                   <Button
@@ -781,7 +802,7 @@ const Settings = () => {
                   </h2>
                   <div className="flex items-center max-w-sm pl-3 choose-theme">
                     <p className="mr-6 md:mr-16">Theme</p>
-                    <ThemeToggle />
+                    <ThemeSwitcher />
                   </div>
                   <h2 className="text-base font-medium my-6">Save Settings</h2>
                   <div className="pl-3">
