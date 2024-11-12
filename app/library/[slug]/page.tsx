@@ -311,22 +311,22 @@ const Detail = () => {
 
   const renderIframe = (content: string) => {
     const iframeMatch = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/);
-      if (iframeMatch) {
-        const styleString = iframeMatch[2];
-        const styleObject = Object.fromEntries(
-          styleString.split(';').filter(Boolean).map((rule: any) => {
-            const [property, value] = rule.split(':').map((str: any) => str.trim());
-            return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
-          })
-        );
+    if (iframeMatch) {
+      const styleString = iframeMatch[2];
+      const styleObject = Object.fromEntries(
+        styleString.split(';').filter(Boolean).map((rule: any) => {
+          const [property, value] = rule.split(':').map((str: any) => str.trim());
+          return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
+        })
+      );
 
-        return (
-          <iframe
-            src={iframeMatch[1]}
-            style={styleObject}
-          />
-        );
-      }
+      return (
+        <iframe
+          src={iframeMatch[1]}
+          style={styleObject}
+        />
+      );
+    }
     return null;
   };
 
@@ -440,7 +440,6 @@ const Detail = () => {
   //   return elements;
   //   return <div dangerouslySetInnerHTML={{ __html: formatContent(content) }} />
   // };
-
 
   const handleUpdateNameMessage = async () => {
     await fetchMessage(nameMessage.current);

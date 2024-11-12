@@ -764,6 +764,8 @@ const Home = () => {
               maxWidth: "480px",
               fontFamily: "var(--font)",
               fontSize: "0.875rem",
+              bgcolor: "var(--cl-bg-dropdown)",
+              borderColor: "var(--cl-surface-container-low)",
             },
           }}
         >
@@ -771,13 +773,13 @@ const Home = () => {
             sx={{ top: 14, right: 16, zIndex: 3 }}
             className="modal-close"
           />
-          <DialogTitle>
+          <DialogTitle sx={{ color: "var(--cl-primary)" }}>
             <span className="text-base font-medium">Save prompt</span>
           </DialogTitle>
           <Divider />
-          <DialogContent className="py-3">
+          <DialogContent className="py-3" >
             <FormControl className="mb-4">
-              <FormLabel className="form-label">Prompt name</FormLabel>
+              <FormLabel className="form-label" sx={{ color: "var(--cl-primary)" }}>Prompt name</FormLabel>
               <Input
                 type="text"
                 className="input"
@@ -792,7 +794,7 @@ const Home = () => {
               />
             </FormControl>
             <FormControl className="mb-4">
-              <FormLabel className="form-label">Description</FormLabel>
+              <FormLabel className="form-label" sx={{ color: "var(--cl-primary)" }}>Description</FormLabel>
               <Textarea
                 placeholder="optional"
                 minRows={3}
@@ -811,11 +813,13 @@ const Home = () => {
               variant="solid"
               sx={{
                 px: 3,
-                bgcolor: "var(--cl-blue)",
+                bgcolor: "var(--cl-primary-70)",
+                color: "var(--cl-neutral-10)",
                 borderRadius: "8px",
                 fontWeight: 400,
                 "&:hover": {
-                  background: "var(--cl-dark-blue)",
+                  bgcolor: "var(--cl-primary-80)",
+                  color: "var(--cl-neutral-10)",
                 },
               }}
               onClick={() => {
@@ -828,7 +832,15 @@ const Home = () => {
               variant="plain"
               color="neutral"
               onClick={() => setShowModalEditHeading(false)}
-              sx={{ borderRadius: "8px", fontWeight: 400 }}
+              sx={{
+                borderRadius: "8px",
+                fontWeight: 400,
+                color: "var(--cl-neutral-90)",
+                "&:hover": {
+                  bgcolor: "var(--cl-item-dropdown)",
+                  color: "var(--cl-neutral-90)",
+                },
+              }}
             >
               Cancel
             </Button>
