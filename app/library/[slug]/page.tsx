@@ -462,7 +462,7 @@ const Detail = () => {
               "type": "paragraph",
               "children": [
                 {
-                  "text": content,
+                  "text": value,
                   "type": "text"
                 }
               ]
