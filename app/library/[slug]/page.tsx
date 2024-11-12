@@ -103,7 +103,7 @@ const Detail = () => {
 
   const setupApiContent = (prompt: string, type: string) => {
     const newPrompt = prompt.replace(/<br\s*\/?>/gi, '.');
-    let api = ''; 
+    let api = '';
     let body = {}
     if (type == 'content') {
       api = 'https://gelding-mature-severely.ngrok-free.app/api/content';
@@ -146,7 +146,7 @@ const Detail = () => {
 
   async function fetchPost(prompt: string, message: number, type: string) {
     try {
-      const response = await axios.post(`http://localhost:1337/api/posts`, {
+      const response = await axios.post(`https://cms.ciai.byte.vn/api/posts`, {
         data: {
           prompt: prompt,
           message: message,
@@ -160,8 +160,8 @@ const Detail = () => {
     }
   }
 
-  
-  const fetchNamePost = async (id:number, prompt: string) => {
+
+  const fetchNamePost = async (id: number, prompt: string) => {
     try {
 
     } catch (e) {
@@ -169,21 +169,21 @@ const Detail = () => {
     }
   }
 
-  const fetchContentPost = async (id:number, content: any) => {
+  const fetchContentPost = async (id: number, content: any) => {
     try {
       const response = await axios.put(
-        `http://localhost:1337/api/posts/${id}`,
+        `https://cms.ciai.byte.vn/api/posts/${id}`,
         {
           data: {
             content: [
               {
-                  "type": "paragraph",
-                  "children": [
-                      {
-                          "text": content,
-                          "type": "text"
-                      }
-                  ]
+                "type": "paragraph",
+                "children": [
+                  {
+                    "text": content,
+                    "type": "text"
+                  }
+                ]
               }
             ]
           }
@@ -221,7 +221,7 @@ const Detail = () => {
   const fetchPosts = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:1337/api/messages/${slug}?populate=*`
+        `https://cms.ciai.byte.vn/api/messages/${slug}?populate=*`
       );
       setPosts(response.data.data.attributes.posts.data);
       message.current = response.data.data.id;
@@ -235,7 +235,7 @@ const Detail = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -960,10 +960,10 @@ const Detail = () => {
                                 <div
                                   contentEditable
                                   data-placeholder="What do you want to create?"
-                                  
+
                                 >{
-                                  renderContent(item.attributes.prompt)
-                                }
+                                    renderContent(item.attributes.prompt)
+                                  }
                                 </div>
                               </div>
                             )}
@@ -1764,7 +1764,7 @@ const Detail = () => {
                 type="text"
                 className="input"
                 defaultValue={namePrompt.current}
-                onChange={(e) => namePrompt.current = e.target.value }
+                onChange={(e) => namePrompt.current = e.target.value}
                 slotProps={{
                   input: {
                     ref: inputTitleRef,

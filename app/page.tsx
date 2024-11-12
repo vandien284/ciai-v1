@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef,useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -92,7 +92,7 @@ const Home = () => {
   const onKeyPressHandler = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));  
+      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));
       createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
     }
     if (e.key === "Enter" && e.shiftKey) {
@@ -106,7 +106,7 @@ const Home = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -121,10 +121,10 @@ const Home = () => {
     }
   }, [fetchMessages]);
 
-  async function createMessage(prompt: string) { 
+  async function createMessage(prompt: string) {
     const uid = generateRandomUid();
     try {
-      const response = await axios.post(`http://localhost:1337/api/messages`, {
+      const response = await axios.post(`https://cms.ciai.byte.vn/api/messages`, {
         data: {
           name: namePrompt.current,
           uid: uid,
@@ -142,7 +142,7 @@ const Home = () => {
   function generateRandomUid() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let randomString = "";
-  
+
     for (let i = 0; i < 28; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       randomString += characters[randomIndex];
@@ -151,7 +151,7 @@ const Home = () => {
         randomString += "-";
       }
     }
-  
+
 
     return `${type.current}-${randomString}`;
   }
@@ -782,7 +782,7 @@ const Home = () => {
                 type="text"
                 className="input"
                 defaultValue={namePrompt.current}
-                onChange={(e) => namePrompt.current = e.target.value }
+                onChange={(e) => namePrompt.current = e.target.value}
                 slotProps={{
                   input: {
                     ref: inputTitleRef,

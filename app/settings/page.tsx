@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef,useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
@@ -101,7 +101,7 @@ const Settings = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {
