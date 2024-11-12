@@ -92,14 +92,15 @@ const Detail = () => {
     }
   }, [showModalEditHeading]);
 
-  const [activities, setActivities] = useState('');
   const type = useRef('content');
-  const namePrompt = useRef('Untitled prompt')
+  const nameMessage = useRef('Untitled prompt')
   const [posts, setPosts] = useState(Array<any>);
   const message = useRef(0);
   const hasFetched = useRef(false);
   const [messages, setMessages] = useState(Array<any>);
-  const [isPost, setIdPost] = useState(0);
+  const [newPrompt, setNewPrompt] = useState('');
+  const [newContent, setNewContent] = useState('');
+
 
   const setupApiContent = (prompt: string, type: string) => {
     const newPrompt = prompt.replace(/<br\s*\/?>/gi, '.');
@@ -150,7 +151,18 @@ const Detail = () => {
         data: {
           prompt: prompt,
           message: message,
-          type: type
+          type: type,
+          content: [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "text": 'Chat is typing...',
+                  "type": "text"
+                }
+              ]
+            }
+          ]
         },
       });
 
@@ -161,31 +173,13 @@ const Detail = () => {
   }
 
 
-  const fetchNamePost = async (id: number, prompt: string) => {
-    try {
-
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  const fetchContentPost = async (id: number, content: any) => {
+  const fetchPromptPost = async (id: number, prompt: string) => {
     try {
       const response = await axios.put(
         `https://cms.ciai.byte.vn/api/posts/${id}`,
         {
           data: {
-            content: [
-              {
-                "type": "paragraph",
-                "children": [
-                  {
-                    "text": content,
-                    "type": "text"
-                  }
-                ]
-              }
-            ]
+            prompt: prompt
           }
         }
       );
@@ -195,14 +189,56 @@ const Detail = () => {
     }
   }
 
+  const fetchContentPost = async (id: number, content: any) => {
+    const bodyContent = content ? [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "text": content,
+            "type": "text"
+          }
+        ]
+      }
+    ] : content;
 
-  const fetchMessage = async (name: string) => {
     try {
-
+      const response = await axios.put(
+        `https://cms.ciai.byte.vn/api/posts/${id}`,
+        {
+          data: {
+            content: bodyContent
+          }
+        }
+      );
+      return response.data;
     } catch (e) {
       console.log(e);
     }
   }
+
+  const fetchDeletePost = async (id: number) => {
+    try {
+      const response = await axios.delete(`https://cms.ciai.byte.vn/api/posts/${id}`);
+      return response.data;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  const fetchMessage = async (name: string) => {
+    try {
+      const response = await axios.put(`https://cms.ciai.byte.vn/api/messages/${message.current}`, {
+        data: {
+          name: name
+        }
+      })
+      return response
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
 
   const checkPosts = async (value: Array<any>) => {
     if (!value[0].attributes.content) {
@@ -225,7 +261,7 @@ const Detail = () => {
       );
       setPosts(response.data.data.attributes.posts.data);
       message.current = response.data.data.id;
-      namePrompt.current = response.data.data.attributes.name
+      nameMessage.current = response.data.data.attributes.name
       await checkPosts(response.data.data.attributes.posts.data);
     } catch (e) {
       console.log(e);
@@ -266,7 +302,7 @@ const Detail = () => {
       )
       .replace(
         /\[([^\]]+)\]\((https[^\)]+)\)/g,
-        '$1[Link bài viết](<a href="$2" target="_blank" style="color: blue">$2</a>)'
+        '[$1](<a href="$2" target="_blank" style="color: blue">$2</a>)'
       )
       .replace(/(^|[\s\n])[*#]+(?!\w)/g, '<br>');
 
@@ -297,7 +333,7 @@ const Detail = () => {
             {textBeforeStrong}
             <strong>{strongText}</strong>
             {textAfterStrong}
-            <a href={url} target="_blank" style={{ color: 'blue' }}>
+            <a href={url} target="_blank" >
               {url}
             </a>
             {textAfterLink}
@@ -323,25 +359,44 @@ const Detail = () => {
         const url = linkMatch[0];
         const textBeforeLink = line.split(url)[0];
         const textAfterLink = line.split(url)[1];
+        if (textBeforeLink.includes('- [Xem chi tiết]')) {
+          return (
+            <div key={index}>
+              <span>- </span>
+              <a href={url} target="_blank">
+                Xem chi tiết
+              </a>
+            </div>
+          );
+        } else {
+          return (
+            <div key={index}>
+              {textBeforeLink}
+              <a href={url} target="_blank">
+                {url}
+              </a>
+              {textAfterLink}
+            </div>
+          );
+        }
 
-        return (
-          <p key={index}>
-            {textBeforeLink}
-            <a href={url} target="_blank" style={{ color: 'blue' }}>
-              {url}
-            </a>
-            {textAfterLink}
-          </p>
-        );
       }
 
-      const iframeMatch = line.match(/<iframe src="([^"]+)"[^>]*><\/iframe>/);
+      const iframeMatch = line.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/);
       if (iframeMatch) {
+        const styleString = iframeMatch[2];
+        const styleObject = Object.fromEntries(
+          styleString.split(';').filter(Boolean).map((rule: any) => {
+            const [property, value] = rule.split(':').map((str: any) => str.trim());
+            return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
+          })
+        );
+
         return (
           <iframe
             key={index}
             src={iframeMatch[1]}
-            style={{ width: '100%', height: '592px' }}
+            style={styleObject}
           />
         );
       }
@@ -353,6 +408,7 @@ const Detail = () => {
   };
 
   const handleUpdateNameMessage = async () => {
+    await fetchMessage(nameMessage.current);
   }
 
   const handleCreatePost = async (value: string) => {
@@ -371,6 +427,77 @@ const Detail = () => {
           }
         }
       }
+    }
+  }
+
+  const handleUpdateNamePost = async (id: number, value: string) => {
+    if (value != '') {
+      const postIndex = posts.findIndex((post) => post.id === id);
+      if (postIndex === -1) return;
+      const updatedPosts = [...posts];
+      updatedPosts[postIndex] = {
+        ...updatedPosts[postIndex],
+        attributes: {
+          ...updatedPosts[postIndex].attributes,
+          prompt: value,
+        },
+      };
+      setPosts([...updatedPosts]);
+      await fetchPromptPost(id, value);
+      setNewPrompt("");
+    }
+  }
+
+  const handleUpdateContentPost = async (id: number, value: string) => {
+    if (value != '') {
+      const postIndex = posts.findIndex((post) => post.id === id);
+      if (postIndex === -1) return;
+      const updatedPosts = [...posts];
+      updatedPosts[postIndex] = {
+        ...updatedPosts[postIndex],
+        attributes: {
+          ...updatedPosts[postIndex].attributes,
+          content: [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "text": content,
+                  "type": "text"
+                }
+              ]
+            }
+          ]
+        },
+      };
+      setPosts([...updatedPosts]);
+      await fetchContentPost(id, value);
+      setNewContent("");
+    }
+  }
+
+  const handleDeleteContentPost = async (id: number) => {
+    await fetchContentPost(id, null);
+    const postIndex = posts.findIndex((post) => post.id === id);
+    if (postIndex === -1) return;
+    const updatedPosts = [...posts];
+    updatedPosts[postIndex] = {
+      ...updatedPosts[postIndex],
+      attributes: {
+        ...updatedPosts[postIndex].attributes,
+        content: null
+      },
+    };
+    setPosts([...updatedPosts]);
+  }
+
+  const handleDeletePost = async (id: number) => {
+    await fetchDeletePost(id);
+    const postIndex = posts.findIndex((post) => post.id === id);
+    if (postIndex !== -1) {
+      const updatedPosts = [...posts];
+      updatedPosts.splice(postIndex, 1);
+      setPosts(updatedPosts);
     }
   }
 
@@ -447,7 +574,7 @@ const Detail = () => {
                 )}
                 <div className="hidden sm:flex sm:items-center gap-x-2 overflow-hidden">
                   <h1 className="text-2xl font-normal truncate heading-title">
-                    {namePrompt.current}
+                    {nameMessage.current}
                   </h1>
                   <Tooltip
                     componentsProps={{
@@ -714,7 +841,7 @@ const Detail = () => {
                                       },
                                     }}
                                     placement="top"
-                                    title="Switch to Model"
+                                    title="Switch to User"
                                   >
                                     <Chip
                                       sx={{
@@ -745,7 +872,7 @@ const Detail = () => {
                                       },
                                     }}
                                     placement="top"
-                                    title="Switch to User"
+                                    title="Switch to Model"
                                   >
                                     <Chip
                                       sx={{
@@ -902,7 +1029,10 @@ const Detail = () => {
                                         },
                                       }}
                                       className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                      onClick={() => setShowEditPrompt(0)}
+                                      onClick={() => {
+                                        setShowEditPrompt(0)
+                                        handleUpdateNamePost(item.id, newPrompt);
+                                      }}
                                     >
                                       <span className="material-symbols-outlined">
                                         done_all
@@ -938,6 +1068,7 @@ const Detail = () => {
                                       },
                                     }}
                                     className="flex items-center justify-center w-6 h-6 rounded-full transition"
+                                    onClick={() => handleDeletePost(item.id)}
                                   >
                                     <span className="material-symbols-outlined">
                                       delete
@@ -960,10 +1091,16 @@ const Detail = () => {
                                 <div
                                   contentEditable
                                   data-placeholder="What do you want to create?"
-
-                                >{
-                                    renderContent(item.attributes.prompt)
+                                  dangerouslySetInnerHTML={{
+                                    __html: item.attributes.prompt,
+                                  }}
+                                  onChange={(e) =>
+                                    setNewPrompt(e.currentTarget.innerHTML)
                                   }
+                                  onBlurCapture={(e) =>
+                                    setNewPrompt(e.currentTarget.innerHTML)
+                                  }
+                                >
                                 </div>
                               </div>
                             )}
@@ -1244,271 +1381,312 @@ const Detail = () => {
                             </div>
                           </div> */}
                           {/* single-role */}
-                          <div
-                            className={`${showEditContent != item.id
-                              ? "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role"
-                              : "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role editing"
-                              }`}
-                          >
-                            <div className="mb-3 flex items-center justify-between sticky top-1 z-10 toggle-role">
-                              <div className="flex items-center gap-x-3">
-                                {!showRole && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Switch to Model"
-                                  >
-                                    <Chip
-                                      sx={{
-                                        pb: 0.125,
-                                        "& .MuiChip-action": {
-                                          background:
-                                            "var(--cl-role-user-bg)!important",
+                          {
+                            item.attributes.content && (
+                              <div
+                                className={`${showEditContent != item.id
+                                  ? "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role"
+                                  : "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role editing"
+                                  }`}
+                              >
+                                <div className="mb-3 flex items-center justify-between sticky top-1 z-10 toggle-role">
+                                  <div className="flex items-center gap-x-3">
+                                    {!showRole && (
+                                      <Tooltip
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              maxWidth: "12rem",
+                                              backgroundColor: "var(--cl-neutral-8)",
+                                              fontFamily: "var(--font)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          },
+                                        }}
+                                        placement="top"
+                                        title="Switch to Model"
+                                      >
+                                        <Chip
+                                          sx={{
+                                            pb: 0.125,
+                                            "& .MuiChip-action": {
+                                              background:
+                                                "var(--cl-role-user-bg)!important",
+                                            },
+                                          }}
+                                          onClick={() => setShowRole(!showRole)}
+                                        >
+                                          <span className="text-white leading-6">
+                                            User
+                                          </span>
+                                        </Chip>
+                                      </Tooltip>
+                                    )}
+                                    {showRole && (
+                                      <Tooltip
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              maxWidth: "12rem",
+                                              backgroundColor: "var(--cl-neutral-8)",
+                                              fontFamily: "var(--font)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          },
+                                        }}
+                                        placement="top"
+                                        title="Switch to User"
+                                      >
+                                        <Chip
+                                          sx={{
+                                            pb: 0.125,
+                                            "& .MuiChip-action": {
+                                              background:
+                                                "var(--cl-role-model-bg)!important",
+                                            },
+                                          }}
+                                          onClick={() => setShowRole(!showRole)}
+                                        >
+                                          <span className="text-white leading-6">
+                                            Model
+                                          </span>
+                                        </Chip>
+                                      </Tooltip>
+
+                                    )}
+                                    {showEditContent == item.id && (
+                                      <span className="status">Editing</span>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl group-actions">
+                                    <Tooltip
+                                      componentsProps={{
+                                        tooltip: {
+                                          sx: {
+                                            maxWidth: "12rem",
+                                            backgroundColor: "var(--cl-neutral-8)",
+                                            fontFamily: "var(--font)",
+                                            color: "var(--cl-neutral-80)",
+                                          },
                                         },
                                       }}
-                                      onClick={() => setShowRole(!showRole)}
+                                      placement="top"
+                                      title="Move down"
                                     >
-                                      <span className="text-white leading-6">
-                                        User
-                                      </span>
-                                    </Chip>
-                                  </Tooltip>
-                                )}
-                                {showRole && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
+                                      <IconButton
+                                        variant="plain"
+                                        aria-label="Move up"
+                                        sx={{
+                                          borderRadius: "100%",
+                                          minWidth: "24px",
+                                          minHeight: "24px",
                                           color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Switch to User"
-                                  >
-                                    <Chip
-                                      sx={{
-                                        pb: 0.125,
-                                        "& .MuiChip-action": {
-                                          background:
-                                            "var(--cl-role-model-bg)!important",
+                                          ":hover": {
+                                            background: "var(--cl-neutral-8)",
+                                            color: "var(--cl-neutral-80)",
+                                          },
+                                        }}
+                                        className="flex items-center justify-center w-6 h-6 rounded-full transition"
+                                      >
+                                        <span className="material-symbols-outlined">
+                                          arrow_upward
+                                        </span>
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip
+                                      componentsProps={{
+                                        tooltip: {
+                                          sx: {
+                                            maxWidth: "12rem",
+                                            backgroundColor: "var(--cl-neutral-8)",
+                                            fontFamily: "var(--font)",
+                                            color: "var(--cl-neutral-80)",
+                                          },
                                         },
                                       }}
-                                      onClick={() => setShowRole(!showRole)}
+                                      placement="top"
+                                      title="Move down"
                                     >
-                                      <span className="text-white leading-6">
-                                        Model
-                                      </span>
-                                    </Chip>
-                                  </Tooltip>
-                                )}
-                                {showEditContent == item.id && (
-                                  <span className="status">Editing</span>
-                                )}
+                                      <IconButton
+                                        variant="plain"
+                                        aria-label="Move up"
+                                        sx={{
+                                          borderRadius: "100%",
+                                          minWidth: "24px",
+                                          minHeight: "24px",
+                                          color: "var(--cl-neutral-80)",
+                                          ":hover": {
+                                            background: "var(--cl-neutral-8)",
+                                            color: "var(--cl-neutral-80)",
+                                          },
+                                        }}
+                                        className="flex items-center justify-center w-6 h-6 rounded-full transition"
+                                      >
+                                        <span className="material-symbols-outlined">
+                                          arrow_downward
+                                        </span>
+                                      </IconButton>
+                                    </Tooltip>
+                                    {showEditContent != item.id && (
+                                      <Tooltip
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              maxWidth: "12rem",
+                                              backgroundColor: "var(--cl-neutral-8)",
+                                              fontFamily: "var(--font)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          },
+                                        }}
+                                        placement="top"
+                                        title="Edit"
+                                      >
+                                        <IconButton
+                                          variant="plain"
+                                          aria-label="Edit"
+                                          sx={{
+                                            borderRadius: "100%",
+                                            minWidth: "24px",
+                                            minHeight: "24px",
+                                            color: "var(--cl-neutral-80)",
+                                            ":hover": {
+                                              background: "var(--cl-neutral-8)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          }}
+                                          className="flex items-center justify-center w-6 h-6 rounded-full transition"
+                                          onClick={() => setShowEditContent(item.id)}
+                                        >
+                                          <span className="material-symbols-outlined">
+                                            edit
+                                          </span>
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
+                                    {showEditContent == item.id && (
+                                      <Tooltip
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              maxWidth: "12rem",
+                                              backgroundColor: "var(--cl-neutral-8)",
+                                              fontFamily: "var(--font)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          },
+                                        }}
+                                        placement="top"
+                                        title="Stop editing"
+                                      >
+                                        <IconButton
+                                          variant="plain"
+                                          aria-label="Stop editing"
+                                          sx={{
+                                            borderRadius: "100%",
+                                            minWidth: "24px",
+                                            minHeight: "24px",
+                                            color: "var(--cl-neutral-80)",
+                                            ":hover": {
+                                              background: "var(--cl-neutral-8)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          }}
+                                          className="flex items-center justify-center w-6 h-6 rounded-full transition"
+                                          onClick={() => {
+                                            setShowEditContent(0)
+                                            handleUpdateContentPost(item.id, newContent)
+                                          }
+                                          }
+                                        >
+                                          <span className="material-symbols-outlined">
+                                            done_all
+                                          </span>
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
+                                    <Tooltip
+                                      componentsProps={{
+                                        tooltip: {
+                                          sx: {
+                                            maxWidth: "12rem",
+                                            backgroundColor: "var(--cl-neutral-8)",
+                                            fontFamily: "var(--font)",
+                                            color: "var(--cl-neutral-80)",
+                                          },
+                                        },
+                                      }}
+                                      placement="top"
+                                      title="Delete"
+                                    >
+                                      <IconButton
+                                        variant="plain"
+                                        aria-label="Delete"
+                                        sx={{
+                                          borderRadius: "100%",
+                                          minWidth: "24px",
+                                          minHeight: "24px",
+                                          color: "var(--cl-neutral-80)",
+                                          ":hover": {
+                                            background: "var(--cl-neutral-8)",
+                                            color: "var(--cl-neutral-80)",
+                                          },
+                                        }}
+                                        className="flex items-center justify-center w-6 h-6 rounded-full transition"
+                                        onClick={() => {
+                                          setShowEditContent(0)
+                                          handleDeleteContentPost(item.id)
+                                        }
+                                        }
+                                      >
+                                        <span className="material-symbols-outlined">
+                                          delete
+                                        </span>
+                                      </IconButton>
+                                    </Tooltip>
+                                  </div>
+                                </div>
+                                {
+                                  showEditContent != item.id && (
+                                    <div className="px-2 leading-relaxed word-break info-prompt"
+                                    >
+                                      {
+                                        renderContent(item.attributes.content[0].children[0].text)
+                                      }
+                                    </div>
+                                  )
+                                }
+                                {
+                                  showEditContent == item.id && (
+                                    <div className="px-2 leading-relaxed word-break info-prompt"
+                                    >
+                                      <div
+                                        contentEditable
+                                        data-placeholder="What do you want to create?"
+                                        dangerouslySetInnerHTML={{
+                                          __html: formatContent(item.attributes.content[0].children[0].text),
+                                        }}
+                                        onChange={(e) =>
+                                          setNewContent(e.currentTarget.innerHTML)
+                                        }
+                                        onBlurCapture={(e) =>
+                                          setNewContent(e.currentTarget.innerHTML)
+                                        }
+                                      >
+                                      </div>
+
+                                    </div>
+                                  )
+                                }
+
                               </div>
-                              <div className="flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl group-actions">
-                                <Tooltip
-                                  componentsProps={{
-                                    tooltip: {
-                                      sx: {
-                                        maxWidth: "12rem",
-                                        backgroundColor: "var(--cl-neutral-8)",
-                                        fontFamily: "var(--font)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    },
-                                  }}
-                                  placement="top"
-                                  title="Move down"
-                                >
-                                  <IconButton
-                                    variant="plain"
-                                    aria-label="Move up"
-                                    sx={{
-                                      borderRadius: "100%",
-                                      minWidth: "24px",
-                                      minHeight: "24px",
-                                      color: "var(--cl-neutral-80)",
-                                      ":hover": {
-                                        background: "var(--cl-neutral-8)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    }}
-                                    className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                  >
-                                    <span className="material-symbols-outlined">
-                                      arrow_upward
-                                    </span>
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip
-                                  componentsProps={{
-                                    tooltip: {
-                                      sx: {
-                                        maxWidth: "12rem",
-                                        backgroundColor: "var(--cl-neutral-8)",
-                                        fontFamily: "var(--font)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    },
-                                  }}
-                                  placement="top"
-                                  title="Move down"
-                                >
-                                  <IconButton
-                                    variant="plain"
-                                    aria-label="Move up"
-                                    sx={{
-                                      borderRadius: "100%",
-                                      minWidth: "24px",
-                                      minHeight: "24px",
-                                      color: "var(--cl-neutral-80)",
-                                      ":hover": {
-                                        background: "var(--cl-neutral-8)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    }}
-                                    className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                  >
-                                    <span className="material-symbols-outlined">
-                                      arrow_downward
-                                    </span>
-                                  </IconButton>
-                                </Tooltip>
-                                {showEditContent != item.id && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Edit"
-                                  >
-                                    <IconButton
-                                      variant="plain"
-                                      aria-label="Edit"
-                                      sx={{
-                                        borderRadius: "100%",
-                                        minWidth: "24px",
-                                        minHeight: "24px",
-                                        color: "var(--cl-neutral-80)",
-                                        ":hover": {
-                                          background: "var(--cl-neutral-8)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      }}
-                                      className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                      onClick={() => setShowEditContent(item.id)}
-                                    >
-                                      <span className="material-symbols-outlined">
-                                        edit
-                                      </span>
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {showEditContent == item.id && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Stop editing"
-                                  >
-                                    <IconButton
-                                      variant="plain"
-                                      aria-label="Stop editing"
-                                      sx={{
-                                        borderRadius: "100%",
-                                        minWidth: "24px",
-                                        minHeight: "24px",
-                                        color: "var(--cl-neutral-80)",
-                                        ":hover": {
-                                          background: "var(--cl-neutral-8)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      }}
-                                      className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                      onClick={() => setShowEditContent(0)}
-                                    >
-                                      <span className="material-symbols-outlined">
-                                        done_all
-                                      </span>
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                <Tooltip
-                                  componentsProps={{
-                                    tooltip: {
-                                      sx: {
-                                        maxWidth: "12rem",
-                                        backgroundColor: "var(--cl-neutral-8)",
-                                        fontFamily: "var(--font)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    },
-                                  }}
-                                  placement="top"
-                                  title="Delete"
-                                >
-                                  <IconButton
-                                    variant="plain"
-                                    aria-label="Delete"
-                                    sx={{
-                                      borderRadius: "100%",
-                                      minWidth: "24px",
-                                      minHeight: "24px",
-                                      color: "var(--cl-neutral-80)",
-                                      ":hover": {
-                                        background: "var(--cl-neutral-8)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    }}
-                                    className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                  >
-                                    <span className="material-symbols-outlined">
-                                      delete
-                                    </span>
-                                  </IconButton>
-                                </Tooltip>
-                              </div>
-                            </div>
-                            <div className="px-2 leading-relaxed word-break info-prompt"
-                            >
-                              {
-                                item.attributes.content && renderContent(item.attributes.content[0].children[0].text)
-                              }
-                            </div>
-                          </div>
+                            )
+                          }
+
                           {/* single-role */}
                         </div>
                       ))
                     }
-
                   </div>
                 </div>
               </div>
@@ -1746,6 +1924,8 @@ const Detail = () => {
               maxWidth: "480px",
               fontFamily: "var(--font)",
               fontSize: "0.875rem",
+              bgcolor: "var(--cl-bg-dropdown)",
+              borderColor: "var(--cl-surface-container-low)",
             },
           }}
         >
@@ -1753,18 +1933,18 @@ const Detail = () => {
             sx={{ top: 14, right: 16, zIndex: 3 }}
             className="modal-close"
           />
-          <DialogTitle>
-            <span className="text-base font-medium">Save prompt</span>
+          <DialogTitle sx={{ color: "var(--cl-primary)" }}>
+            <span className="text-base font-medium" >Save prompt</span>
           </DialogTitle>
           <Divider />
           <DialogContent className="py-3">
             <FormControl className="mb-4">
-              <FormLabel className="form-label">Prompt name</FormLabel>
+              <FormLabel className="form-label" sx={{ color: "var(--cl-primary)" }}>Prompt name</FormLabel>
               <Input
                 type="text"
                 className="input"
-                defaultValue={namePrompt.current}
-                onChange={(e) => namePrompt.current = e.target.value}
+                defaultValue={nameMessage.current}
+                onChange={(e) => nameMessage.current = e.target.value}
                 slotProps={{
                   input: {
                     ref: inputTitleRef,
@@ -1774,7 +1954,7 @@ const Detail = () => {
               />
             </FormControl>
             <FormControl className="mb-4">
-              <FormLabel className="form-label">Description</FormLabel>
+              <FormLabel className="form-label" sx={{ color: "var(--cl-primary)" }}>Description</FormLabel>
               <Textarea
                 placeholder="optional"
                 minRows={3}
@@ -1793,15 +1973,18 @@ const Detail = () => {
               variant="solid"
               sx={{
                 px: 3,
-                bgcolor: "var(--cl-blue)",
+                bgcolor: "var(--cl-primary-70)",
+                color: "var(--cl-neutral-10)",
                 borderRadius: "8px",
                 fontWeight: 400,
                 "&:hover": {
-                  background: "var(--cl-dark-blue)",
+                  bgcolor: "var(--cl-primary-80)",
+                  color: "var(--cl-neutral-10)",
                 },
               }}
               onClick={() => {
                 setShowModalEditHeading(false);
+                handleUpdateNameMessage()
               }}
             >
               Save
@@ -1810,7 +1993,15 @@ const Detail = () => {
               variant="plain"
               color="neutral"
               onClick={() => setShowModalEditHeading(false)}
-              sx={{ borderRadius: "8px", fontWeight: 400 }}
+              sx={{
+                borderRadius: "8px",
+                fontWeight: 400,
+                color: "var(--cl-neutral-90)",
+                "&:hover": {
+                  bgcolor: "var(--cl-item-dropdown)",
+                  color: "var(--cl-neutral-90)",
+                },
+              }}
             >
               Cancel
             </Button>

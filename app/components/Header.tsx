@@ -183,37 +183,37 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         className="flex flex-start cursor-pointer logo"
                     >
                         <Image
-                  src="/images/favicon.png"
-                  priority
-                  alt="CIAI"
-                  width={32}
-                  height={31}
-                  className="light-logo i1 hide-mb"
-                />
-                <Image
-                  src="/images/logo.png"
-                  priority
-                  alt="CIAI"
-                  width={80}
-                  height={31}
-                  className="light-logo i2"
-                />
-                <Image
-                  src="/images/favicon-white.png"
-                  priority
-                  alt="CIAI"
-                  width={32}
-                  height={31}
-                  className="dark-logo i1 hide-mb"
-                />
-                <Image
-                  src="/images/logo-white.png"
-                  priority
-                  alt="CIAI"
-                  width={80}
-                  height={31}
-                  className="dark-logo i2"
-                />
+                            src="/images/favicon.png"
+                            priority
+                            alt="CIAI"
+                            width={32}
+                            height={31}
+                            className="light-logo i1 hide-mb"
+                        />
+                        <Image
+                            src="/images/logo.png"
+                            priority
+                            alt="CIAI"
+                            width={80}
+                            height={31}
+                            className="light-logo i2"
+                        />
+                        {/* <Image
+                            src="/images/favicon-white.png"
+                            priority
+                            alt="CIAI"
+                            width={32}
+                            height={31}
+                            className="dark-logo i1 hide-mb"
+                        />
+                        <Image
+                            src="/images/logo-white.png"
+                            priority
+                            alt="CIAI"
+                            width={80}
+                            height={31}
+                            className="dark-logo i2"
+                        /> */}
                     </a>
                 </div>
                 <div className="w-full grow overflow-y-auto top-sidebar">
@@ -233,9 +233,9 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                                     color: "var(--cl-neutral-80)",
                                     borderRadius: "20px",
                                     "&.MuiButton-root:hover": {
-                                      background: "var(--cl-surface-container-lowest)",
+                                        background: "var(--cl-surface-container-lowest)",
                                     },
-                                  }}
+                                }}
                                 className={page == 'index' ? "w-full sidebar-btn active" : "w-full sidebar-btn"}
                             >
                                 <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
@@ -263,9 +263,9 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                                     color: "var(--cl-neutral-80)",
                                     borderRadius: "20px",
                                     "&.MuiButton-root:hover": {
-                                      background: "var(--cl-surface-container-lowest)",
+                                        background: "var(--cl-surface-container-lowest)",
                                     },
-                                  }}
+                                }}
                                 className={page == 'library' ? "w-full sidebar-btn active" : "w-full sidebar-btn"}
                             >
                                 <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
@@ -280,7 +280,7 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         </div>
                         <div className="pl-6 recent-post">
                             {
-                                data.slice(0,10).map((item) => (
+                                data.slice(0, 3).map((item) => (
                                     <div className="sidebar-menu" key={item.id}>
                                         <Button
                                             component="a"
@@ -296,9 +296,9 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                                                 color: "var(--cl-neutral-80)",
                                                 borderRadius: "20px",
                                                 "&.MuiButton-root:hover": {
-                                                  background: "var(--cl-surface-container-lowest)",
+                                                    background: "var(--cl-surface-container-lowest)",
                                                 },
-                                              }}
+                                            }}
                                             className="w-full sidebar-btn"
                                         >
                                             <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
@@ -328,9 +328,9 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                                         color: "var(--cl-neutral-80)",
                                         borderRadius: "20px",
                                         "&.MuiButton-root:hover": {
-                                          background: "var(--cl-surface-container-lowest)",
+                                            background: "var(--cl-surface-container-lowest)",
                                         },
-                                      }}
+                                    }}
                                     className="w-full sidebar-btn"
                                 >
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name more">
@@ -354,9 +354,9 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                                     color: "var(--cl-neutral-80)",
                                     borderRadius: "20px",
                                     "&.MuiButton-root:hover": {
-                                      background: "var(--cl-surface-container-lowest)",
+                                        background: "var(--cl-surface-container-lowest)",
                                     },
-                                  }}
+                                }}
                                 className="w-full sidebar-btn"
                             >
                                 <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
@@ -385,9 +385,9 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                                 color: "var(--cl-neutral-80)",
                                 borderRadius: "20px",
                                 "&.MuiButton-root:hover": {
-                                  background: "var(--cl-surface-container-lowest)",
+                                    background: "var(--cl-surface-container-lowest)",
                                 },
-                              }}
+                            }}
                             className={page == 'settings' ? "w-full sidebar-btn active" : "w-full sidebar-btn"}
                         >
                             <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">

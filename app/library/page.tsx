@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 
-
 import {
   Button,
   IconButton,
@@ -99,6 +98,27 @@ const Library = () => {
       console.log(e);
     }
   }, []);
+
+  const fetchDeleteMessage = async (id: number) => {
+    try {
+      const response = await axios.delete(
+        `https://cms.ciai.byte.vn/api/messages/${id}`
+      );
+      setMessages(response.data.data);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  const handleDeleteMessage = async (id: number) => {
+    await fetchDeleteMessage(id);
+    const messageIndex = messages.findIndex((message) => message.id === id);
+    if (messageIndex !== -1) {
+      const updatedMessages = [...messages];
+      updatedMessages.splice(messageIndex, 1);
+      setMessages(updatedMessages);
+    }
+  }
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -451,14 +471,13 @@ const Library = () => {
                             <tr
                               key={index}
                               className="cursor-pointer"
-                              onClick={() => router.push(`/library/${item.attributes.uid}`)}
                             >
                               <td className="w-12 text-center">
                                 <span className="material-symbols-outlined mt-1 prompt-icon">
                                   chat_bubble
                                 </span>
                               </td>
-                              <td>
+                              <td onClick={() => router.push(`/library/${item.attributes.uid}`)}>
                                 <button
                                   type="button"
                                   className="text-left font-medium truncate tend"
@@ -515,6 +534,7 @@ const Library = () => {
                                           color: "var(--cl-primary) !important",
                                         },
                                       }}
+                                      onClick={() => handleDeleteMessage(item.id)}
                                     >
                                       <span className="material-symbols-outlined">
                                         delete
