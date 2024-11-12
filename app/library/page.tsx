@@ -44,7 +44,6 @@ const useViewport = () => {
 
 const Library = () => {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const handleClickSidebarLeft = () => {
