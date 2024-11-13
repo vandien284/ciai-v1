@@ -152,17 +152,7 @@ const Detail = () => {
           prompt: prompt,
           message: message,
           type: type,
-          content: [
-            {
-              "type": "paragraph",
-              "children": [
-                {
-                  "text": 'Chat is typing...',
-                  "type": "text"
-                }
-              ]
-            }
-          ]
+          content: null
         },
       });
 
@@ -1318,7 +1308,7 @@ const Detail = () => {
                           </div> */}
                           {/* single-role */}
                           {
-                            item.attributes.content && (
+                            item.attributes.content ? (
                               <div
                                 className={`${showEditContent != item.id
                                   ? "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role"
@@ -1615,6 +1605,85 @@ const Detail = () => {
                                   )
                                 }
 
+                              </div>
+                            ) : (
+                              <div
+                                className={`${showEditContent != item.id
+                                  ? "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role"
+                                  : "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role editing"
+                                  }`}
+                              >
+                                <div className="mb-3 flex items-center justify-between sticky top-1 z-10 toggle-role">
+                                  <div className="flex items-center gap-x-3">
+                                    {!showRole && (
+                                      <Tooltip
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              maxWidth: "12rem",
+                                              backgroundColor: "var(--cl-neutral-8)",
+                                              fontFamily: "var(--font)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          },
+                                        }}
+                                        placement="top"
+                                        title="Switch to Model"
+                                      >
+                                        <Chip
+                                          sx={{
+                                            pb: 0.125,
+                                            "& .MuiChip-action": {
+                                              background:
+                                                "var(--cl-role-user-bg)!important",
+                                            },
+                                          }}
+                                          onClick={() => setShowRole(!showRole)}
+                                        >
+                                          <span className="text-white leading-6">
+                                            User
+                                          </span>
+                                        </Chip>
+                                      </Tooltip>
+                                    )}
+                                    {showRole && (
+                                      <Tooltip
+                                        componentsProps={{
+                                          tooltip: {
+                                            sx: {
+                                              maxWidth: "12rem",
+                                              backgroundColor: "var(--cl-neutral-8)",
+                                              fontFamily: "var(--font)",
+                                              color: "var(--cl-neutral-80)",
+                                            },
+                                          },
+                                        }}
+                                        placement="top"
+                                        title="Switch to User"
+                                      >
+                                        <Chip
+                                          sx={{
+                                            pb: 0.125,
+                                            "& .MuiChip-action": {
+                                              background:
+                                                "var(--cl-role-model-bg)!important",
+                                            },
+                                          }}
+                                          onClick={() => setShowRole(!showRole)}
+                                        >
+                                          <span className="text-white leading-6">
+                                            Model
+                                          </span>
+                                        </Chip>
+                                      </Tooltip>
+
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="px-2 leading-relaxed word-break info-prompt"
+                                >
+                                  Chat is typing...
+                                </div>
                               </div>
                             )
                           }
