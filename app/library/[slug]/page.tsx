@@ -300,34 +300,41 @@ const Detail = () => {
   }
 
   const renderIframe = (content: string) => {
-    const iframeMatch = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/);
-    if (iframeMatch) {
-      const styleString = iframeMatch[2];
-      const styleObject = Object.fromEntries(
-        styleString.split(';').filter(Boolean).map((rule: any) => {
-          const [property, value] = rule.split(':').map((str: any) => str.trim());
-          return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
+    const iframeMatches = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/g);
+  
+    return iframeMatches ? iframeMatches.map((iframeMatch, index) => {
+      const styleString = iframeMatch.match(/style="([^"]+)"/)?.[1];
+      const styleObject = styleString ? Object.fromEntries(
+        styleString.split(';').filter(Boolean).map((rule) => {
+          const [property, value] = rule.split(':').map((str) => str.trim());
+          return [property.replace(/-([a-z])/g, (_, char) => char.toUpperCase()), value];
         })
-      );
-
+      ) : {};
+  
       return (
         <iframe
-          src={iframeMatch[1]}
+          key={index}
+          src={iframeMatch.match(/src="([^"]+)"/)?.[1]}
           style={styleObject}
         />
       );
-    }
-    return null;
+    }) : [];
   };
 
   const renderContent = (content: any) => {
     const formattedContent = formatContent(content);
-    const parts = formattedContent.split(/<iframe[^>]*>.*?<\/iframe>/);
+  
+    const parts = formattedContent.split(/(<iframe[^>]*>.*?<\/iframe>)/g);
+  
     return (
       <div>
-        <div dangerouslySetInnerHTML={{ __html: parts[0] }} />
-        {renderIframe(formattedContent)}
-        <div dangerouslySetInnerHTML={{ __html: parts[1] }} />
+        {parts.map((part: string, index: React.Key | null | undefined) => {
+          if (part.match(/<iframe[^>]*>.*?<\/iframe>/)) {
+            return renderIframe(part);
+          }
+  
+          return <div key={index} dangerouslySetInnerHTML={{ __html: part }}></div>;
+        })}
       </div>
     );
   };
