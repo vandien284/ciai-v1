@@ -13,7 +13,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <title>CIAI</title>
-        <link rel="icon" href="/images/logo-icon.svg" type="image/x-icon" />
+        <link rel="icon" href="/images/favicon-white.png" type="image/x-icon" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
