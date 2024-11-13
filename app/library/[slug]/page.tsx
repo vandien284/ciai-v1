@@ -231,7 +231,7 @@ const Detail = () => {
 
 
   const checkPosts = async (value: Array<any>) => {
-    if (!value[0].attributes.content) {
+    if (!value[0].attributes.content && (value[0].attributes.type !== 'link' && value[0].attributes.type !== 'multi')) {
       const content = await fetchContent(value[0].attributes.prompt, value[0].attributes.type);
       if (content) {
         const data = await fetchContentPost(value[0].id, content);
