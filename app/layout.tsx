@@ -2,7 +2,8 @@
 import "./globals.css";
 import "./layout.css";
 import { ThemeProvider } from "./components/theme-provider";
-
+import { Provider } from 'react-redux';
+import store from '@/app/store/store';
 
 export default function RootLayout({
   children,
@@ -25,8 +26,11 @@ export default function RootLayout({
         />
       </head>
       <body>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      {children}</ThemeProvider>
+        <Provider store={store}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}</ThemeProvider>
+        </Provider>
+
       </body>
     </html>
   );

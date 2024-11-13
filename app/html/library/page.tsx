@@ -150,15 +150,7 @@ const Library = () => {
   });
 
   // Modal
-  const [showModalEditHeading, setShowModalEditHeading] = useState(false);
-
-  // Focus Input
-  const inputTitleRef = React.useRef<HTMLInputElement | null>(null);
-  useEffect(() => {
-    if (showModalEditHeading) {
-      inputTitleRef.current?.focus();
-    }
-  }, [showModalEditHeading]);
+  const [showModalDelete, setShowModalDelete] = useState(false);
 
   // Search bar
   const [inputValue, setInputValue] = useState("");
@@ -187,14 +179,18 @@ const Library = () => {
     <div id="app">
       <section className="flex h-full sec-main">
         <aside
-          className={`h-screen flex-shrink-0 sidebar ${
+          className={`flex-shrink-0 sidebar ${
             toggleSidebarLeft ? "expanded" : "compact"
           }`}
           id="sidebar-left"
         >
           <div
+            onClick={() => setToggleSidebarLeft(true)}
+            className="overlay-sidebar"
+          ></div>
+          <div
             className="w-full h-full flex flex-col justify-between inner"
-            ref={isMobile ? sideLeftRef : refNull}
+            // ref={isMobile ? sideLeftRef : refNull}
           >
             <div className="h-16 flex-shrink-0 flex items-center nav-logo">
               <a
@@ -422,7 +418,7 @@ const Library = () => {
                   <Button
                     component="a"
                     variant="plain"
-                    aria-label="My Connectors"
+                    aria-label="Prompt Gallery"
                     href="/html/prompt-gallery"
                     sx={{
                       pl: 0,
@@ -450,8 +446,8 @@ const Library = () => {
                   <Button
                     component="a"
                     variant="plain"
-                    aria-label="My Connectors"
-                    href="/html/connectors"
+                    aria-label="Connections"
+                    href="/html/connections"
                     sx={{
                       pl: 0,
                       pr: 1,
@@ -470,7 +466,7 @@ const Library = () => {
                       <span className="material-symbols-outlined">share</span>
                     </span>
                     <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      My Connectors
+                      Connections
                     </span>
                   </Button>
                 </div>
@@ -1033,6 +1029,10 @@ const Library = () => {
                                       color: "var(--cl-primary) !important",
                                     },
                                   }}
+                                  onClick={(e) => {
+                                    setShowModalDelete(true);
+                                    e.stopPropagation();
+                                  }}
                                 >
                                   <span className="material-symbols-outlined">
                                     delete
@@ -1108,6 +1108,10 @@ const Library = () => {
                                         "var(--cl-item-dropdown) !important",
                                       color: "var(--cl-primary) !important",
                                     },
+                                  }}
+                                  onClick={(e) => {
+                                    setShowModalDelete(true);
+                                    e.stopPropagation();
                                   }}
                                 >
                                   <span className="material-symbols-outlined">
@@ -1185,6 +1189,10 @@ const Library = () => {
                                       color: "var(--cl-primary) !important",
                                     },
                                   }}
+                                  onClick={(e) => {
+                                    setShowModalDelete(true);
+                                    e.stopPropagation();
+                                  }}
                                 >
                                   <span className="material-symbols-outlined">
                                     delete
@@ -1228,22 +1236,30 @@ const Library = () => {
                         "& .MuiTablePagination-input": {
                           ml: 1,
                           mr: 2,
-                          bgcolor: "#FFF",
+                          bgcolor: "var(--cl-item-dropdown)",
                           borderRadius: "3px",
-                          border: "1px solid #bdc1ca",
+                          border: "1px solid var(--cl-neutral-30)",
                           fontSize: "0.75rem",
-                          color: "#000",
+                          color: "var(--cl-primary)",
+                        },
+                        "& .MuiSvgIcon-root": {
+                          fill: "var(--cl-primary)",
+                        },
+                        "& .MuiIconButton-root:hover": {
+                          bgcolor: "var(--cl-item-dropdown)",
                         },
                       }}
                       SelectProps={{
                         MenuProps: {
                           PaperProps: {
                             sx: {
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              color: "var(--cl-primary)",
                               "& .MuiMenuItem-root": {
                                 fontSize: "0.75rem",
                                 minHeight: 32,
-                                "&.Mui-selected": {
-                                  bgcolor: "#f2f4fd",
+                                "&.Mui-selected, &.Mui-selected:hover": {
+                                  bgcolor: "var(--cl-item-dropdown)!important",
                                 },
                               },
                             },
@@ -1258,10 +1274,7 @@ const Library = () => {
           </main>
         </div>
       </section>
-      <Modal
-        open={showModalEditHeading}
-        onClose={() => setShowModalEditHeading(false)}
-      >
+      <Modal open={showModalDelete} onClose={() => setShowModalDelete(false)}>
         <ModalDialog
           variant="outlined"
           className="modal-dialog"
@@ -1278,52 +1291,23 @@ const Library = () => {
           }}
         >
           <ModalClose
-            sx={{ top: 14, right: 16, zIndex: 3 }}
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
             className="modal-close"
           />
           <DialogTitle sx={{ color: "var(--cl-primary)" }}>
-            <span className="text-base font-medium">Save prompt</span>
+            <span className="text-base font-medium">Delete prompt</span>
           </DialogTitle>
           <Divider />
-          <DialogContent className="py-3">
-            <FormControl className="mb-4">
-              <FormLabel
-                className="form-label"
-                sx={{ color: "var(--cl-primary)" }}
-              >
-                Prompt name
-              </FormLabel>
-              <Input
-                type="text"
-                className="input"
-                defaultValue="Untitled prompt"
-                slotProps={{
-                  input: {
-                    ref: inputTitleRef,
-                    autoFocus: true,
-                  },
-                }}
-              />
-            </FormControl>
-            <FormControl className="mb-4">
-              <FormLabel
-                className="form-label"
-                sx={{ color: "var(--cl-primary)" }}
-              >
-                Description
-              </FormLabel>
-              <Textarea
-                placeholder="optional"
-                minRows={3}
-                className="input"
-                sx={{
-                  "& .MuiTextarea-textarea": {
-                    maxHeight: "80px",
-                    overflow: "auto!important",
-                  },
-                }}
-              />
-            </FormControl>
+          <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
+            <p className="text-md font-medium">Are you sure?</p>
           </DialogContent>
           <DialogActions>
             <Button
@@ -1340,12 +1324,12 @@ const Library = () => {
                 },
               }}
             >
-              Save
+              Delete
             </Button>
             <Button
               variant="plain"
               color="neutral"
-              onClick={() => setShowModalEditHeading(false)}
+              onClick={() => setShowModalDelete(false)}
               sx={{
                 borderRadius: "8px",
                 fontWeight: 400,

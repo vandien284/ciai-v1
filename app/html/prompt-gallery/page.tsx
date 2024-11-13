@@ -187,14 +187,18 @@ const PromptGallery = () => {
     <div id="app">
       <section className="flex h-full sec-main">
         <aside
-          className={`h-screen flex-shrink-0 sidebar ${
+          className={`flex-shrink-0 sidebar ${
             toggleSidebarLeft ? "expanded" : "compact"
           }`}
           id="sidebar-left"
         >
           <div
+            onClick={() => setToggleSidebarLeft(true)}
+            className="overlay-sidebar"
+          ></div>
+          <div
             className="w-full h-full flex flex-col justify-between inner"
-            ref={isMobile ? sideLeftRef : refNull}
+            // ref={isMobile ? sideLeftRef : refNull}
           >
             <div className="h-16 flex-shrink-0 flex items-center nav-logo">
               <a
@@ -422,7 +426,7 @@ const PromptGallery = () => {
                   <Button
                     component="a"
                     variant="plain"
-                    aria-label="My Connectors"
+                    aria-label="Prompt Gallery"
                     href="/html/prompt-gallery"
                     sx={{
                       pl: 0,
@@ -450,8 +454,8 @@ const PromptGallery = () => {
                   <Button
                     component="a"
                     variant="plain"
-                    aria-label="My Connectors"
-                    href="/html/connectors"
+                    aria-label="Connections"
+                    href="/html/connections"
                     sx={{
                       pl: 0,
                       pr: 1,
@@ -470,7 +474,7 @@ const PromptGallery = () => {
                       <span className="material-symbols-outlined">share</span>
                     </span>
                     <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      My Connectors
+                      Connections
                     </span>
                   </Button>
                 </div>
@@ -1639,7 +1643,15 @@ const PromptGallery = () => {
           }}
         >
           <ModalClose
-            sx={{ top: 14, right: 16, zIndex: 3 }}
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
             className="modal-close"
           />
           <DialogTitle sx={{ color: "var(--cl-primary)" }}>

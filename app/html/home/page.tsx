@@ -34,6 +34,7 @@ import {
   Typography,
   Select,
   selectClasses,
+  SelectStaticProps,
   Option,
   RadioGroup,
   Radio,
@@ -158,38 +159,96 @@ const Home = () => {
     setExpanded(!expanded);
   };
 
+  // React Textarea
+  // State to store the content of each <textarea>
+  const [texts, setTexts] = useState({
+    textarea1: "",
+    textarea2: "",
+  });
+
+  // Refs to store each <textarea> element
+  const textareaRefs: { [key: string]: React.RefObject<HTMLTextAreaElement> } =
+    {
+      textarea1: useRef<HTMLTextAreaElement>(null),
+      textarea2: useRef<HTMLTextAreaElement>(null),
+    };
+
+  // UseEffect hook to focus the first textarea when the component mounts
+  useEffect(() => {
+    if (textareaRefs?.textarea2.current) {
+      textareaRefs.textarea2.current?.focus(); // Focus the first textarea
+    }
+  }, [textareaRefs.textarea2]);
+
+  const handleChangeText = (
+    event: React.ChangeEvent<HTMLTextAreaElement>,
+    id: string
+  ) => {
+    const newText = event.target.value;
+    setTexts((prevTexts) => ({
+      ...prevTexts,
+      [id]: newText,
+    }));
+
+    // Auto-resize the specific textarea if its ref exists
+    const ref = textareaRefs[id];
+    if (ref && ref.current) {
+      ref.current.style.height = "21px"; // Reset height first
+      ref.current.style.height = `${ref.current.scrollHeight}px`; // Adjust height based on content
+    }
+  };
+  useEffect(() => {
+    if (textareaRefs.textarea1?.current) {
+      textareaRefs.textarea1.current.style.height = "21px"; // Reset height
+      textareaRefs.textarea1.current.style.height = `${textareaRefs.textarea1.current.scrollHeight}px`; // Adjust height based on content
+    }
+  }, [textareaRefs.textarea1, expanded]);
+  const handleKeyDown = (e: any) => {
+    if (e.ctrlKey && e.key === "Enter") {
+      router.push("/html/library/detail");
+    }
+  };
   // React ContentEditable
-  const [contentInstructions, setContentInstructions] = React.useState("");
-  const [contentPrompt, setContentPrompt] = React.useState("");
-  const onContentInstructionsChange = React.useCallback((evt: any) => {
+  const [contentPrompt, setContentPrompt] = React.useState("Type something");
+  const onContentPromptChange = React.useCallback((evt: any) => {
     const sanitizeConf = {
       allowedTags: ["p", "br"],
       allowedAttributes: {},
     };
-    setContentInstructions(
-      sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf)
-    );
-  }, []);
-  const handleKeyDown = (event: any) => {
-    if (event.key === "Enter") {
-      event.preventDefault(); // Prevent default Enter behavior
-      document.execCommand("insertHTML", false, "<br><br>"); // Insert new line
-    }
-  };
-  const onContentPromptChange = React.useCallback((evt: any) => {
-    const sanitizeConf = {
-      allowedTags: ["b", "i", "a", "p", "br"],
-      allowedAttributes: { a: ["href"] },
-    };
     setContentPrompt(sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf));
   }, []);
-  const contentEditableRef = React.useRef<HTMLInputElement | null>(null);
-  useEffect(() => {
-    // Focus the ContentEditable element when the component mounts
-    if (contentEditableRef?.current) {
-      contentEditableRef.current?.focus();
+  const handleSpanClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const target = e.target as HTMLSpanElement;
+
+    document.querySelectorAll(".keyword").forEach((el) => {
+      el.classList.remove("border-keyword");
+    });
+
+    target.classList.add("border-keyword");
+
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(target);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    const contentEditable = target.closest('[contentEditable="true"]');
+    if (contentEditable) {
+      const handleInput = () => {
+        const selection = window.getSelection();
+        if (selection) {
+          const anchorNode = selection.anchorNode;
+
+          if (anchorNode && target.contains(anchorNode)) {
+            target.classList.remove("border-keyword");
+            contentEditable.removeEventListener("input", handleInput);
+          }
+        }
+      };
+
+      contentEditable.addEventListener("input", handleInput);
     }
-  }, []);
+  };
 
   // Popover
   const [popoverAccount, setPopoverAccount] = React.useState<CustomPopover>({
@@ -208,25 +267,35 @@ const Home = () => {
     }
   }, [showModalEditHeading]);
 
-  const onKeyPressHandler = (e: any) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      router.push("/html/library/detail");
-    }
-    if (e.key === "Enter" && e.shiftKey) {
-      // alert("Shift+Enter key Pressed");
-    }
-  };
-
   // Select Options
-  const [selectedItem, setSelectedItem] = useState("content");
-  const handleChangeActivities = (
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  // State to track the selected radio button value
+  const [selectedRadio, setSelectedRadio] = useState<string>("");
+  const radioGroups: Record<string, string[]> = {
+    content: ["for-website", "for-facebook-post", "create-new-template"],
+    chatbot: ["buy-a-car", "whats-new"],
+  };
+  const handleChangeCategories = (
     event: React.SyntheticEvent | null,
     newValue: string | null
   ) => {
-    setSelectedItem(newValue!);
+    // Set the selected option
+    if (newValue !== null) {
+      setSelectedOption(newValue);
+
+      // Reset radio value to the first option of the selected radio group
+      const radioGroup = radioGroups[newValue];
+      if (radioGroup) {
+        setSelectedRadio(radioGroup[0]); // Default to the first radio button
+      }
+    }
   };
-  // console.log(selectedItem);
+
+  // Handle the change when a radio button is selected
+  const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedRadio(event.target.value);
+  };
+  // console.log(selectedOption, selectedRadio);
 
   return (
     <div id="app">
@@ -238,8 +307,12 @@ const Home = () => {
           id="sidebar-left"
         >
           <div
+            onClick={() => setToggleSidebarLeft(true)}
+            className="overlay-sidebar"
+          ></div>
+          <div
             className="w-full h-full flex flex-col justify-between inner"
-            ref={isMobile ? sideLeftRef : refNull}
+            // ref={isMobile ? sideLeftRef : refNull}
           >
             <div className="h-16 flex-shrink-0 flex items-center nav-logo">
               <a
@@ -467,7 +540,7 @@ const Home = () => {
                   <Button
                     component="a"
                     variant="plain"
-                    aria-label="My Connectors"
+                    aria-label="Prompt Gallery"
                     href="/html/prompt-gallery"
                     sx={{
                       pl: 0,
@@ -495,8 +568,8 @@ const Home = () => {
                   <Button
                     component="a"
                     variant="plain"
-                    aria-label="My Connectors"
-                    href="/html/connectors"
+                    aria-label="Connections"
+                    href="/html/connections"
                     sx={{
                       pl: 0,
                       pr: 1,
@@ -515,7 +588,7 @@ const Home = () => {
                       <span className="material-symbols-outlined">share</span>
                     </span>
                     <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      My Connectors
+                      Connections
                     </span>
                   </Button>
                 </div>
@@ -961,7 +1034,7 @@ const Home = () => {
           <main className="w-full grow flex" id="main-content">
             <div className="grow flex flex-col">
               <div className="w-full px-3 border-b border-solid border-color">
-                <div className="flex items-center gap-x-1">
+                <div className="flex items-center gap-x-1 mt-0.5">
                   <IconButton
                     variant="plain"
                     aria-label="Show more"
@@ -984,7 +1057,7 @@ const Home = () => {
                       keyboard_arrow_up
                     </span>
                   </IconButton>
-                  <span className="py-2.5 text-base font-medium">
+                  <span className="text-base font-medium">
                     System Instructions
                   </span>
                 </div>
@@ -993,18 +1066,23 @@ const Home = () => {
                     <div
                       className="ml-12 mb-2 lg:mb-3 overflow-auto"
                       style={{
-                        minHeight: "20px",
+                        minHeight: "21px",
                         maxHeight: "200px",
                       }}
                     >
-                      <ContentEditable
-                        onChange={onContentInstructionsChange}
-                        onBlur={onContentInstructionsChange}
-                        onKeyDown={handleKeyDown}
-                        html={contentInstructions}
-                        data-placeholder="Optional tone and style instructions for the model"
-                        suppressContentEditableWarning={true}
-                        style={{ whiteSpace: "pre-wrap", outline: "none" }}
+                      <textarea
+                        ref={textareaRefs.textarea1}
+                        value={texts.textarea1}
+                        onChange={(e) => handleChangeText(e, "textarea1")}
+                        placeholder="Optional tone and style instructions for the model"
+                        style={{
+                          width: "100%",
+                          height: "21px",
+                          maxHeight: "200px",
+                          resize: "none", // Disable manual resizing
+                          whiteSpace: "pre-wrap",
+                          verticalAlign: "middle",
+                        }}
                       />
                     </div>
                   </div>
@@ -1017,7 +1095,10 @@ const Home = () => {
                       <h2 className="text-3xl font-normal leading-tight mb-1 heading-title">
                         Get started
                       </h2>
-                      <p className="text-base text-gray-600 font-medium">
+                      <p
+                        className="text-base font-medium"
+                        style={{ color: "var(--cl-neutral-70)" }}
+                      >
                         Try a sample prompt or add your own input below
                       </p>
                     </div>
@@ -1114,17 +1195,263 @@ const Home = () => {
               <div className="py-4 chat-prompt">
                 <div className="px-4 lg:px-6">
                   <div className="w-full pl-6 py-2 border border-solid rounded-4xl overflow-hidden flex items-end justify-between actions-prompt">
-                    <div className="grow max-h-28 overflow-y-auto pb-1.5 type-prompt">
-                      <ContentEditable
-                        onChange={onContentPromptChange}
-                        onBlur={onContentPromptChange}
-                        html={contentPrompt}
-                        innerRef={contentEditableRef}
-                        data-placeholder="Type something"
-                        suppressContentEditableWarning={true}
-                        onKeyPress={onKeyPressHandler}
-                      />
-                    </div>
+                    {selectedOption !== "content" &&
+                      selectedOption !== "chatbot" && (
+                        <div className="grow mb-2 type-prompt">
+                          <textarea
+                            ref={textareaRefs.textarea2}
+                            value={texts.textarea2}
+                            onChange={(e) => handleChangeText(e, "textarea2")}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Type something"
+                            style={{
+                              width: "100%",
+                              height: "22px",
+                              maxHeight: "100px",
+                              resize: "none", // Disable manual resizing
+                              whiteSpace: "pre-wrap",
+                              verticalAlign: "middle",
+                            }}
+                          />
+                        </div>
+                      )}
+                    {selectedOption === "content" && (
+                      <div className="grow type-prompt">
+                        <div className="max-h-24 overflow-hidden overflow-y-auto">
+                          {selectedRadio === "for-website" && (
+                            <div
+                              contentEditable
+                              className="content-wrap"
+                              onChange={onContentPromptChange}
+                              onBlur={onContentPromptChange}
+                              onKeyDown={handleKeyDown}
+                              data-placeholder="Type something"
+                              suppressContentEditableWarning={true}
+                            >
+                              <p>
+                                Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [ô tô, bất động sản...]
+                                </span>
+                                &nbsp;tại khu vực&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Sài Gòn, Hà Nội...]
+                                </span>
+                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Toyota Yaris Cross Hybrid 2024]
+                                </span>
+                                &nbsp;.
+                              </p>
+                              <p>
+                                Bài viết sẽ có giọng văn&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [chuyên nghiệp, dễ hiểu...]
+                                </span>
+                                &nbsp;và số lượng từ là&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [400, 600...]
+                                </span>
+                                &nbsp;
+                              </p>
+                            </div>
+                          )}
+                          {selectedRadio === "for-facebook-post" && (
+                            <div
+                              contentEditable
+                              className="content-wrap"
+                              onChange={onContentPromptChange}
+                              onBlur={onContentPromptChange}
+                              onKeyDown={handleKeyDown}
+                              data-placeholder="Type something"
+                              suppressContentEditableWarning={true}
+                            >
+                              <p>
+                                Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [kinh doanh online, ...]
+                                </span>
+                                &nbsp;tại khu vực&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Sài Gòn, Hà Nội...]
+                                </span>
+                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Toyota Yaris Cross Hybrid 2024]
+                                </span>
+                                &nbsp;.
+                              </p>
+                              <p>
+                                Bài viết sẽ có giọng văn&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [chuyên nghiệp, dễ hiểu...]
+                                </span>
+                                &nbsp;và số lượng từ là&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [400, 600...]
+                                </span>
+                                &nbsp;
+                              </p>
+                            </div>
+                          )}
+                          {selectedRadio === "create-new-template" && (
+                            <div className="mb-2">
+                              <div
+                                contentEditable
+                                className="content-wrap"
+                                onChange={onContentPromptChange}
+                                onBlur={onContentPromptChange}
+                                onKeyDown={handleKeyDown}
+                                data-placeholder="Type something"
+                                suppressContentEditableWarning={true}
+                              ></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {selectedOption === "chatbot" && (
+                      <div className="grow type-prompt">
+                        <div className="max-h-24 overflow-hidden overflow-y-auto">
+                          {selectedRadio === "buy-a-car" && (
+                            <div
+                              contentEditable
+                              className="content-wrap"
+                              onChange={onContentPromptChange}
+                              onBlur={onContentPromptChange}
+                              onKeyDown={handleKeyDown}
+                              data-placeholder="Type something"
+                              suppressContentEditableWarning={true}
+                            >
+                              <p>
+                                Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [ô tô...]
+                                </span>
+                                &nbsp;tại khu vực&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Sài Gòn, Hà Nội...]
+                                </span>
+                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Toyota Yaris Cross Hybrid 2024]
+                                </span>
+                                &nbsp;.
+                              </p>
+                              <p>
+                                Bài viết sẽ có giọng văn&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [chuyên nghiệp, dễ hiểu...]
+                                </span>
+                                &nbsp;và số lượng từ là&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [400, 600...]
+                                </span>
+                                &nbsp;
+                              </p>
+                            </div>
+                          )}
+                          {selectedRadio === "whats-new" && (
+                            <div
+                              contentEditable
+                              className="content-wrap"
+                              onChange={onContentPromptChange}
+                              onBlur={onContentPromptChange}
+                              onKeyDown={handleKeyDown}
+                              data-placeholder="Type something"
+                              suppressContentEditableWarning={true}
+                            >
+                              <p>
+                                Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [what's new...]
+                                </span>
+                                &nbsp;tại khu vực&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Sài Gòn, Hà Nội...]
+                                </span>
+                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [Toyota Yaris Cross Hybrid 2024]
+                                </span>
+                                &nbsp;.
+                              </p>
+                              <p>
+                                Bài viết sẽ có giọng văn&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [chuyên nghiệp, dễ hiểu...]
+                                </span>
+                                &nbsp;và số lượng từ là&nbsp;
+                                <span
+                                  className="keyword"
+                                  onClick={handleSpanClick}
+                                >
+                                  [400, 600...]
+                                </span>
+                                &nbsp;
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center justify-end gap-x-2 pr-2">
                       <Dropdown>
                         <Tooltip
@@ -1353,8 +1680,12 @@ const Home = () => {
             >
               <div
                 className="w-full h-full flex flex-col justify-between inner"
-                ref={isMobile ? sideRightRef : refNull}
+                // ref={isMobile ? sideRightRef : refNull}
               >
+                <div
+                  onClick={() => setToggleSidebarRight(true)}
+                  className="overlay-sidebar"
+                ></div>
                 <div className="h-11 border-b border-solid border-color flex items-center justify-between whitespace-nowrap">
                   <h2 className="grow text-base font-medium">Run settings</h2>
                   <Button
@@ -1364,7 +1695,7 @@ const Home = () => {
                       fontWeight: 400,
                       color: "var(--cl-primary)",
                       borderRadius: "8px",
-                      minHeight: "32px",
+                      minHeight: "36px",
                       "&:hover": {
                         background: "var(--bg-color)",
                       },
@@ -1575,7 +1906,7 @@ const Home = () => {
                               className="w-full custom-select"
                               name="select-company"
                               placeholder="Select Company"
-                              defaultValue="caready"
+                              // defaultValue="caready"
                               sx={{
                                 fontFamily: "var(--font)",
                                 fontSize: "0.875rem",
@@ -1625,9 +1956,9 @@ const Home = () => {
                         <div className="item">
                           <p className="flex items-center gap-x-2 mb-2">
                             <span className="material-symbols-outlined">
-                              construction
+                              category
                             </span>
-                            <span className="font-medium name">Activities</span>
+                            <span className="font-medium name">Categories</span>
                           </p>
                           <div className="ml-7">
                             <FormControl className="mr-8 mb-5">
@@ -1635,9 +1966,9 @@ const Home = () => {
                                 indicator={<ArrowDropDownOutlined />}
                                 className="w-full custom-select"
                                 name="select-activities"
-                                placeholder="Select Activities"
-                                value={selectedItem}
-                                defaultValue="content"
+                                placeholder="Select Categories"
+                                value={selectedOption}
+                                // defaultValue="content"
                                 sx={{
                                   fontFamily: "var(--font)",
                                   fontSize: "0.875rem",
@@ -1677,127 +2008,171 @@ const Home = () => {
                                     },
                                   },
                                 }}
-                                onChange={handleChangeActivities}
+                                onChange={handleChangeCategories}
                               >
                                 <Option value="content">Content</Option>
-                                <Option value="chatbox">Chatbox</Option>
+                                <Option value="chatbot">Chatbot</Option>
                                 <Option value="business">Business</Option>
                                 <Option value="scraping">Scraping</Option>
                               </Select>
                             </FormControl>
                             <div className="setting-options">
-                              <RadioGroup
-                                name="content"
-                                orientation="vertical"
-                                defaultValue="content-writer"
-                                className="flex-wrap"
-                                aria-hidden={
-                                  selectedItem !== "content" ? true : false
-                                }
-                              >
-                                <Radio
-                                  value="content-writer"
-                                  label="Content writer"
-                                  sx={{
-                                    ml: 0,
-                                    fontFamily: "var(--font)",
-                                    fontSize: "0.875rem",
-                                    "&.MuiRadio-root": {
-                                      gap: "6px",
-                                      color: "var(--cl-primary)",
-                                    },
-                                    "& .MuiRadio-radio": {
-                                      background: "none",
-                                      borderColor: "var(--cl-primary)",
-                                      ":hover": {
+                              {(selectedOption === "content" ||
+                                selectedOption === "chatbot") && (
+                                <p className="flex items-center gap-x-2 mb-2">
+                                  <span className="font-medium name">
+                                    Activities
+                                  </span>
+                                </p>
+                              )}
+                              {selectedOption === "content" && (
+                                <RadioGroup
+                                  name="content"
+                                  orientation="vertical"
+                                  defaultValue="for-website"
+                                  className="flex-col"
+                                  value={selectedRadio}
+                                >
+                                  <Radio
+                                    value="for-website"
+                                    label="For website"
+                                    checked={selectedRadio === "for-website"}
+                                    onChange={handleRadioChange}
+                                    sx={{
+                                      ml: 0,
+                                      fontFamily: "var(--font)",
+                                      fontSize: "0.875rem",
+                                      "&.MuiRadio-root": {
+                                        gap: "6px",
+                                        color: "var(--cl-primary)",
+                                      },
+                                      "& .MuiRadio-radio": {
                                         background: "none",
+                                        borderColor: "var(--cl-primary)",
+                                        ":hover": {
+                                          background: "none",
+                                        },
+                                        "&.Mui-checked .MuiRadio-icon": {
+                                          bgcolor: "var(--cl-primary)",
+                                        },
                                       },
-                                      "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-primary)",
+                                    }}
+                                  />
+                                  <Radio
+                                    value="for-facebook-post"
+                                    label="For facebook post"
+                                    checked={
+                                      selectedRadio === "for-facebook-post"
+                                    }
+                                    onChange={handleRadioChange}
+                                    sx={{
+                                      ml: 0,
+                                      fontFamily: "var(--font)",
+                                      fontSize: "0.875rem",
+                                      "&.MuiRadio-root": {
+                                        gap: "6px",
+                                        color: "var(--cl-primary)",
                                       },
-                                    },
-                                  }}
-                                />
-                                <Radio
-                                  value="copy-post"
-                                  label="Copy post"
-                                  sx={{
-                                    ml: 0,
-                                    fontFamily: "var(--font)",
-                                    fontSize: "0.875rem",
-                                    "&.MuiRadio-root": {
-                                      gap: "6px",
-                                      color: "var(--cl-primary)",
-                                    },
-                                    "& .MuiRadio-radio": {
-                                      background: "none",
-                                      borderColor: "var(--cl-primary)",
-                                      ":hover": {
+                                      "& .MuiRadio-radio": {
                                         background: "none",
+                                        borderColor: "var(--cl-primary)",
+                                        ":hover": {
+                                          background: "none",
+                                        },
+                                        "&.Mui-checked .MuiRadio-icon": {
+                                          bgcolor: "var(--cl-primary)",
+                                        },
                                       },
-                                      "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-primary)",
+                                    }}
+                                  />
+                                  <Radio
+                                    value="create-new-template"
+                                    label="Create new template"
+                                    checked={
+                                      selectedRadio === "create-new-template"
+                                    }
+                                    onChange={handleRadioChange}
+                                    sx={{
+                                      ml: 0,
+                                      fontFamily: "var(--font)",
+                                      fontSize: "0.875rem",
+                                      "&.MuiRadio-root": {
+                                        gap: "6px",
+                                        color: "var(--cl-primary)",
                                       },
-                                    },
-                                  }}
-                                />
-                              </RadioGroup>
-                              <RadioGroup
-                                name="chatbox"
-                                orientation="vertical"
-                                defaultValue="buy-a-car"
-                                className="flex-wrap"
-                                aria-hidden={
-                                  selectedItem !== "chatbox" ? true : false
-                                }
-                              >
-                                <Radio
-                                  value="buy-a-car"
-                                  label="Buy a car"
-                                  sx={{
-                                    ml: 0,
-                                    fontFamily: "var(--font)",
-                                    fontSize: "0.875rem",
-                                    "&.MuiRadio-root": {
-                                      gap: "6px",
-                                      color: "var(--cl-primary)",
-                                    },
-                                    "& .MuiRadio-radio": {
-                                      background: "none",
-                                      borderColor: "var(--cl-primary)",
-                                      ":hover": {
+                                      "& .MuiRadio-radio": {
                                         background: "none",
+                                        borderColor: "var(--cl-primary)",
+                                        ":hover": {
+                                          background: "none",
+                                        },
+                                        "&.Mui-checked .MuiRadio-icon": {
+                                          bgcolor: "var(--cl-primary)",
+                                        },
                                       },
-                                      "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-primary)",
+                                    }}
+                                  />
+                                </RadioGroup>
+                              )}
+                              {selectedOption === "chatbot" && (
+                                <RadioGroup
+                                  name="chatbot"
+                                  orientation="vertical"
+                                  defaultValue="buy-a-car"
+                                  className="flex-col"
+                                >
+                                  <Radio
+                                    value="buy-a-car"
+                                    label="Buy a car"
+                                    checked={selectedRadio === "buy-a-car"}
+                                    onChange={handleRadioChange}
+                                    sx={{
+                                      ml: 0,
+                                      fontFamily: "var(--font)",
+                                      fontSize: "0.875rem",
+                                      "&.MuiRadio-root": {
+                                        gap: "6px",
+                                        color: "var(--cl-primary)",
                                       },
-                                    },
-                                  }}
-                                />
-                                <Radio
-                                  value="whats-new"
-                                  label="What's new"
-                                  sx={{
-                                    ml: 0,
-                                    fontFamily: "var(--font)",
-                                    fontSize: "0.875rem",
-                                    "&.MuiRadio-root": {
-                                      gap: "6px",
-                                      color: "var(--cl-primary)",
-                                    },
-                                    "& .MuiRadio-radio": {
-                                      background: "none",
-                                      borderColor: "var(--cl-primary)",
-                                      ":hover": {
+                                      "& .MuiRadio-radio": {
                                         background: "none",
+                                        borderColor: "var(--cl-primary)",
+                                        ":hover": {
+                                          background: "none",
+                                        },
+                                        "&.Mui-checked .MuiRadio-icon": {
+                                          bgcolor: "var(--cl-primary)",
+                                        },
                                       },
-                                      "&.Mui-checked .MuiRadio-icon": {
-                                        bgcolor: "var(--cl-primary)",
+                                    }}
+                                  />
+                                  <Radio
+                                    value="whats-new"
+                                    label="What's new"
+                                    checked={selectedRadio === "whats-new"}
+                                    onChange={handleRadioChange}
+                                    sx={{
+                                      ml: 0,
+                                      fontFamily: "var(--font)",
+                                      fontSize: "0.875rem",
+                                      "&.MuiRadio-root": {
+                                        gap: "6px",
+                                        color: "var(--cl-primary)",
                                       },
-                                    },
-                                  }}
-                                />
-                              </RadioGroup>
+                                      "& .MuiRadio-radio": {
+                                        background: "none",
+                                        borderColor: "var(--cl-primary)",
+                                        ":hover": {
+                                          background: "none",
+                                        },
+                                        "&.Mui-checked .MuiRadio-icon": {
+                                          bgcolor: "var(--cl-primary)",
+                                        },
+                                      },
+                                    }}
+                                  />
+                                </RadioGroup>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1900,7 +2275,15 @@ const Home = () => {
           }}
         >
           <ModalClose
-            sx={{ top: 14, right: 16, zIndex: 3 }}
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
             className="modal-close"
           />
           <DialogTitle sx={{ color: "var(--cl-primary)" }}>

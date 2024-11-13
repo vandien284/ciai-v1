@@ -14,9 +14,6 @@
 /* Handle */
 ::-webkit-scrollbar-thumb {
   background: var(--cl-neutral-20);
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
 }
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
@@ -46,10 +43,12 @@
   --cl-neutral-20: #c6c6c9;
   --cl-neutral-30: #a8abb4;
   --cl-neutral-60: #5d5e61;
+  --cl-neutral-70: #45474a;
   --cl-neutral-80: #2f3133;
   --cl-neutral-90: #001d35;
   --cl-bg-dropdown: #fff;
   --cl-item-dropdown: #f3f3f6;
+  --cl-divider: rgba(0, 0, 0, 0.12);
 }
 .dark {
   --bg-body: #0c0e11;
@@ -68,10 +67,12 @@
   --cl-neutral-20: #2f3133;
   --cl-neutral-30: #45474a;
   --cl-neutral-60: #8f9194;
+  --cl-neutral-70: #aaabae;
   --cl-neutral-80: #c6c6c9;
   --cl-neutral-90: #e2e2e5;
   --cl-bg-dropdown: #282a2d;
   --cl-item-dropdown: #45474a;
+  --cl-divider: rgba(255, 255, 255, 0.12);
 }
 body {
   font-family: var(--font);
@@ -166,6 +167,12 @@ input[type="number"] {
 .custom-select:focus-within {
   border: 1px solid var(--cl-primary) !important;
 }
+textarea {
+  background: none;
+}
+textarea:focus-within {
+  outline: none !important;
+}
 .btn-color {
   background-color: var(--cl-primary-70);
   color: var(--cl-neutral-10);
@@ -173,6 +180,11 @@ input[type="number"] {
 .btn-color:hover {
   background-color: var(--cl-primary-80);
   color: var(--cl-neutral-10);
+}
+.show-more[aria-expanded="true"] {
+  -webkit-transform: rotate(-180deg);
+  -moz-transform: rotate(-180deg);
+  transform: rotate(-180deg);
 }
 /* Dropdown */
 .dropdown-menu {
@@ -299,9 +311,9 @@ input[type="number"] {
   font-family: var(--font) !important;
 }
 .modal-close {
-  -webkit-border-radius: 100%;
-  -moz-border-radius: 100%;
-  border-radius: 100%;
+  -webkit-border-radius: 100% !important;
+  -moz-border-radius: 100% !important;
+  border-radius: 100% !important;
 }
 .modal-sidebar .note-group {
   font-size: 0.875rem;
@@ -348,6 +360,9 @@ input[type="number"] {
 .data-table td .tend {
   color: var(--cl-primary-80);
 }
+.data-table tr:hover {
+  background-color: var(--cl-neutral-10);
+}
 @media (min-width: 992px) {
   .data-table th {
     border-bottom: 1px solid var(--cl-neutral-30);
@@ -392,20 +407,20 @@ input[type="number"] {
 /*Quill*/
 [contenteditable="true"] {
   font-family: var(--font);
-  font-size: 0.938rem !important;
+  font-size: 0.875rem !important;
   word-break: break-word;
 }
 .keyword[contenteditable="true"]:focus {
-  outline: 2px solid #0b6bcb;
+  outline: 2px solid var(--cl-primary-70);
 }
-[contenteditable="true"] p {
-  margin-bottom: 0.25rem;
+[contenteditable="true"]:empty {
+  margin-bottom: 0.5rem;
 }
 [contenteditable="true"]:empty:before {
   content: attr(data-placeholder);
   pointer-events: none;
   display: block;
-  color: #808080;
+  color: var(--cl-neutral-30);
 }
 .ql-editor {
   font-size: 1rem;
@@ -415,55 +430,19 @@ input[type="number"] {
 .ql-editor.ql-blank::before {
   font-style: normal !important;
   font-weight: 500;
-  color: #808080;
+  color: var(--cl-neutral-30);
 }
 .ql-container.ql-snow {
   height: auto;
   flex-grow: 1;
   overflow: auto;
 }
-@-webkit-keyframes slide-in {
-  0% {
-    -webkit-transform: translateX(-100%);
-    transform: translateX(-100%);
-  }
-  to {
-    -webkit-transform: translateX(0);
-    transform: translateX(0);
-  }
-}
-@keyframes slide-in {
-  0% {
-    -webkit-transform: translateX(-100%);
-    transform: translateX(-100%);
-  }
-  to {
-    -webkit-transform: translateX(0);
-    transform: translateX(0);
-  }
-}
-@-webkit-keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 .keyword {
-  color: #0b6bcb;
+  color: var(--cl-primary-70);
 }
 .border-keyword {
   padding: 5px;
-  border: 2px solid #0b6bcb;
+  border: 2px solid var(--cl-primary-70);
   border-radius: 5px;
   background: rgba(183, 197, 210, 40%);
   cursor: pointer;
@@ -479,4 +458,8 @@ ol {
 .border-keyword:focus-visible {
   border: none;
   background: none;
+}
+.content-wrap {
+  white-space: pre-wrap;
+  outline: none;
 }

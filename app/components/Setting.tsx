@@ -2,6 +2,9 @@
 import React, { useState, useEffect, useRef, MutableRefObject } from "react";
 import { ArrowDropDownOutlined } from "@mui/icons-material";
 import { useTheme } from "next-themes";
+import { useSelector, useDispatch } from 'react-redux';
+import { setModel, setCompany } from '@/app/store/slice'
+
 import {
     Button,
     IconButton,
@@ -77,6 +80,29 @@ const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRig
         type.current = e.target.value
     };
 
+    const model = useSelector((state: any) => state.store.model);
+    const company = useSelector((state: any) => state.store.company);
+    const dispatch = useDispatch();
+
+    const handleChangeCompany = (
+        event: React.SyntheticEvent | null,
+        newValue: string | null
+    ) => {
+        dispatch(setCompany(newValue!));
+    };
+
+    const handleChangeModel = (
+        event: React.SyntheticEvent | null,
+        newValue: string | null
+    ) => {
+        dispatch(setModel(newValue!));
+    };
+
+    const resetSetting = () => {
+        dispatch(setModel('chatgpt'))
+        dispatch(setCompany('caready'))
+        setSelectedItem('content');
+    }
 
     return (
         <aside
@@ -92,6 +118,7 @@ const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRig
                     <h2 className="grow text-base font-medium">Run settings</h2>
                     <Button
                         variant="plain"
+                        onClick={resetSetting}
                         sx={{
                             fontFamily: "var(--font)",
                             fontWeight: 400,
@@ -224,7 +251,9 @@ const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRig
                                             className="w-full custom-select"
                                             name="select-models"
                                             placeholder="Select Models"
-                                            defaultValue="chatgpt"
+                                            defaultValue={model}
+                                            value={model}
+                                            onChange={handleChangeModel}
                                             sx={{
                                                 fontFamily: "var(--font)",
                                                 fontSize: "0.875rem",
@@ -273,7 +302,9 @@ const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRig
                                             className="w-full custom-select"
                                             name="select-company"
                                             placeholder="Select Company"
-                                            defaultValue="caready"
+                                            defaultValue={company}
+                                            value={company}
+                                            onChange={handleChangeCompany}
                                             sx={{
                                                 fontFamily: "var(--font)",
                                                 fontSize: "0.875rem",
@@ -364,7 +395,9 @@ const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRig
                                             </Select>
                                         </FormControl>
                                         <div className="setting-options">
-                                            <RadioGroup
+                                            {
+                                                selectedItem == 'content' && (
+                                                    <RadioGroup
                                                 name="content"
                                                 orientation="vertical"
                                                 defaultValue="content"
@@ -421,7 +454,11 @@ const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRig
                                                     }}
                                                 />
                                             </RadioGroup>
-                                            <RadioGroup
+                                                )
+                                            }
+                                            {
+                                                selectedItem == 'scraping' && (
+                                                    <RadioGroup
                                                 name="scraping"
                                                 orientation="vertical"
                                                 defaultValue="link"
@@ -478,6 +515,10 @@ const Setting: React.FC<ChildProps> = ({ toggleSidebarRight, setToggleSidebarRig
                                                     }}
                                                 />
                                             </RadioGroup>
+                                                )
+                                            }
+                                            
+                                            
                                         </div>
                                     </div>
                                 </div>

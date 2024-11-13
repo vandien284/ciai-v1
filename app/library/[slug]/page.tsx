@@ -124,7 +124,7 @@ const Detail = () => {
         question: newPrompt
       }
     } else if (type == 'link' || type == 'multi') {
-      api = 'https://hook.eu2.make.com/bkvyd59s1jk69oovipjmqcuwbij4mekh'
+      api = 'https://hook.eu2.make.com/hy7791yv6fy5qtq4xh1t5o0kkvvx1jww'
       body = {
         uid: slug,
         link: newPrompt,
@@ -161,7 +161,6 @@ const Detail = () => {
       console.log(e);
     }
   }
-
 
   const fetchPromptPost = async (id: number, prompt: string) => {
     try {
@@ -301,7 +300,7 @@ const Detail = () => {
 
   const renderIframe = (content: string) => {
     const iframeMatches = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/g);
-  
+
     return iframeMatches ? iframeMatches.map((iframeMatch, index) => {
       const styleString = iframeMatch.match(/style="([^"]+)"/)?.[1];
       const styleObject = styleString ? Object.fromEntries(
@@ -310,7 +309,7 @@ const Detail = () => {
           return [property.replace(/-([a-z])/g, (_, char) => char.toUpperCase()), value];
         })
       ) : {};
-  
+
       return (
         <iframe
           key={index}
@@ -323,22 +322,153 @@ const Detail = () => {
 
   const renderContent = (content: any) => {
     const formattedContent = formatContent(content);
-  
+
     const parts = formattedContent.split(/(<iframe[^>]*>.*?<\/iframe>)/g);
-  
+
     return (
       <div>
         {parts.map((part: string, index: React.Key | null | undefined) => {
           if (part.match(/<iframe[^>]*>.*?<\/iframe>/)) {
             return renderIframe(part);
           }
-  
+
           return <div key={index} dangerouslySetInnerHTML={{ __html: part }}></div>;
         })}
       </div>
     );
   };
 
+  // const renderIframe = (content: string) => {
+  //   const iframeMatch = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/);
+  //   if (iframeMatch) {
+  //     const styleString = iframeMatch[2];
+  //     const styleObject = Object.fromEntries(
+  //       styleString.split(';').filter(Boolean).map((rule: any) => {
+  //         const [property, value] = rule.split(':').map((str: any) => str.trim());
+  //         return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
+  //       })
+  //     );
+
+  //     return (
+  //       <iframe
+  //         src={iframeMatch[1]}
+  //         style={styleObject}
+  //       />
+  //     );
+  //   }
+  //   return null;
+  // };
+
+  // const renderContent = (content: any) => {
+  //   const formattedContent = formatContent(content);
+  //   const parts = formattedContent.split(/<iframe[^>]*>.*?<\/iframe>/);
+  //   return (
+  //     <div>
+  //       <div dangerouslySetInnerHTML={{ __html: parts[0] }} />
+  //       {renderIframe(formattedContent)}
+  //       <div dangerouslySetInnerHTML={{ __html: parts[1] }} />
+  //     </div>
+  //   );
+  // };
+
+  // const renderContent = (content: any) => {
+  //   const elements = content.split('\n').map((line: any, index: any) => {
+
+  //     const pTagMatch = line.match(/<p[^>]*>/);
+
+  //     if (pTagMatch) {
+  //       return <div key={index} dangerouslySetInnerHTML={{ __html: line }} />;
+  //     }
+
+  //     const strongTextMatch = line.match(/\*\*(.*?)\*\*/);
+  //     const linkMatch = line.match(/(https?:\/\/[^\s]+\.html)/);
+
+  //     if (strongTextMatch && linkMatch) {
+  //       const strongText = strongTextMatch[1];
+  //       const url = linkMatch[0];
+  //       const textBeforeStrong = line.split(strongTextMatch[0])[0];
+  //       const textAfterStrong = line.split(strongTextMatch[0])[1].split(url)[0];
+  //       const textAfterLink = line.split(url)[1];
+
+  //       return (
+  //         <p key={index}>
+  //           {textBeforeStrong}
+  //           <strong>{strongText}</strong>
+  //           {textAfterStrong}
+  //           <a href={url} target="_blank" >
+  //             {url}
+  //           </a>
+  //           {textAfterLink}
+  //         </p>
+  //       );
+  //     }
+
+  //     if (strongTextMatch) {
+  //       const strongText = strongTextMatch[1];
+  //       const textBefore = line.split(strongTextMatch[0])[0];
+  //       const textAfter = line.split(strongTextMatch[0])[1];
+
+  //       return (
+  //         <p key={index}>
+  //           {textBefore}
+  //           <strong>{strongText}</strong>
+  //           {textAfter}
+  //         </p>
+  //       );
+  //     }
+
+  //     if (linkMatch) {
+  //       const url = linkMatch[0];
+  //       const textBeforeLink = line.split(url)[0];
+  //       const textAfterLink = line.split(url)[1];
+  //       if (textBeforeLink.includes('- [Xem chi tiết]')) {
+  //         return (
+  //           <div key={index}>
+  //             <span>- </span>
+  //             <a href={url} target="_blank">
+  //               Xem chi tiết
+  //             </a>
+  //           </div>
+  //         );
+  //       } else {
+  //         return (
+  //           <div key={index}>
+  //             {textBeforeLink}
+  //             <a href={url} target="_blank">
+  //               {url}
+  //             </a>
+  //             {textAfterLink}
+  //           </div>
+  //         );
+  //       }
+
+  //     }
+
+  //     const iframeMatch = line.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/);
+  //     if (iframeMatch) {
+  //       const styleString = iframeMatch[2];
+  //       const styleObject = Object.fromEntries(
+  //         styleString.split(';').filter(Boolean).map((rule: any) => {
+  //           const [property, value] = rule.split(':').map((str: any) => str.trim());
+  //           return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
+  //         })
+  //       );
+
+  //       return (
+  //         <iframe
+  //           key={index}
+  //           src={iframeMatch[1]}
+  //           style={styleObject}
+  //         />
+  //       );
+  //     }
+
+  //     return <div key={index} dangerouslySetInnerHTML={{ __html: line }} />;
+  //   });
+
+  //   return elements;
+  //   return <div dangerouslySetInnerHTML={{ __html: formatContent(content) }} />
+  // };
 
   const handleUpdateNameMessage = async () => {
     await fetchMessage(nameMessage.current);

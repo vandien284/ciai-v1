@@ -548,12 +548,22 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         className="modal-close"
                     />
                     <DialogTitle sx={{ color: "var(--cl-primary)" }}>
-                        <span className="text-base font-medium">Version 121124.1730</span>
+                        <span className="text-base font-medium">Version</span>
                     </DialogTitle>
                     <Divider />
+                    <DialogTitle sx={{ color: "var(--cl-primary)" }}>
+                        <span className="text-base font-medium">Ngày 12/11/2024</span>
+                    </DialogTitle>
                     <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
                         <span className="text-base">- Thêm các tính năng edit,delete</span>
                         <span className="text-base">- Đã sửa lại format content</span>
+                    </DialogContent>
+                    <DialogTitle sx={{ color: "var(--cl-primary)" }}>
+                        <span className="text-base font-medium">Ngày 13/11/2024</span>
+                    </DialogTitle>
+                    <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
+                        <span className="text-base">- </span>
+                        <span className="text-base">- </span>
                     </DialogContent>
                 </ModalDialog>
             </Modal>
