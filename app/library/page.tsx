@@ -64,36 +64,41 @@ const Library = () => {
   }, [showModalEditHeading]);
 
   // Search bar
-  const [inputValue, setInputValue] = useState("");
-  const handleInputSearchChange = (event: any) => {
+  const [inputValue, setInputValue] = useState('');
+  const handleInputSearchChange = async (event: any) => {
     setInputValue(event.target.value);
+    await fetchMessages(event.target.value, 1, 100);
   };
 
   // Pagination
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(100);
+  const [total, setTotal] = useState(100);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => {
+    fetchMessages(inputValue, newPage + 1, rowsPerPage);
     setPage(newPage);
   };
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    fetchMessages(inputValue, 1, parseInt(event.target.value, 10));
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
   const hasFetched = useRef(false);
   const [messages, setMessages] = useState(Array<any>);
-  const fetchMessages = useCallback(async () => {
+  const fetchMessages = useCallback(async (keywords: string, page: number, pagesize: number) => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=100`
+        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&filters[name][$contains]=${keywords}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
       );
       setMessages(response.data.data);
+      setTotal(response.data.meta.pagination.total)
     } catch (e) {
       console.log(e);
     }
@@ -122,10 +127,10 @@ const Library = () => {
 
   useEffect(() => {
     if (!hasFetched.current) {
-      fetchMessages();
+      fetchMessages(inputValue, 1, 100);
       hasFetched.current = true;
     }
-  }, [fetchMessages]);
+  }, [fetchMessages, inputValue]);
 
 
   function timeAgo(date: any) {
@@ -317,11 +322,11 @@ const Library = () => {
                             px: 1,
                             fontFamily: "var(--font)",
                             fontWeight: 400,
-                            color: "var(--cl-main)",
+                            color: "var(--cl-primary)",
                             lineHeight: "24px",
                             borderRadius: "8px",
                             "&:hover": {
-                              background: "#d3d4d4",
+                              background: "var(--bg-color)",
                             },
                           }}
                           className="gap-x-1.5 transition font-medium"
@@ -345,6 +350,7 @@ const Library = () => {
                           placeholder="Search"
                           aria-label="Search field for prompts"
                           className="grow w-44 bg-transparent search-bar-input"
+                          value={inputValue}
                           onChange={(e) => handleInputSearchChange(e)}
                         />
                         <div className={`${inputValue ? "" : "opacity-0"}`}>
@@ -352,6 +358,7 @@ const Library = () => {
                             variant="plain"
                             aria-label="Click to clear search query"
                             className="close-button"
+                            onClick={() => setInputValue('')}
                             sx={{
                               minWidth: "28px",
                               minHeight: "28px",
@@ -554,7 +561,7 @@ const Library = () => {
                     <TablePagination
                       component="div"
                       className="navi-pagi"
-                      count={100}
+                      count={total}
                       page={page}
                       onPageChange={handleChangePage}
                       rowsPerPage={rowsPerPage}
@@ -580,22 +587,30 @@ const Library = () => {
                         "& .MuiTablePagination-input": {
                           ml: 1,
                           mr: 2,
-                          bgcolor: "#FFF",
+                          bgcolor: "var(--cl-item-dropdown)",
                           borderRadius: "3px",
-                          border: "1px solid #bdc1ca",
+                          border: "1px solid var(--cl-neutral-30)",
                           fontSize: "0.75rem",
-                          color: "#000",
+                          color: "var(--cl-primary)",
+                        },
+                        "& .MuiSvgIcon-root": {
+                          fill: "var(--cl-primary)",
+                        },
+                        "& .MuiIconButton-root:hover": {
+                          bgcolor: "var(--cl-item-dropdown)",
                         },
                       }}
                       SelectProps={{
                         MenuProps: {
                           PaperProps: {
                             sx: {
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              color: "var(--cl-primary)",
                               "& .MuiMenuItem-root": {
                                 fontSize: "0.75rem",
                                 minHeight: 32,
-                                "&.Mui-selected": {
-                                  bgcolor: "#f2f4fd",
+                                "&.Mui-selected, &.Mui-selected:hover": {
+                                  bgcolor: "var(--cl-item-dropdown)!important",
                                 },
                               },
                             },
