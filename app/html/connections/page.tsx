@@ -451,34 +451,6 @@ const Connections = () => {
                     </span>
                   </Button>
                 </div>
-                <div className="sidebar-menu">
-                  <Button
-                    component="a"
-                    variant="plain"
-                    aria-label="Connections"
-                    href="/html/connections"
-                    sx={{
-                      pl: 0,
-                      pr: 1,
-                      py: 0,
-                      justifyContent: "flex-start",
-                      fontFamily: "var(--font)",
-                      color: "var(--cl-neutral-80)",
-                      borderRadius: "20px",
-                      "&.MuiButton-root:hover": {
-                        background: "var(--cl-surface-container-lowest)",
-                      },
-                    }}
-                    className="w-full sidebar-btn"
-                  >
-                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined">share</span>
-                    </span>
-                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      Connections
-                    </span>
-                  </Button>
-                </div>
               </div>
             </div>
             <div className="w-full pt-2 pb-4 border-t border-solid border-color bot-sidebar">
@@ -865,7 +837,7 @@ const Connections = () => {
                       <thead>
                         <tr>
                           <th></th>
-                          <th>
+                          <th className="w-1/3">
                             <div className="flex items-center">
                               <span className="font-medium">Name</span>
                               <IconButton
@@ -892,7 +864,7 @@ const Connections = () => {
                               </IconButton>
                             </div>
                           </th>
-                          <th>
+                          <th className="w-2/4">
                             <div className="flex items-center">
                               <span className="font-medium">Description</span>
                               <IconButton
@@ -985,6 +957,31 @@ const Connections = () => {
                                     },
                                   }}
                                   onClick={(e) => {
+                                    setShowModalNewConnection(true);
+                                    e.stopPropagation();
+                                  }}
+                                >
+                                  <span className="material-symbols-outlined">
+                                    edit
+                                  </span>
+                                  Edit connection
+                                </MenuItem>
+                                <MenuItem
+                                  className="flex"
+                                  sx={{
+                                    background: "none",
+                                    p: 1.25,
+                                    minHeight: "auto",
+                                    fontSize: 15,
+                                    gap: 1.25,
+                                    color: "var(--cl-primary)",
+                                    "&:hover": {
+                                      background:
+                                        "var(--cl-item-dropdown) !important",
+                                      color: "var(--cl-primary) !important",
+                                    },
+                                  }}
+                                  onClick={(e) => {
                                     setShowModalDelete(true);
                                     e.stopPropagation();
                                   }}
@@ -992,7 +989,7 @@ const Connections = () => {
                                   <span className="material-symbols-outlined">
                                     delete
                                   </span>
-                                  Delete prompt
+                                  Delete connection
                                 </MenuItem>
                               </Menu>
                             </Dropdown>
@@ -1060,6 +1057,31 @@ const Connections = () => {
                                     },
                                   }}
                                   onClick={(e) => {
+                                    setShowModalNewConnection(true);
+                                    e.stopPropagation();
+                                  }}
+                                >
+                                  <span className="material-symbols-outlined">
+                                    edit
+                                  </span>
+                                  Edit connection
+                                </MenuItem>
+                                <MenuItem
+                                  className="flex"
+                                  sx={{
+                                    background: "none",
+                                    p: 1.25,
+                                    minHeight: "auto",
+                                    fontSize: 15,
+                                    gap: 1.25,
+                                    color: "var(--cl-primary)",
+                                    "&:hover": {
+                                      background:
+                                        "var(--cl-item-dropdown) !important",
+                                      color: "var(--cl-primary) !important",
+                                    },
+                                  }}
+                                  onClick={(e) => {
                                     setShowModalDelete(true);
                                     e.stopPropagation();
                                   }}
@@ -1067,7 +1089,7 @@ const Connections = () => {
                                   <span className="material-symbols-outlined">
                                     delete
                                   </span>
-                                  Delete prompt
+                                  Delete connection
                                 </MenuItem>
                               </Menu>
                             </Dropdown>
@@ -1135,6 +1157,31 @@ const Connections = () => {
                                     },
                                   }}
                                   onClick={(e) => {
+                                    setShowModalNewConnection(true);
+                                    e.stopPropagation();
+                                  }}
+                                >
+                                  <span className="material-symbols-outlined">
+                                    edit
+                                  </span>
+                                  Edit connection
+                                </MenuItem>
+                                <MenuItem
+                                  className="flex"
+                                  sx={{
+                                    background: "none",
+                                    p: 1.25,
+                                    minHeight: "auto",
+                                    fontSize: 15,
+                                    gap: 1.25,
+                                    color: "var(--cl-primary)",
+                                    "&:hover": {
+                                      background:
+                                        "var(--cl-item-dropdown) !important",
+                                      color: "var(--cl-primary) !important",
+                                    },
+                                  }}
+                                  onClick={(e) => {
                                     setShowModalDelete(true);
                                     e.stopPropagation();
                                   }}
@@ -1142,7 +1189,7 @@ const Connections = () => {
                                   <span className="material-symbols-outlined">
                                     delete
                                   </span>
-                                  Delete prompt
+                                  Delete connection
                                 </MenuItem>
                               </Menu>
                             </Dropdown>

@@ -7,9 +7,7 @@ interface StoreState {
 }
 
 const initialState: StoreState = {
-  // model: localStorage.getItem('model') || 'chatgpt',
-  // company: localStorage.getItem('company') || 'caready'
-  model:  'chatgpt',
+  model: 'chatgpt',
   company:  'caready'
 };
 
@@ -20,12 +18,10 @@ const storeSlice = createSlice({
     
     setModel(state, action: PayloadAction<string>) { 
       state.model = action.payload;  
-      // localStorage.setItem('model', action.payload);
     },
 
     setCompany(state, action: PayloadAction<string>) { 
       state.company = action.payload;  
-      // localStorage.setItem('company', action.payload);
     },
     
   },

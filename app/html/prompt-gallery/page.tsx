@@ -450,34 +450,6 @@ const PromptGallery = () => {
                     </span>
                   </Button>
                 </div>
-                <div className="sidebar-menu">
-                  <Button
-                    component="a"
-                    variant="plain"
-                    aria-label="Connections"
-                    href="/html/connections"
-                    sx={{
-                      pl: 0,
-                      pr: 1,
-                      py: 0,
-                      justifyContent: "flex-start",
-                      fontFamily: "var(--font)",
-                      color: "var(--cl-neutral-80)",
-                      borderRadius: "20px",
-                      "&.MuiButton-root:hover": {
-                        background: "var(--cl-surface-container-lowest)",
-                      },
-                    }}
-                    className="w-full sidebar-btn"
-                  >
-                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined">share</span>
-                    </span>
-                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      Connections
-                    </span>
-                  </Button>
-                </div>
               </div>
             </div>
             <div className="w-full pt-2 pb-4 border-t border-solid border-color bot-sidebar">

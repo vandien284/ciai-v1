@@ -25,6 +25,7 @@ import {
   Stack,
   Dropdown,
   Menu,
+  MenuList,
   MenuItem,
   MenuButton,
   Card,
@@ -40,8 +41,15 @@ import {
   Radio,
   Sheet,
   Chip,
+  styled,
 } from "@mui/joy";
-import { Collapse, Tooltip, Popover } from "@mui/material";
+import {
+  Collapse,
+  Tooltip,
+  Popover,
+  Popper,
+  ClickAwayListener,
+} from "@mui/material";
 
 import { useOutsideClick } from "outsideclick-react";
 
@@ -128,6 +136,15 @@ function PopoverAccount() {
       </CardOverflow>
     </Card>
   );
+}
+
+const Popup = styled(Popper)({
+  zIndex: 1000,
+});
+
+interface FilePreview {
+  file: File;
+  preview: string;
 }
 
 const Detail = () => {
@@ -273,11 +290,7 @@ const Detail = () => {
   // Select Options
   const [selectedOption, setSelectedOption] = useState<string>("");
   // State to track the selected radio button value
-  const [selectedRadio, setSelectedRadio] = useState<string>("");
-  const radioGroups: Record<string, string[]> = {
-    content: ["for-website", "for-facebook-post", "create-new-template"],
-    chatbot: ["buy-a-car", "whats-new"],
-  };
+  const [selectedPromt, setSelectedPromt] = React.useState(false);
   const handleChangeCategories = (
     event: React.SyntheticEvent | null,
     newValue: string | null
@@ -285,24 +298,56 @@ const Detail = () => {
     // Set the selected option
     if (newValue !== null) {
       setSelectedOption(newValue);
-
-      // Reset radio value to the first option of the selected radio group
-      const radioGroup = radioGroups[newValue];
-      if (radioGroup) {
-        setSelectedRadio(radioGroup[0]); // Default to the first radio button
-      }
     }
   };
 
-  // Handle the change when a radio button is selected
-  const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedRadio(event.target.value);
+  // Handle the change when a prompt button is clicked
+  const handlePromptChange = () => {
+    setSelectedPromt(true);
   };
-  // console.log(selectedOption, selectedRadio);
+  // console.log(selectedOption, selectedPromt);
+
+  // Menu Dropdown
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [openDropdown, setOpenDropdown] = React.useState(false);
+
+  const handleClose = () => {
+    setOpenDropdown(false);
+  };
+
+  const handleListKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Tab") {
+      setOpenDropdown(false);
+    } else if (event.key === "Escape") {
+      buttonRef.current!.focus();
+      setOpenDropdown(false);
+    }
+  };
+
+  // Upload mutiple file
+  const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]); // Explicitly type state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    const previews = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setSelectedFiles((prev) => [...prev, ...previews]); // This works with the explicit type
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDeleteFile = (index: number) => {
+    setSelectedFiles((prev) => {
+      const updatedFiles = prev.filter((_, i) => i !== index);
+      URL.revokeObjectURL(prev[index].preview);
+      return updatedFiles;
+    });
+  };
 
   // Edit Prompt
   const [showEditPrompt, setShowEditPrompt] = React.useState(false);
-
   const handleClickEditPrompt = () => {
     setShowEditPrompt(true);
   };
@@ -577,34 +622,6 @@ const Detail = () => {
                     </span>
                     <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
                       Prompt Gallery
-                    </span>
-                  </Button>
-                </div>
-                <div className="sidebar-menu">
-                  <Button
-                    component="a"
-                    variant="plain"
-                    aria-label="Connections"
-                    href="/html/connections"
-                    sx={{
-                      pl: 0,
-                      pr: 1,
-                      py: 0,
-                      justifyContent: "flex-start",
-                      fontFamily: "var(--font)",
-                      color: "var(--cl-neutral-80)",
-                      borderRadius: "20px",
-                      "&.MuiButton-root:hover": {
-                        background: "var(--cl-surface-container-lowest)",
-                      },
-                    }}
-                    className="w-full sidebar-btn"
-                  >
-                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined">share</span>
-                    </span>
-                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      Connections
                     </span>
                   </Button>
                 </div>
@@ -1214,7 +1231,6 @@ const Detail = () => {
                                   },
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                onClick={() => setShowModalConnections(true)}
                               >
                                 <span className="material-symbols-outlined">
                                   publish
@@ -1439,7 +1455,7 @@ const Detail = () => {
                               </li>
                               <li>
                                 Instead of the google logo, it should have a
-                                picture of this opossum:{" "}
+                                picture of this opossum:
                                 <a
                                   target="_blank"
                                   href="https://www.google.com/url?sa=E&q=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2F2%2F27%2FOpossum_2.jpg%2F292px-Opossum_2.jpg"
@@ -1788,6 +1804,10 @@ const Detail = () => {
                                       color: "#FFF",
                                       minWidth: "24px",
                                       minHeight: "24px",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
                                     }}
                                     className="absolute top-2 right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full transition"
                                   >
@@ -2141,9 +2161,7 @@ const Detail = () => {
                                   {"{"}
                                   {"\n"}
                                   {"  "}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">
                                     "Croissants"
                                   </span>
@@ -2156,9 +2174,7 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">
                                     "All-purpose flour"
                                   </span>
@@ -2166,12 +2182,9 @@ const Detail = () => {
                                   <span className="hljs-string">
                                     "quantity"
                                   </span>
-                                  :{" "}
-                                  <span className="hljs-string">"5 cups"</span>,
-                                  {"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  :<span className="hljs-string">"5 cups"</span>
+                                  ,{"\n"}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2179,22 +2192,18 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">"Salt"</span>,
                                   {"\n"}
                                   <span className="hljs-string">
                                     "quantity"
                                   </span>
-                                  :{" "}
+                                  :
                                   <span className="hljs-string">
                                     "1 1/2 teaspoons"
                                   </span>
                                   ,{"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2202,22 +2211,18 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">"Sugar"</span>,
                                   {"\n"}
                                   <span className="hljs-string">
                                     "quantity"
                                   </span>
-                                  :{" "}
+                                  :
                                   <span className="hljs-string">
                                     "1 tablespoon"
                                   </span>
                                   ,{"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2225,9 +2230,7 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">
                                     "Active dry yeast"
                                   </span>
@@ -2235,14 +2238,12 @@ const Detail = () => {
                                   <span className="hljs-string">
                                     "quantity"
                                   </span>
-                                  :{" "}
+                                  :
                                   <span className="hljs-string">
                                     "2 1/4 teaspoons"
                                   </span>
                                   ,{"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2250,9 +2251,7 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">
                                     "Warm water"
                                   </span>
@@ -2262,9 +2261,7 @@ const Detail = () => {
                                   </span>
                                   : <span className="hljs-string">"1 cup"</span>
                                   ,{"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2272,9 +2269,7 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">
                                     "Unsalted butter"
                                   </span>
@@ -2282,12 +2277,10 @@ const Detail = () => {
                                   <span className="hljs-string">
                                     "quantity"
                                   </span>
-                                  :{" "}
+                                  :
                                   <span className="hljs-string">"1/2 cup"</span>
                                   ,{"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2295,9 +2288,7 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">
                                     "Cold unsalted butter"
                                   </span>
@@ -2305,14 +2296,12 @@ const Detail = () => {
                                   <span className="hljs-string">
                                     "quantity"
                                   </span>
-                                  :{" "}
+                                  :
                                   <span className="hljs-string">
                                     "1 1/4 cups"
                                   </span>
                                   ,{"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2320,9 +2309,7 @@ const Detail = () => {
                                   {"    "}
                                   {"{"}
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "name"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"name"</span>:
                                   <span className="hljs-string">
                                     "Egg wash"
                                   </span>
@@ -2332,9 +2319,7 @@ const Detail = () => {
                                   </span>
                                   : <span className="hljs-string">"1"</span>,
                                   {"\n"}
-                                  <span className="hljs-string">
-                                    "unit"
-                                  </span>:{" "}
+                                  <span className="hljs-string">"unit"</span>:
                                   <span className="hljs-string">""</span>
                                   {"\n"}
                                   {"    "}
@@ -2517,7 +2502,7 @@ const Detail = () => {
                                 </IconButton>
                               </Tooltip>
                               <span className="grow disclaimer">
-                                Use code{" "}
+                                Use code&nbsp;
                                 <a
                                   href="https://support.google.com/legal/answer/13505487"
                                   target="_blank"
@@ -2539,8 +2524,8 @@ const Detail = () => {
               <div className="py-4 chat-prompt">
                 <div className="px-4 lg:px-6">
                   <div className="w-full pl-6 py-2 border border-solid rounded-4xl overflow-hidden flex items-end justify-between actions-prompt">
-                    {selectedOption !== "content" &&
-                      selectedOption !== "chatbot" && (
+                    <div className="w-full input-prompt">
+                      {(selectedOption === "" || !selectedPromt) && (
                         <div className="grow mb-2 type-prompt">
                           <textarea
                             ref={textareaRefs.textarea2}
@@ -2559,117 +2544,10 @@ const Detail = () => {
                           />
                         </div>
                       )}
-                    {selectedOption === "content" && (
-                      <div className="grow type-prompt">
-                        <div className="max-h-24 overflow-hidden overflow-y-auto">
-                          {selectedRadio === "for-website" && (
-                            <div
-                              contentEditable
-                              className="content-wrap"
-                              onChange={onContentPromptChange}
-                              onBlur={onContentPromptChange}
-                              onKeyDown={handleKeyDown}
-                              data-placeholder="Type something"
-                              suppressContentEditableWarning={true}
-                            >
-                              <p>
-                                Bạn là chuyên gia trong lĩnh vực &nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [ô tô, bất động sản...]
-                                </span>
-                                &nbsp;tại khu vực&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Sài Gòn, Hà Nội...]
-                                </span>
-                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Toyota Yaris Cross Hybrid 2024]
-                                </span>
-                                &nbsp;.
-                              </p>
-                              <p>
-                                Bài viết sẽ có giọng văn&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [chuyên nghiệp, dễ hiểu...]
-                                </span>
-                                &nbsp;và số lượng từ là&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [400, 600...]
-                                </span>
-                                &nbsp;
-                              </p>
-                            </div>
-                          )}
-                          {selectedRadio === "for-facebook-post" && (
-                            <div
-                              contentEditable
-                              className="content-wrap"
-                              onChange={onContentPromptChange}
-                              onBlur={onContentPromptChange}
-                              onKeyDown={handleKeyDown}
-                              data-placeholder="Type something"
-                              suppressContentEditableWarning={true}
-                            >
-                              <p>
-                                Bạn là chuyên gia trong lĩnh vực &nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [kinh doanh online, ...]
-                                </span>
-                                &nbsp;tại khu vực&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Sài Gòn, Hà Nội...]
-                                </span>
-                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Toyota Yaris Cross Hybrid 2024]
-                                </span>
-                                &nbsp;.
-                              </p>
-                              <p>
-                                Bài viết sẽ có giọng văn&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [chuyên nghiệp, dễ hiểu...]
-                                </span>
-                                &nbsp;và số lượng từ là&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [400, 600...]
-                                </span>
-                                &nbsp;
-                              </p>
-                            </div>
-                          )}
-                          {selectedRadio === "create-new-template" && (
-                            <div className="mb-2">
+                      {selectedOption === "content-creator" && (
+                        <div className="grow type-prompt">
+                          <div className="max-h-24 overflow-hidden overflow-y-auto">
+                            {selectedPromt && (
                               <div
                                 contentEditable
                                 className="content-wrap"
@@ -2678,126 +2556,278 @@ const Detail = () => {
                                 onKeyDown={handleKeyDown}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
-                              ></div>
-                            </div>
-                          )}
+                              >
+                                <p>
+                                  Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [ô tô, bất động sản...]
+                                  </span>
+                                  &nbsp;tại khu vực&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Sài Gòn, Hà Nội...]
+                                  </span>
+                                  &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Toyota Yaris Cross Hybrid 2024]
+                                  </span>
+                                  &nbsp;.
+                                </p>
+                                <p>
+                                  Bài viết sẽ có giọng văn&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [chuyên nghiệp, dễ hiểu...]
+                                  </span>
+                                  &nbsp;và số lượng từ là&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [400, 600...]
+                                  </span>
+                                  &nbsp;
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {selectedOption === "chatbot" && (
-                      <div className="grow type-prompt">
-                        <div className="max-h-24 overflow-hidden overflow-y-auto">
-                          {selectedRadio === "buy-a-car" && (
-                            <div
-                              contentEditable
-                              className="content-wrap"
-                              onChange={onContentPromptChange}
-                              onBlur={onContentPromptChange}
-                              onKeyDown={handleKeyDown}
-                              data-placeholder="Type something"
-                              suppressContentEditableWarning={true}
-                            >
-                              <p>
-                                Bạn là chuyên gia trong lĩnh vực &nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [ô tô...]
-                                </span>
-                                &nbsp;tại khu vực&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Sài Gòn, Hà Nội...]
-                                </span>
-                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Toyota Yaris Cross Hybrid 2024]
-                                </span>
-                                &nbsp;.
-                              </p>
-                              <p>
-                                Bài viết sẽ có giọng văn&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [chuyên nghiệp, dễ hiểu...]
-                                </span>
-                                &nbsp;và số lượng từ là&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [400, 600...]
-                                </span>
-                                &nbsp;
-                              </p>
-                            </div>
-                          )}
-                          {selectedRadio === "whats-new" && (
-                            <div
-                              contentEditable
-                              className="content-wrap"
-                              onChange={onContentPromptChange}
-                              onBlur={onContentPromptChange}
-                              onKeyDown={handleKeyDown}
-                              data-placeholder="Type something"
-                              suppressContentEditableWarning={true}
-                            >
-                              <p>
-                                Bạn là chuyên gia trong lĩnh vực &nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [what's new...]
-                                </span>
-                                &nbsp;tại khu vực&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Sài Gòn, Hà Nội...]
-                                </span>
-                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Toyota Yaris Cross Hybrid 2024]
-                                </span>
-                                &nbsp;.
-                              </p>
-                              <p>
-                                Bài viết sẽ có giọng văn&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [chuyên nghiệp, dễ hiểu...]
-                                </span>
-                                &nbsp;và số lượng từ là&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [400, 600...]
-                                </span>
-                                &nbsp;
-                              </p>
-                            </div>
-                          )}
+                      )}
+                      {selectedOption === "chatbot" && (
+                        <div className="grow type-prompt">
+                          <div className="max-h-24 overflow-hidden overflow-y-auto">
+                            {selectedPromt && (
+                              <div
+                                contentEditable
+                                className="content-wrap"
+                                onChange={onContentPromptChange}
+                                onBlur={onContentPromptChange}
+                                onKeyDown={handleKeyDown}
+                                data-placeholder="Type something"
+                                suppressContentEditableWarning={true}
+                              >
+                                <p>
+                                  Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [ô tô]
+                                  </span>
+                                  &nbsp;tại khu vực&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Sài Gòn, Hà Nội...]
+                                  </span>
+                                  &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Toyota Yaris Cross Hybrid 2024]
+                                  </span>
+                                  &nbsp;.
+                                </p>
+                                <p>
+                                  Bài viết sẽ có giọng văn&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [chuyên nghiệp, dễ hiểu...]
+                                  </span>
+                                  &nbsp;và số lượng từ là&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [400, 600...]
+                                  </span>
+                                  &nbsp;
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {selectedOption === "business-intelligent" && (
+                        <div className="grow type-prompt">
+                          <div className="max-h-24 overflow-hidden overflow-y-auto">
+                            {selectedPromt && (
+                              <div
+                                contentEditable
+                                className="content-wrap"
+                                onChange={onContentPromptChange}
+                                onBlur={onContentPromptChange}
+                                onKeyDown={handleKeyDown}
+                                data-placeholder="Type something"
+                                suppressContentEditableWarning={true}
+                              >
+                                <p>
+                                  Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [kế toán]
+                                  </span>
+                                  &nbsp;tại khu vực&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Sài Gòn, Hà Nội...]
+                                  </span>
+                                  &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Toyota Yaris Cross Hybrid 2024]
+                                  </span>
+                                  &nbsp;.
+                                </p>
+                                <p>
+                                  Bài viết sẽ có giọng văn&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [chuyên nghiệp, dễ hiểu...]
+                                  </span>
+                                  &nbsp;và số lượng từ là&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [400, 600...]
+                                  </span>
+                                  &nbsp;
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {selectedOption === "scraping" && (
+                        <div className="grow type-prompt">
+                          <div className="max-h-24 overflow-hidden overflow-y-auto">
+                            {selectedPromt && (
+                              <div
+                                contentEditable
+                                className="content-wrap"
+                                onChange={onContentPromptChange}
+                                onBlur={onContentPromptChange}
+                                onKeyDown={handleKeyDown}
+                                data-placeholder="Type something"
+                                suppressContentEditableWarning={true}
+                              >
+                                <p>
+                                  Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [websites]
+                                  </span>
+                                  &nbsp;tại khu vực&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Sài Gòn, Hà Nội...]
+                                  </span>
+                                  &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Toyota Yaris Cross Hybrid 2024]
+                                  </span>
+                                  &nbsp;.
+                                </p>
+                                <p>
+                                  Bài viết sẽ có giọng văn&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [chuyên nghiệp, dễ hiểu...]
+                                  </span>
+                                  &nbsp;và số lượng từ là&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [400, 600...]
+                                  </span>
+                                  &nbsp;
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {/* Preview Section */}
+                      {selectedFiles.length > 0 && (
+                        <div
+                          className="flex flex-wrap gap-x-3 pt-4 mt-3 overflow-y-auto image-container"
+                          style={{
+                            borderTop: "1px solid var(--cl-neutral-30)",
+                            maxHeight: "33vh",
+                          }}
+                        >
+                          {selectedFiles.map((file, index) => (
+                            <div
+                              key={index}
+                              className="border border-solid rounded overflow-hidden relative mb-3 image-wrap"
+                            >
+                              <Image
+                                src={file.preview}
+                                alt={`Image ${index + 1}`}
+                                width={200}
+                                height={218}
+                              />
+                              <IconButton
+                                variant="plain"
+                                aria-label="Remove image"
+                                sx={{
+                                  borderRadius: "100%",
+                                  bgcolor: "var(--cl-neutral-60)",
+                                  color: "#FFF",
+                                  minWidth: "24px",
+                                  minHeight: "24px",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
+                                }}
+                                className="absolute top-2 right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full transition"
+                                onClick={() => handleDeleteFile(index)}
+                              >
+                                <span className="material-symbols-outlined">
+                                  close
+                                </span>
+                              </IconButton>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center justify-end gap-x-2 pr-2">
-                      <Dropdown>
+                      <div>
                         <Tooltip
                           componentsProps={{
                             tooltip: {
@@ -2812,17 +2842,27 @@ const Detail = () => {
                           placement="left"
                           title="Insert assets such as images, videos, folders, files, or audio"
                         >
-                          <MenuButton
+                          <Button
+                            ref={buttonRef}
                             className="flex items-center justify-center w-9 h-9"
+                            id="composition-button"
+                            aria-controls={"composition-menu"}
+                            aria-haspopup="true"
+                            aria-expanded={openDropdown ? "true" : undefined}
+                            variant="outlined"
                             sx={{
                               p: 0,
                               border: "none",
                               borderRadius: "100%",
                               minHeight: "36px",
+                              background: "none",
                               color: "var(--cl-primary)",
                               "&:hover": {
                                 background: "var(--bg-color)",
                               },
+                            }}
+                            onClick={() => {
+                              setOpenDropdown(!openDropdown);
                             }}
                           >
                             <span
@@ -2831,154 +2871,196 @@ const Detail = () => {
                             >
                               add_circle
                             </span>
-                          </MenuButton>
+                          </Button>
                         </Tooltip>
-                        <Menu
-                          placement="bottom-start"
-                          className="dropdown-menu"
-                          sx={{
-                            py: 0,
-                            bgcolor: "var(--cl-bg-dropdown)",
-                            borderColor: "var(--cl-neutral-8)",
-                          }}
+                        <Popup
+                          role={undefined}
+                          id="composition-menu"
+                          open={openDropdown}
+                          anchorEl={buttonRef.current}
+                          disablePortal
+                          modifiers={[
+                            {
+                              name: "offset",
+                              options: {
+                                offset: [60, -130],
+                              },
+                            },
+                          ]}
                         >
-                          <Tooltip
-                            componentsProps={{
-                              tooltip: {
-                                sx: {
-                                  maxWidth: "12rem",
-                                  bgcolor: "var(--cl-neutral-8)",
-                                  fontFamily: "var(--font)",
-                                  color: "var(--cl-neutral-80)",
-                                },
-                              },
+                          <ClickAwayListener
+                            onClickAway={(event) => {
+                              if (event.target !== buttonRef.current) {
+                                handleClose();
+                              }
                             }}
-                            placement="left"
-                            title="Select or upload a file on Google Drive to include in your prompt"
                           >
-                            <MenuItem
-                              className="flex"
-                              sx={{
-                                background: "none",
-                                p: 1.25,
-                                minHeight: "auto",
-                                fontSize: 15,
-                                gap: 1.25,
-                                color: "var(--cl-primary)",
-                                "&:hover": {
-                                  background:
-                                    "var(--cl-item-dropdown) !important",
-                                  color: "var(--cl-primary) !important",
-                                },
-                              }}
+                            <MenuList
+                              variant="outlined"
+                              onKeyDown={handleListKeyDown}
+                              className="dropdown-menu"
+                              sx={{ boxShadow: "md", p: 0 }}
                             >
-                              <span className="material-symbols-outlined">
-                                add_to_drive
-                              </span>
-                              My Drive
-                            </MenuItem>
-                          </Tooltip>
-                          <Tooltip
-                            componentsProps={{
-                              tooltip: {
-                                sx: {
-                                  maxWidth: "12rem",
-                                  bgcolor: "var(--cl-neutral-8)",
-                                  fontFamily: "var(--font)",
-                                  color: "var(--cl-neutral-80)",
-                                },
-                              },
-                            }}
-                            placement="left"
-                            title="Upload a file to Google Drive to include in your prompt"
-                          >
-                            <MenuItem
-                              className="flex"
-                              sx={{
-                                background: "none",
-                                p: 1.25,
-                                minHeight: "auto",
-                                fontSize: 15,
-                                gap: 1.25,
-                                color: "var(--cl-primary)",
-                                "&:hover": {
-                                  background:
-                                    "var(--cl-item-dropdown) !important",
-                                  color: "var(--cl-primary) !important",
-                                },
-                              }}
-                            >
-                              <span className="material-symbols-outlined">
-                                upload
-                              </span>
-                              Upload File
-                            </MenuItem>
-                          </Tooltip>
-                          <MenuItem
-                            className="flex"
-                            sx={{
-                              background: "none",
-                              p: 1.25,
-                              minHeight: "auto",
-                              fontSize: 15,
-                              gap: 1.25,
-                              color: "var(--cl-primary)",
-                              "&:hover": {
-                                background:
-                                  "var(--cl-item-dropdown) !important",
-                                color: "var(--cl-primary) !important",
-                              },
-                            }}
-                          >
-                            <span className="material-symbols-outlined">
-                              mic
-                            </span>
-                            Record Audio
-                          </MenuItem>
-                          <MenuItem
-                            className="flex"
-                            sx={{
-                              background: "none",
-                              p: 1.25,
-                              minHeight: "auto",
-                              fontSize: 15,
-                              gap: 1.25,
-                              color: "var(--cl-primary)",
-                              "&:hover": {
-                                background:
-                                  "var(--cl-item-dropdown) !important",
-                                color: "var(--cl-primary) !important",
-                              },
-                            }}
-                          >
-                            <span className="material-symbols-outlined">
-                              photo_camera
-                            </span>
-                            Take a photo
-                          </MenuItem>
-                          <MenuItem
-                            className="flex"
-                            sx={{
-                              background: "none",
-                              p: 1.25,
-                              minHeight: "auto",
-                              fontSize: 15,
-                              gap: 1.25,
-                              color: "var(--cl-primary)",
-                              "&:hover": {
-                                background:
-                                  "var(--cl-item-dropdown) !important",
-                                color: "var(--cl-primary) !important",
-                              },
-                            }}
-                          >
-                            <span className="material-symbols-outlined">
-                              image
-                            </span>
-                            Sample Media
-                          </MenuItem>
-                        </Menu>
-                      </Dropdown>
+                              <Tooltip
+                                componentsProps={{
+                                  tooltip: {
+                                    sx: {
+                                      maxWidth: "12rem",
+                                      bgcolor: "var(--cl-neutral-8)",
+                                      fontFamily: "var(--font)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
+                                  },
+                                }}
+                                placement="left"
+                                title="Select or upload a file on Google Drive to include in your prompt"
+                              >
+                                <MenuItem
+                                  className="flex"
+                                  sx={{
+                                    background: "none",
+                                    p: 1.25,
+                                    minHeight: "auto",
+                                    fontSize: 15,
+                                    gap: 1.25,
+                                    color: "var(--cl-primary)",
+                                    "&:hover": {
+                                      background:
+                                        "var(--cl-item-dropdown) !important",
+                                      color: "var(--cl-primary) !important",
+                                    },
+                                  }}
+                                >
+                                  <span className="material-symbols-outlined">
+                                    add_to_drive
+                                  </span>
+                                  My Drive
+                                </MenuItem>
+                              </Tooltip>
+                              <Tooltip
+                                componentsProps={{
+                                  tooltip: {
+                                    sx: {
+                                      maxWidth: "12rem",
+                                      bgcolor: "var(--cl-neutral-8)",
+                                      fontFamily: "var(--font)",
+                                      color: "var(--cl-neutral-80)",
+                                    },
+                                  },
+                                }}
+                                placement="left"
+                                title="Upload a file to Google Drive to include in your prompt"
+                              >
+                                <MenuItem
+                                  sx={{
+                                    background: "none",
+                                    p: 1.25,
+                                    minHeight: "auto",
+                                    fontSize: 15,
+                                    gap: 1.25,
+                                    color: "var(--cl-primary)",
+                                    "&:hover": {
+                                      background:
+                                        "var(--cl-item-dropdown) !important",
+                                      color: "var(--cl-primary) !important",
+                                    },
+                                  }}
+                                >
+                                  <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    style={{ display: "none" }}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="flex"
+                                    style={{ columnGap: "10px" }}
+                                    onClick={() =>
+                                      fileInputRef.current?.click()
+                                    }
+                                  >
+                                    <span className="material-symbols-outlined">
+                                      upload
+                                    </span>
+                                    <label
+                                      htmlFor="image-upload"
+                                      className="flex items-center cursor-pointer"
+                                    >
+                                      Upload Files
+                                    </label>
+                                  </button>
+                                </MenuItem>
+                              </Tooltip>
+                              {/* <MenuItem
+                                className="flex"
+                                sx={{
+                                  background: "none",
+                                  p: 1.25,
+                                  minHeight: "auto",
+                                  fontSize: 15,
+                                  gap: 1.25,
+                                  color: "var(--cl-primary)",
+                                  "&:hover": {
+                                    background:
+                                      "var(--cl-item-dropdown) !important",
+                                    color: "var(--cl-primary) !important",
+                                  },
+                                }}
+                              >
+                                <span className="material-symbols-outlined">
+                                  mic
+                                </span>
+                                Record Audio
+                              </MenuItem>
+                              <MenuItem
+                                className="flex"
+                                sx={{
+                                  background: "none",
+                                  p: 1.25,
+                                  minHeight: "auto",
+                                  fontSize: 15,
+                                  gap: 1.25,
+                                  color: "var(--cl-primary)",
+                                  "&:hover": {
+                                    background:
+                                      "var(--cl-item-dropdown) !important",
+                                    color: "var(--cl-primary) !important",
+                                  },
+                                }}
+                              >
+                                <span className="material-symbols-outlined">
+                                  photo_camera
+                                </span>
+                                Take a photo
+                              </MenuItem>
+                              <MenuItem
+                                className="flex"
+                                sx={{
+                                  background: "none",
+                                  p: 1.25,
+                                  minHeight: "auto",
+                                  fontSize: 15,
+                                  gap: 1.25,
+                                  color: "var(--cl-primary)",
+                                  "&:hover": {
+                                    background:
+                                      "var(--cl-item-dropdown) !important",
+                                    color: "var(--cl-primary) !important",
+                                  },
+                                }}
+                              >
+                                <span className="material-symbols-outlined">
+                                  image
+                                </span>
+                                Sample Media
+                              </MenuItem> */}
+                            </MenuList>
+                          </ClickAwayListener>
+                        </Popup>
+                      </div>
                       <Tooltip
                         componentsProps={{
                           tooltip: {
@@ -3250,7 +3332,6 @@ const Detail = () => {
                               className="w-full custom-select"
                               name="select-company"
                               placeholder="Select Company"
-                              // defaultValue="caready"
                               sx={{
                                 fontFamily: "var(--font)",
                                 fontSize: "0.875rem",
@@ -3278,13 +3359,17 @@ const Detail = () => {
                                     "& .MuiOption-root": {
                                       color: "var(--cl-primary)",
                                     },
+                                    "& .MuiOption-root.MuiOption-highlighted": {
+                                      bgcolor: "transparent!important",
+                                    },
                                     "& .MuiOption-root:hover": {
                                       bgcolor:
                                         "var(--cl-item-dropdown)!important",
                                       color: "var(--cl-primary)!important",
                                     },
                                     "& .MuiOption-root.Mui-selected": {
-                                      bgcolor: "var(--cl-item-dropdown)",
+                                      bgcolor:
+                                        "var(--cl-item-dropdown)!important",
                                       color: "var(--cl-primary-70)!important",
                                     },
                                   },
@@ -3302,17 +3387,16 @@ const Detail = () => {
                             <span className="material-symbols-outlined">
                               category
                             </span>
-                            <span className="font-medium name">Categories</span>
+                            <span className="font-medium name">Module</span>
                           </p>
                           <div className="ml-7">
-                            <FormControl className="mr-8 mb-5">
+                            <FormControl className="mr-8 mb-4">
                               <Select
                                 indicator={<ArrowDropDownOutlined />}
                                 className="w-full custom-select"
-                                name="select-activities"
-                                placeholder="Select Categories"
+                                name="select-module"
+                                placeholder="Select Module"
                                 value={selectedOption}
-                                // defaultValue="content"
                                 sx={{
                                   fontFamily: "var(--font)",
                                   fontSize: "0.875rem",
@@ -3340,13 +3424,18 @@ const Detail = () => {
                                       "& .MuiOption-root": {
                                         color: "var(--cl-primary)",
                                       },
+                                      "& .MuiOption-root.MuiOption-highlighted":
+                                        {
+                                          bgcolor: "transparent!important",
+                                        },
                                       "& .MuiOption-root:hover": {
                                         bgcolor:
                                           "var(--cl-item-dropdown)!important",
                                         color: "var(--cl-primary)!important",
                                       },
                                       "& .MuiOption-root.Mui-selected": {
-                                        bgcolor: "var(--cl-item-dropdown)",
+                                        bgcolor:
+                                          "var(--cl-item-dropdown)!important",
                                         color: "var(--cl-primary-70)!important",
                                       },
                                     },
@@ -3354,168 +3443,351 @@ const Detail = () => {
                                 }}
                                 onChange={handleChangeCategories}
                               >
-                                <Option value="content">Content</Option>
+                                <Option value="content-creator">
+                                  Content creator
+                                </Option>
                                 <Option value="chatbot">Chatbot</Option>
-                                <Option value="business">Business</Option>
+                                <Option value="business-intelligent">
+                                  Business intelligent
+                                </Option>
                                 <Option value="scraping">Scraping</Option>
                               </Select>
                             </FormControl>
                             <div className="setting-options">
-                              {(selectedOption === "content" ||
-                                selectedOption === "chatbot") && (
+                              {selectedOption === "content-creator" && (
+                                <>
+                                  <p className="flex items-center gap-x-2 mb-2">
+                                    <span className="font-medium name">
+                                      Channel
+                                    </span>
+                                  </p>
+                                  <FormControl className="mr-8 mb-4">
+                                    <Select
+                                      indicator={<ArrowDropDownOutlined />}
+                                      className="w-full custom-select"
+                                      name="select-channel"
+                                      placeholder="Select Channel"
+                                      sx={{
+                                        fontFamily: "var(--font)",
+                                        fontSize: "0.875rem",
+                                        "& .MuiSelect-button": {
+                                          opacity: 1,
+                                        },
+                                        [`& .${selectClasses.indicator}`]: {
+                                          transition: "0.2s",
+                                          color: "var(--cl-primary)",
+                                          [`&.${selectClasses.expanded}`]: {
+                                            transform: "rotate(-180deg)",
+                                          },
+                                        },
+                                      }}
+                                      slotProps={{
+                                        listbox: {
+                                          sx: {
+                                            py: 0,
+                                            borderColor: "var(--cl-neutral-20)",
+                                            bgcolor: "var(--cl-bg-dropdown)",
+                                            borderRadius: "8px",
+                                            width: "100%",
+                                            fontFamily: "var(--font)",
+                                            fontSize: "0.875rem",
+                                            "& .MuiOption-root": {
+                                              color: "var(--cl-primary)",
+                                            },
+                                            "& .MuiOption-root.MuiOption-highlighted":
+                                              {
+                                                bgcolor: "transparent",
+                                              },
+                                            "& .MuiOption-root:hover": {
+                                              bgcolor:
+                                                "var(--cl-item-dropdown)!important",
+                                              color:
+                                                "var(--cl-primary)!important",
+                                            },
+                                            "& .MuiOption-root.Mui-selected": {
+                                              bgcolor:
+                                                "var(--cl-item-dropdown)",
+                                              color:
+                                                "var(--cl-primary-70)!important",
+                                            },
+                                          },
+                                        },
+                                      }}
+                                    >
+                                      <Option value="caready">Caready</Option>
+                                      <Option value="caready-ai">
+                                        Caready AI
+                                      </Option>
+                                      <Option value="facebook">Facebook</Option>
+                                    </Select>
+                                  </FormControl>
+                                </>
+                              )}
+                              {selectedOption && (
                                 <p className="flex items-center gap-x-2 mb-2">
                                   <span className="font-medium name">
-                                    Activities
+                                    Prompt model
                                   </span>
                                 </p>
                               )}
-                              {selectedOption === "content" && (
-                                <RadioGroup
-                                  name="content"
-                                  orientation="vertical"
-                                  defaultValue="for-website"
-                                  className="flex-col"
-                                  value={selectedRadio}
-                                >
-                                  <Radio
-                                    value="for-website"
-                                    label="For website"
-                                    checked={selectedRadio === "for-website"}
-                                    onChange={handleRadioChange}
+                              {selectedOption === "content-creator" && (
+                                <div className="-ml-2 mr-8">
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Post for website"
                                     sx={{
-                                      ml: 0,
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
                                       fontFamily: "var(--font)",
-                                      fontSize: "0.875rem",
-                                      "&.MuiRadio-root": {
-                                        gap: "6px",
-                                        color: "var(--cl-primary)",
-                                      },
-                                      "& .MuiRadio-radio": {
-                                        background: "none",
-                                        borderColor: "var(--cl-primary)",
-                                        ":hover": {
-                                          background: "none",
-                                        },
-                                        "&.Mui-checked .MuiRadio-icon": {
-                                          bgcolor: "var(--cl-primary)",
-                                        },
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
                                       },
                                     }}
-                                  />
-                                  <Radio
-                                    value="for-facebook-post"
-                                    label="For facebook post"
-                                    checked={
-                                      selectedRadio === "for-facebook-post"
-                                    }
-                                    onChange={handleRadioChange}
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        language
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Post for website
+                                    </span>
+                                  </Button>
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Post for fanpage"
                                     sx={{
-                                      ml: 0,
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
                                       fontFamily: "var(--font)",
-                                      fontSize: "0.875rem",
-                                      "&.MuiRadio-root": {
-                                        gap: "6px",
-                                        color: "var(--cl-primary)",
-                                      },
-                                      "& .MuiRadio-radio": {
-                                        background: "none",
-                                        borderColor: "var(--cl-primary)",
-                                        ":hover": {
-                                          background: "none",
-                                        },
-                                        "&.Mui-checked .MuiRadio-icon": {
-                                          bgcolor: "var(--cl-primary)",
-                                        },
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
                                       },
                                     }}
-                                  />
-                                  <Radio
-                                    value="create-new-template"
-                                    label="Create new template"
-                                    checked={
-                                      selectedRadio === "create-new-template"
-                                    }
-                                    onChange={handleRadioChange}
-                                    sx={{
-                                      ml: 0,
-                                      fontFamily: "var(--font)",
-                                      fontSize: "0.875rem",
-                                      "&.MuiRadio-root": {
-                                        gap: "6px",
-                                        color: "var(--cl-primary)",
-                                      },
-                                      "& .MuiRadio-radio": {
-                                        background: "none",
-                                        borderColor: "var(--cl-primary)",
-                                        ":hover": {
-                                          background: "none",
-                                        },
-                                        "&.Mui-checked .MuiRadio-icon": {
-                                          bgcolor: "var(--cl-primary)",
-                                        },
-                                      },
-                                    }}
-                                  />
-                                </RadioGroup>
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        thumb_up
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Post for fanpage
+                                    </span>
+                                  </Button>
+                                </div>
                               )}
                               {selectedOption === "chatbot" && (
-                                <RadioGroup
-                                  name="chatbot"
-                                  orientation="vertical"
-                                  defaultValue="buy-a-car"
-                                  className="flex-col"
-                                >
-                                  <Radio
-                                    value="buy-a-car"
-                                    label="Buy a car"
-                                    checked={selectedRadio === "buy-a-car"}
-                                    onChange={handleRadioChange}
+                                <div className="-ml-2 mr-8">
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Your perfect car"
                                     sx={{
-                                      ml: 0,
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
                                       fontFamily: "var(--font)",
-                                      fontSize: "0.875rem",
-                                      "&.MuiRadio-root": {
-                                        gap: "6px",
-                                        color: "var(--cl-primary)",
-                                      },
-                                      "& .MuiRadio-radio": {
-                                        background: "none",
-                                        borderColor: "var(--cl-primary)",
-                                        ":hover": {
-                                          background: "none",
-                                        },
-                                        "&.Mui-checked .MuiRadio-icon": {
-                                          bgcolor: "var(--cl-primary)",
-                                        },
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
                                       },
                                     }}
-                                  />
-                                  <Radio
-                                    value="whats-new"
-                                    label="What's new"
-                                    checked={selectedRadio === "whats-new"}
-                                    onChange={handleRadioChange}
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        directions_car
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Your perfect car
+                                    </span>
+                                  </Button>
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Loan interest rates"
                                     sx={{
-                                      ml: 0,
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
                                       fontFamily: "var(--font)",
-                                      fontSize: "0.875rem",
-                                      "&.MuiRadio-root": {
-                                        gap: "6px",
-                                        color: "var(--cl-primary)",
-                                      },
-                                      "& .MuiRadio-radio": {
-                                        background: "none",
-                                        borderColor: "var(--cl-primary)",
-                                        ":hover": {
-                                          background: "none",
-                                        },
-                                        "&.Mui-checked .MuiRadio-icon": {
-                                          bgcolor: "var(--cl-primary)",
-                                        },
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
                                       },
                                     }}
-                                  />
-                                </RadioGroup>
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        money_bag
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Loan interest rates
+                                    </span>
+                                  </Button>
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Best Insurance company"
+                                    sx={{
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
+                                      fontFamily: "var(--font)",
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
+                                      },
+                                    }}
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        verified_user
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Best Insurance company
+                                    </span>
+                                  </Button>
+                                </div>
+                              )}
+                              {selectedOption === "business-intelligent" && (
+                                <div className="-ml-2 mr-8">
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Monthly revenue"
+                                    sx={{
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
+                                      fontFamily: "var(--font)",
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
+                                      },
+                                    }}
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        payments
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Monthly revenue
+                                    </span>
+                                  </Button>
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Loan interest rates"
+                                    sx={{
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
+                                      fontFamily: "var(--font)",
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
+                                      },
+                                    }}
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        directions_car
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Car best seller
+                                    </span>
+                                  </Button>
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Predictive revenue"
+                                    sx={{
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
+                                      fontFamily: "var(--font)",
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
+                                      },
+                                    }}
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        payments
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Predictive revenue
+                                    </span>
+                                  </Button>
+                                </div>
+                              )}
+                              {selectedOption === "scraping" && (
+                                <div className="-ml-2 mr-8">
+                                  <Button
+                                    variant="plain"
+                                    aria-label="Scrap a website"
+                                    sx={{
+                                      pl: 0,
+                                      pr: 1,
+                                      py: 0,
+                                      justifyContent: "flex-start",
+                                      fontFamily: "var(--font)",
+                                      color: "var(--cl-neutral-80)",
+                                      borderRadius: "20px",
+                                      "&.MuiButton-root:hover": {
+                                        background: "var(--cl-item-dropdown)",
+                                      },
+                                    }}
+                                    className="w-full"
+                                    onClick={handlePromptChange}
+                                  >
+                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                      <span className="material-symbols-outlined">
+                                        folder_open
+                                      </span>
+                                    </span>
+                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                      Scrap a website
+                                    </span>
+                                  </Button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -3730,7 +4002,15 @@ const Detail = () => {
           }}
         >
           <ModalClose
-            sx={{ top: 14, right: 16, zIndex: 3 }}
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
             className="modal-close"
           />
           <DialogTitle sx={{ color: "var(--cl-primary)" }}>

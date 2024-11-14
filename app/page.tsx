@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef,useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -34,7 +34,11 @@ import { Tooltip } from "@mui/material";
 
 import sanitizeHtml from "sanitize-html";
 import ContentEditable from "react-contenteditable";
-
+const Models = [
+  {Name:"ChatGPT 4o-mini", model:"4o-mini"},
+  {Name:"Germini 1.5", model:"gemini"},
+  {Name:"GPT-test", model:"gpt"},
+]
 
 const useViewport = () => {
   const [width, setWidth] = React.useState(
@@ -77,6 +81,8 @@ const Home = () => {
 
   // Modal
   const [showModalEditHeading, setShowModalEditHeading] = useState(false);
+  const [modelChoose, setModelChoose] = React.useState(Models[0].model);
+
 
   // Focus Input
   const inputTitleRef = React.useRef<HTMLInputElement | null>(null);
@@ -92,7 +98,7 @@ const Home = () => {
   const onKeyPressHandler = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));
+      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));  
       createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
     }
     if (e.key === "Enter" && e.shiftKey) {
@@ -121,7 +127,7 @@ const Home = () => {
     }
   }, [fetchMessages]);
 
-  async function createMessage(prompt: string) {
+  async function createMessage(prompt: string) { 
     const uid = generateRandomUid();
     try {
       const response = await axios.post(`https://cms.ciai.byte.vn/api/messages`, {
@@ -142,7 +148,7 @@ const Home = () => {
   function generateRandomUid() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let randomString = "";
-
+  
     for (let i = 0; i < 28; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       randomString += characters[randomIndex];
@@ -151,7 +157,7 @@ const Home = () => {
         randomString += "-";
       }
     }
-
+  
 
     return `${type.current}-${randomString}`;
   }
@@ -258,6 +264,7 @@ const Home = () => {
                   >
                     <Option value="chatgpt">ChatGPT 4o-mini</Option>
                     <Option value="germini">Germini 1.5</Option>
+                    <Option value="germini">GPT-test</Option>
                   </Select>
                 </FormControl>
               </div>
@@ -746,7 +753,13 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <Setting toggleSidebarRight={toggleSidebarRight} setToggleSidebarRight={setToggleSidebarRight} type={type}></Setting>
+            <Setting 
+              toggleSidebarRight={toggleSidebarRight}
+              setToggleSidebarRight={setToggleSidebarRight}
+              type={type}
+              setModelChoose={setModelChoose}
+              modelChoose={modelChoose}
+              />
           </main>
         </div>
       </section>
@@ -784,7 +797,7 @@ const Home = () => {
                 type="text"
                 className="input"
                 defaultValue={namePrompt.current}
-                onChange={(e) => namePrompt.current = e.target.value}
+                onChange={(e) => namePrompt.current = e.target.value }
                 slotProps={{
                   input: {
                     ref: inputTitleRef,

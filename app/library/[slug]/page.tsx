@@ -34,6 +34,12 @@ import { Tooltip } from "@mui/material";
 import sanitizeHtml from "sanitize-html";
 import ContentEditable from "react-contenteditable";
 
+const Models = [
+  {Name:"ChatGPT 4o-mini", model:"4o-mini"},
+  {Name:"Germini 1.5", model:"gemini"},
+  {Name:"GPT-test", model:"gpt"},
+]
+
 const useViewport = () => {
   const [width, setWidth] = React.useState(
     typeof window !== "undefined" ? window.innerWidth : 0
@@ -48,7 +54,7 @@ const useViewport = () => {
   return { width };
 };
 
-
+const url_api_cms = process.env.NEXT_PUBLIC_API;
 const Detail = () => {
   const router = useRouter();
   const { slug } = useParams();
@@ -67,6 +73,7 @@ const Detail = () => {
 
   const [showEditPrompt, setShowEditPrompt] = React.useState(0);
   const [showEditContent, setShowEditContent] = React.useState(0);
+  const [modelChoose, setModelChoose] = React.useState(Models[0].model);
 
   // Toggle role
   const [showRole, setShowRole] = React.useState(true);
@@ -102,14 +109,15 @@ const Detail = () => {
   const [newContent, setNewContent] = useState('');
 
 
-  const setupApiContent = (prompt: string, type: string) => {
+  const setupApiContent = (prompt: string, type: string, model: string) => {
     const newPrompt = prompt.replace(/<br\s*\/?>/gi, '.');
     let api = '';
     let body = {}
     if (type == 'content') {
       api = 'https://gelding-mature-severely.ngrok-free.app/api/content';
       body = {
-        chat_id: slug, text: newPrompt
+        chat_id: slug, text: newPrompt,
+        model: modelChoose
       }
     } else if (type == 'url') {
       api = 'https://gelding-mature-severely.ngrok-free.app/api/vn';
@@ -135,8 +143,9 @@ const Detail = () => {
   }
 
 
-  const fetchContent = async (prompt: string, type: string) => {
-    const { api, body } = setupApiContent(prompt, type)
+  const fetchContent = async (prompt: string, type: string, model: string) => {
+    debugger;
+    const { api, body } = setupApiContent(prompt, type, model)
     try {
       const response = await axios.post(api, body);
       return response.data.result;
@@ -147,7 +156,7 @@ const Detail = () => {
 
   async function fetchPost(prompt: string, message: number, type: string) {
     try {
-      const response = await axios.post(`https://cms.ciai.byte.vn/api/posts`, {
+      const response = await axios.post(`${url_api_cms}/api/posts`, {
         data: {
           prompt: prompt,
           message: message,
@@ -165,7 +174,7 @@ const Detail = () => {
   const fetchPromptPost = async (id: number, prompt: string) => {
     try {
       const response = await axios.put(
-        `https://cms.ciai.byte.vn/api/posts/${id}`,
+        `${url_api_cms}/api/posts/${id}`,
         {
           data: {
             prompt: prompt
@@ -193,7 +202,7 @@ const Detail = () => {
 
     try {
       const response = await axios.put(
-        `https://cms.ciai.byte.vn/api/posts/${id}`,
+        `${url_api_cms}/api/posts/${id}`,
         {
           data: {
             content: bodyContent
@@ -208,7 +217,7 @@ const Detail = () => {
 
   const fetchDeletePost = async (id: number) => {
     try {
-      const response = await axios.delete(`https://cms.ciai.byte.vn/api/posts/${id}`);
+      const response = await axios.delete(`${url_api_cms}/api/posts/${id}`);
       return response.data;
     } catch (e) {
       console.log(e);
@@ -217,7 +226,7 @@ const Detail = () => {
 
   const fetchMessage = async (name: string) => {
     try {
-      const response = await axios.put(`https://cms.ciai.byte.vn/api/messages/${message.current}`, {
+      const response = await axios.put(`${url_api_cms}/api/messages/${message.current}`, {
         data: {
           name: name
         }
@@ -229,9 +238,10 @@ const Detail = () => {
   }
 
 
-  const checkPosts = async (value: Array<any>) => {
+  const checkPosts = async (value: Array<any>,  model: string) => {
+    debugger;
     if (!value[0].attributes.content && (value[0].attributes.type !== 'link' && value[0].attributes.type !== 'multi')) {
-      const content = await fetchContent(value[0].attributes.prompt, value[0].attributes.type);
+      const content = await fetchContent(value[0].attributes.prompt, value[0].attributes.type, model);
       if (content) {
         const data = await fetchContentPost(value[0].id, content);
         setPosts((prevPosts) =>
@@ -246,21 +256,21 @@ const Detail = () => {
   const fetchPosts = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages/${slug}?populate=*`
+        `${url_api_cms}/api/messages/${slug}?populate=*`
       );
       setPosts(response.data.data.attributes.posts.data);
       message.current = response.data.data.id;
       nameMessage.current = response.data.data.attributes.name
-      await checkPosts(response.data.data.attributes.posts.data);
+      await checkPosts(response.data.data.attributes.posts.data, modelChoose);
     } catch (e) {
       console.log(e);
     }
-  }, [slug]);
+  }, [slug, modelChoose]);
 
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `${url_api_cms}/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -300,7 +310,7 @@ const Detail = () => {
 
   const renderIframe = (content: string) => {
     const iframeMatches = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/g);
-
+  
     return iframeMatches ? iframeMatches.map((iframeMatch, index) => {
       const styleString = iframeMatch.match(/style="([^"]+)"/)?.[1];
       const styleObject = styleString ? Object.fromEntries(
@@ -309,7 +319,7 @@ const Detail = () => {
           return [property.replace(/-([a-z])/g, (_, char) => char.toUpperCase()), value];
         })
       ) : {};
-
+  
       return (
         <iframe
           key={index}
@@ -322,165 +332,33 @@ const Detail = () => {
 
   const renderContent = (content: any) => {
     const formattedContent = formatContent(content);
-
+  
     const parts = formattedContent.split(/(<iframe[^>]*>.*?<\/iframe>)/g);
-
+  
     return (
       <div>
         {parts.map((part: string, index: React.Key | null | undefined) => {
           if (part.match(/<iframe[^>]*>.*?<\/iframe>/)) {
             return renderIframe(part);
           }
-
+  
           return <div key={index} dangerouslySetInnerHTML={{ __html: part }}></div>;
         })}
       </div>
     );
   };
 
-  // const renderIframe = (content: string) => {
-  //   const iframeMatch = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/);
-  //   if (iframeMatch) {
-  //     const styleString = iframeMatch[2];
-  //     const styleObject = Object.fromEntries(
-  //       styleString.split(';').filter(Boolean).map((rule: any) => {
-  //         const [property, value] = rule.split(':').map((str: any) => str.trim());
-  //         return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
-  //       })
-  //     );
-
-  //     return (
-  //       <iframe
-  //         src={iframeMatch[1]}
-  //         style={styleObject}
-  //       />
-  //     );
-  //   }
-  //   return null;
-  // };
-
-  // const renderContent = (content: any) => {
-  //   const formattedContent = formatContent(content);
-  //   const parts = formattedContent.split(/<iframe[^>]*>.*?<\/iframe>/);
-  //   return (
-  //     <div>
-  //       <div dangerouslySetInnerHTML={{ __html: parts[0] }} />
-  //       {renderIframe(formattedContent)}
-  //       <div dangerouslySetInnerHTML={{ __html: parts[1] }} />
-  //     </div>
-  //   );
-  // };
-
-  // const renderContent = (content: any) => {
-  //   const elements = content.split('\n').map((line: any, index: any) => {
-
-  //     const pTagMatch = line.match(/<p[^>]*>/);
-
-  //     if (pTagMatch) {
-  //       return <div key={index} dangerouslySetInnerHTML={{ __html: line }} />;
-  //     }
-
-  //     const strongTextMatch = line.match(/\*\*(.*?)\*\*/);
-  //     const linkMatch = line.match(/(https?:\/\/[^\s]+\.html)/);
-
-  //     if (strongTextMatch && linkMatch) {
-  //       const strongText = strongTextMatch[1];
-  //       const url = linkMatch[0];
-  //       const textBeforeStrong = line.split(strongTextMatch[0])[0];
-  //       const textAfterStrong = line.split(strongTextMatch[0])[1].split(url)[0];
-  //       const textAfterLink = line.split(url)[1];
-
-  //       return (
-  //         <p key={index}>
-  //           {textBeforeStrong}
-  //           <strong>{strongText}</strong>
-  //           {textAfterStrong}
-  //           <a href={url} target="_blank" >
-  //             {url}
-  //           </a>
-  //           {textAfterLink}
-  //         </p>
-  //       );
-  //     }
-
-  //     if (strongTextMatch) {
-  //       const strongText = strongTextMatch[1];
-  //       const textBefore = line.split(strongTextMatch[0])[0];
-  //       const textAfter = line.split(strongTextMatch[0])[1];
-
-  //       return (
-  //         <p key={index}>
-  //           {textBefore}
-  //           <strong>{strongText}</strong>
-  //           {textAfter}
-  //         </p>
-  //       );
-  //     }
-
-  //     if (linkMatch) {
-  //       const url = linkMatch[0];
-  //       const textBeforeLink = line.split(url)[0];
-  //       const textAfterLink = line.split(url)[1];
-  //       if (textBeforeLink.includes('- [Xem chi tiết]')) {
-  //         return (
-  //           <div key={index}>
-  //             <span>- </span>
-  //             <a href={url} target="_blank">
-  //               Xem chi tiết
-  //             </a>
-  //           </div>
-  //         );
-  //       } else {
-  //         return (
-  //           <div key={index}>
-  //             {textBeforeLink}
-  //             <a href={url} target="_blank">
-  //               {url}
-  //             </a>
-  //             {textAfterLink}
-  //           </div>
-  //         );
-  //       }
-
-  //     }
-
-  //     const iframeMatch = line.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/);
-  //     if (iframeMatch) {
-  //       const styleString = iframeMatch[2];
-  //       const styleObject = Object.fromEntries(
-  //         styleString.split(';').filter(Boolean).map((rule: any) => {
-  //           const [property, value] = rule.split(':').map((str: any) => str.trim());
-  //           return [property.replace(/-([a-z])/g, (_: any, char: string) => char.toUpperCase()), value];
-  //         })
-  //       );
-
-  //       return (
-  //         <iframe
-  //           key={index}
-  //           src={iframeMatch[1]}
-  //           style={styleObject}
-  //         />
-  //       );
-  //     }
-
-  //     return <div key={index} dangerouslySetInnerHTML={{ __html: line }} />;
-  //   });
-
-  //   return elements;
-  //   return <div dangerouslySetInnerHTML={{ __html: formatContent(content) }} />
-  // };
-
   const handleUpdateNameMessage = async () => {
     await fetchMessage(nameMessage.current);
   }
 
-  const handleCreatePost = async (value: string) => {
+  const handleCreatePost = async (value: string, model: string) => {
     if (value != "") {
       const post = await fetchPost(value, message.current, type.current);
       if (post) {
         setContent("")
         setPosts((prevPosts) => [...prevPosts, post.data]);
-        const content = await fetchContent(value, type.current);
+        const content = await fetchContent(value, type.current, model);
         if (content) {
           const newPost = await fetchContentPost(post.data.id, content);
           if (newPost) {
@@ -568,7 +446,7 @@ const Detail = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));
-      handleCreatePost(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));
+      handleCreatePost(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current), modelChoose);
     }
     if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
@@ -607,6 +485,7 @@ const Detail = () => {
       latestResultItemRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [posts]);
+
 
   return (
     <div id="app">
@@ -672,12 +551,13 @@ const Detail = () => {
               </div>
               <div className="grow max-w-xs sm:hidden">
                 <FormControl className="w-full px-4">
-                  <Select
+                  {/* <Select
                     indicator={<ArrowDropDownOutlined />}
                     className="w-full custom-select"
                     name="select-models"
                     placeholder="Select Models"
-                    defaultValue="chatgpt"
+                    value={modelChoose}
+                    onChange={onChangeModel}
                     sx={{
                       fontFamily: "var(--font)",
                       fontSize: "0.875rem",
@@ -708,9 +588,12 @@ const Detail = () => {
                       },
                     }}
                   >
-                    <Option value="chatgpt">ChatGPT 4o-mini</Option>
-                    <Option value="germini">Germini 1.5</Option>
-                  </Select>
+                    {
+                      Models.map((model, index) => (
+                          <Option key={index} value={model.model}>{model.Name}</Option>
+                      ))
+                    }
+                  </Select> */}
                 </FormControl>
               </div>
               <div className="bar-right">
@@ -1168,282 +1051,6 @@ const Detail = () => {
                               </div>
                             )}
                           </div>
-                          {/* single-role */}
-                          {/* <div
-                            className={`${!showEditPrompt
-                              ? "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role"
-                              : "px-2 py-1 mb-2 rounded-xl border border-solid border-transparent single-role editing"
-                              }`}
-                          >
-                            <div className="mb-3 flex items-center justify-between sticky top-1 z-10 toggle-role">
-                              <div className="flex items-center gap-x-3">
-                                {showRole && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Switch to Model"
-                                  >
-                                    <Chip
-                                      sx={{
-                                        pb: 0.125,
-                                        "& .MuiChip-action": {
-                                          background:
-                                            "var(--cl-role-user-bg)!important",
-                                        },
-                                      }}
-                                      onClick={() => setShowRole(!showRole)}
-                                    >
-                                      <span className="text-white leading-6">
-                                        User
-                                      </span>
-                                    </Chip>
-                                  </Tooltip>
-                                )}
-                                {!showRole && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Switch to User"
-                                  >
-                                    <Chip
-                                      sx={{
-                                        pb: 0.125,
-                                        "& .MuiChip-action": {
-                                          background:
-                                            "var(--cl-role-model-bg)!important",
-                                        },
-                                      }}
-                                      onClick={() => setShowRole(!showRole)}
-                                    >
-                                      <span className="text-white leading-6">
-                                        Model
-                                      </span>
-                                    </Chip>
-                                  </Tooltip>
-                                )}
-                                {showEditPrompt && (
-                                  <span className="status">Editing</span>
-                                )}
-                              </div>
-                              <div className="flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl group-actions">
-                                <Tooltip
-                                  componentsProps={{
-                                    tooltip: {
-                                      sx: {
-                                        maxWidth: "12rem",
-                                        backgroundColor: "var(--cl-neutral-8)",
-                                        fontFamily: "var(--font)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    },
-                                  }}
-                                  placement="top"
-                                  title="Move down"
-                                >
-                                  <IconButton
-                                    variant="plain"
-                                    aria-label="Move up"
-                                    sx={{
-                                      borderRadius: "100%",
-                                      minWidth: "24px",
-                                      minHeight: "24px",
-                                    }}
-                                    className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                  >
-                                    <span className="material-symbols-outlined">
-                                      arrow_upward
-                                    </span>
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip
-                                  componentsProps={{
-                                    tooltip: {
-                                      sx: {
-                                        maxWidth: "12rem",
-                                        backgroundColor: "var(--cl-neutral-8)",
-                                        fontFamily: "var(--font)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    },
-                                  }}
-                                  placement="top"
-                                  title="Move down"
-                                >
-                                  <IconButton
-                                    variant="plain"
-                                    aria-label="Move up"
-                                    sx={{
-                                      borderRadius: "100%",
-                                      minWidth: "24px",
-                                      minHeight: "24px",
-                                    }}
-                                    className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                  >
-                                    <span className="material-symbols-outlined">
-                                      arrow_downward
-                                    </span>
-                                  </IconButton>
-                                </Tooltip>
-                                {!showEditPrompt && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Edit"
-                                  >
-                                    <IconButton
-                                      variant="plain"
-                                      aria-label="Edit"
-                                      sx={{
-                                        borderRadius: "100%",
-                                        minWidth: "24px",
-                                        minHeight: "24px",
-                                      }}
-                                      className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                      onClick={() => handleClickEditPrompt()}
-                                    >
-                                      <span className="material-symbols-outlined">
-                                        edit
-                                      </span>
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {showEditPrompt && (
-                                  <Tooltip
-                                    componentsProps={{
-                                      tooltip: {
-                                        sx: {
-                                          maxWidth: "12rem",
-                                          backgroundColor: "var(--cl-neutral-8)",
-                                          fontFamily: "var(--font)",
-                                          color: "var(--cl-neutral-80)",
-                                        },
-                                      },
-                                    }}
-                                    placement="top"
-                                    title="Stop editing"
-                                  >
-                                    <IconButton
-                                      variant="plain"
-                                      aria-label="Stop editing"
-                                      sx={{
-                                        borderRadius: "100%",
-                                        minWidth: "24px",
-                                        minHeight: "24px",
-                                      }}
-                                      className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                      onClick={() => handleClickCancelPrompt()}
-                                    >
-                                      <span className="material-symbols-outlined">
-                                        done_all
-                                      </span>
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                <Tooltip
-                                  componentsProps={{
-                                    tooltip: {
-                                      sx: {
-                                        maxWidth: "12rem",
-                                        backgroundColor: "var(--cl-neutral-8)",
-                                        fontFamily: "var(--font)",
-                                        color: "var(--cl-neutral-80)",
-                                      },
-                                    },
-                                  }}
-                                  placement="top"
-                                  title="Delete"
-                                >
-                                  <IconButton
-                                    variant="plain"
-                                    aria-label="Delete"
-                                    sx={{
-                                      borderRadius: "100%",
-                                      minWidth: "24px",
-                                      minHeight: "24px",
-                                    }}
-                                    className="flex items-center justify-center w-6 h-6 rounded-full transition"
-                                  >
-                                    <span className="material-symbols-outlined">
-                                      delete
-                                    </span>
-                                  </IconButton>
-                                </Tooltip>
-                              </div>
-                            </div>
-                            <div className="px-2 leading-relaxed word-break info-prompt">
-                              <div className="flex flex-wrap gap-x-3 image-container">
-                                <div className="border border-solid rounded overflow-hidden relative mb-3 image-wrap">
-                                  <Image
-                                    className="loaded-image"
-                                    src="/data/photo1.jpg"
-                                    width={500}
-                                    height={333}
-                                    alt="what_shape_comes_next1"
-                                  />
-                                  {showEditPrompt && (
-                                    <Tooltip
-                                      componentsProps={{
-                                        tooltip: {
-                                          sx: {
-                                            maxWidth: "12rem",
-                                            backgroundColor: "var(--cl-neutral-8)",
-                                            fontFamily: "var(--font)",
-                                            color: "var(--cl-neutral-80)",
-                                          },
-                                        },
-                                      }}
-                                      title="Remove image"
-                                    >
-                                      <IconButton
-                                        variant="plain"
-                                        aria-label="Remove image"
-                                        sx={{
-                                          borderRadius: "100%",
-                                          backgroundColor: "var(--cl-neutral-60)",
-                                          color: "#FFF",
-                                          minWidth: "24px",
-                                          minHeight: "24px",
-                                        }}
-                                        className="absolute top-2 right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full transition"
-                                      >
-                                        <span className="material-symbols-outlined">
-                                          close
-                                        </span>
-                                      </IconButton>
-                                    </Tooltip>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div> */}
-                          {/* single-role */}
                           {
                             item.attributes.content ? (
                               <div
@@ -2027,7 +1634,7 @@ const Detail = () => {
                         <button
                           type="button"
                           className="flex items-center justify-center gap-x-2 px-1 md:pl-3 md:pr-5 h-8 md:h-9 rounded-3xl transition text-white font-medium btn-color"
-                          onClick={() => handleCreatePost(content)}
+                          onClick={() => handleCreatePost(content, modelChoose)}
                         >
                           <svg
                             width="24"
@@ -2048,7 +1655,13 @@ const Detail = () => {
                 </div>
               </div>
             </div>
-            <Setting toggleSidebarRight={toggleSidebarRight} setToggleSidebarRight={setToggleSidebarRight} type={type}></Setting>
+            <Setting 
+              toggleSidebarRight={toggleSidebarRight}
+              setToggleSidebarRight={setToggleSidebarRight}
+              type={type}
+              setModelChoose={setModelChoose}
+              modelChoose={modelChoose}
+              />
           </main>
         </div>
       </section>

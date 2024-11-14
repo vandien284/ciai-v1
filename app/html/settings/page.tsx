@@ -32,6 +32,11 @@ import {
   CardOverflow,
   CardActions,
   Typography,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+  tabClasses,
 } from "@mui/joy";
 import { Switch, styled, Tooltip, Popover } from "@mui/material";
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
@@ -187,15 +192,23 @@ const Settings = () => {
   });
 
   // Modal
-  const [showModalEditHeading, setShowModalEditHeading] = useState(false);
+  const [showModalNewConnection, setShowModalNewConnection] = useState(false);
+  const [showModalDelete, setShowModalDelete] = useState(false);
 
   // Focus Input
-  const inputTitleRef = React.useRef<HTMLInputElement | null>(null);
+  const inputNameRef = React.useRef<HTMLInputElement | null>(null);
   useEffect(() => {
-    if (showModalEditHeading) {
-      inputTitleRef.current?.focus();
+    if (showModalNewConnection) {
+      inputNameRef.current?.focus();
     }
-  }, [showModalEditHeading]);
+  }, [showModalNewConnection]);
+
+  // Tabs
+  const [tabState, setTabState] = useState(0);
+  const handleTabs = (value: any) => {
+    setTabState(value);
+    return;
+  };
 
   return (
     <div id="app">
@@ -461,34 +474,6 @@ const Settings = () => {
                     </span>
                     <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
                       Prompt Gallery
-                    </span>
-                  </Button>
-                </div>
-                <div className="sidebar-menu">
-                  <Button
-                    component="a"
-                    variant="plain"
-                    aria-label="Connections"
-                    href="/html/connections"
-                    sx={{
-                      pl: 0,
-                      pr: 1,
-                      py: 0,
-                      justifyContent: "flex-start",
-                      fontFamily: "var(--font)",
-                      color: "var(--cl-neutral-80)",
-                      borderRadius: "20px",
-                      "&.MuiButton-root:hover": {
-                        background: "var(--cl-surface-container-lowest)",
-                      },
-                    }}
-                    className="w-full sidebar-btn"
-                  >
-                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined">share</span>
-                    </span>
-                    <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
-                      Connections
                     </span>
                   </Button>
                 </div>
@@ -800,33 +785,401 @@ const Settings = () => {
           <main className="w-full grow flex" id="main-content">
             <div className="grow overflow-auto p-5 lg:p-6 settings">
               <div className="container">
-                <Box className="theme-options">
-                  <h2 className="text-base font-medium my-6">
-                    General app settings
-                  </h2>
-                  <div className="flex items-center max-w-sm pl-3 choose-theme">
-                    <p className="mr-6 md:mr-16">Theme</p>
-                    <ThemeSwitcher />
+                <Tabs
+                  className="tabs"
+                  aria-label="Settings"
+                  defaultValue={0}
+                  value={tabState}
+                  onChange={(event, value) => {
+                    handleTabs(value);
+                  }}
+                  sx={{
+                    bgcolor: "var(--bg-body)",
+                  }}
+                >
+                  <div className="pt-6">
+                    <TabList
+                      sx={{
+                        mb: 2,
+                        boxShadow: "none",
+                        overflow: "auto",
+                        scrollSnapType: "x mandatory",
+                        "&::-webkit-scrollbar": { display: "none" },
+                        [`&& .${tabClasses.root}`]: {
+                          minHeight: 36,
+                          fontFamily: "var(--font)",
+                          fontSize: "0.875rem",
+                          color: "var(--cl-primary)",
+                          bgcolor: "transparent",
+                          "&::after": {
+                            display: "none",
+                          },
+                          "&:hover": {
+                            bgcolor: "var(--cl-surface-container-lowest)",
+                            color: "var(--cl-primary)",
+                          },
+                          [`&.${tabClasses.selected}`]: {
+                            bgcolor: "var(--cl-neutral-20)",
+                            color: "var(--cl-primary)",
+                          },
+                        },
+                      }}
+                      className="gap-x-2 font-medium"
+                    >
+                      <Tab
+                        className="tab-link"
+                        sx={{
+                          px: 2,
+                          py: 0,
+                          flex: "none",
+                          scrollSnapAlign: "start",
+                          borderRadius: 4,
+                        }}
+                      >
+                        General
+                      </Tab>
+                      <Tab
+                        className="tab-link"
+                        sx={{
+                          px: 2,
+                          py: 0,
+                          flex: "none",
+                          scrollSnapAlign: "start",
+                          borderRadius: 4,
+                        }}
+                      >
+                        Company
+                      </Tab>
+                      <Tab
+                        className="tab-link"
+                        sx={{
+                          px: 2,
+                          py: 0,
+                          flex: "none",
+                          scrollSnapAlign: "start",
+                          borderRadius: 4,
+                        }}
+                      >
+                        Connection
+                      </Tab>
+                    </TabList>
                   </div>
-                  <h2 className="text-base font-medium my-6">Save Settings</h2>
-                  <div className="pl-3">
-                    <p className="mb-3">Autosaving Enabled</p>
-                    <div className="-ml-3">
-                      <MaterialUISwitch
-                        defaultChecked
-                        inputProps={{ "aria-label": "Autosaving Enabled" }}
-                      />
-                    </div>
-                  </div>
-                </Box>
+                  <TabPanel
+                    value={0}
+                    className="tabpanel"
+                    sx={{
+                      p: 0,
+                      fontFamily: "var(--font)",
+                      color: "var(--cl-primary)",
+                    }}
+                  >
+                    <Box className="theme-options">
+                      <h2 className="text-base font-medium my-6">
+                        General app settings
+                      </h2>
+                      <div className="flex items-center max-w-sm pl-3 choose-theme">
+                        <p className="mr-6 md:mr-16">Theme</p>
+                        <ThemeSwitcher />
+                      </div>
+                      <h2 className="text-base font-medium my-6">
+                        Save Settings
+                      </h2>
+                      <div className="pl-3">
+                        <p className="mb-3">Autosaving Enabled</p>
+                        <div className="-ml-3">
+                          <MaterialUISwitch
+                            defaultChecked
+                            inputProps={{ "aria-label": "Autosaving Enabled" }}
+                          />
+                        </div>
+                      </div>
+                    </Box>
+                  </TabPanel>
+                  <TabPanel
+                    value={1}
+                    className="tabpanel"
+                    sx={{
+                      p: 0,
+                      fontFamily: "var(--font)",
+                      color: "var(--cl-primary)",
+                    }}
+                  >
+                    <table className="table-auto w-full data-table tbl-mb text-sm whitespace-nowrap tbl-library">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th className="w-1/2">
+                            <div className="flex items-center">
+                              <span className="font-medium">Company Name</span>
+                              <IconButton
+                                variant="plain"
+                                aria-label="Move up"
+                                sx={{
+                                  borderRadius: "100%",
+                                  minWidth: "24px",
+                                  minHeight: "24px",
+                                  color: "var(--cl-neutral-60)",
+                                  "&:hover": {
+                                    background: "var(--bg-color)",
+                                    color: "var(--cl-neutral-60)",
+                                  },
+                                }}
+                                className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
+                              >
+                                <span className="material-symbols-outlined">
+                                  arrow_upward
+                                </span>
+                                {/* <span className="material-symbols-outlined">
+                                  arrow_downward
+                                </span> */}
+                              </IconButton>
+                            </div>
+                          </th>
+                          <th>
+                            <span className="font-medium">Data Source</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="w-12 text-center">
+                            <Image
+                              src="/data/logo-icon.svg"
+                              alt="Caready"
+                              width={20}
+                              height={20}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="py-2 text-left font-medium truncate tend"
+                            >
+                              Caready
+                            </button>
+                          </td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td className="w-12 text-center">
+                            <Image
+                              src="/data/cosmix-icon.png"
+                              alt="Cosmix"
+                              width={20}
+                              height={20}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="py-2 text-left font-medium truncate tend"
+                            >
+                              Cosmix
+                            </button>
+                          </td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td className="w-12 text-center">
+                            <Image
+                              src="/data/humology-icon.png"
+                              alt="Humology"
+                              width={20}
+                              height={20}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="py-2 text-left font-medium truncate tend"
+                            >
+                              Humology
+                            </button>
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </TabPanel>
+                  <TabPanel
+                    value={2}
+                    className="tabpanel"
+                    sx={{
+                      p: 0,
+                      fontFamily: "var(--font)",
+                      color: "var(--cl-primary)",
+                    }}
+                  >
+                    <table className="table-auto w-full data-table tbl-mb text-sm whitespace-nowrap tbl-library">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th className="w-1/2">
+                            <div className="flex items-center">
+                              <span className="font-medium">
+                                Connection Name
+                              </span>
+                              <IconButton
+                                variant="plain"
+                                aria-label="Move up"
+                                sx={{
+                                  borderRadius: "100%",
+                                  minWidth: "24px",
+                                  minHeight: "24px",
+                                  color: "var(--cl-neutral-60)",
+                                  "&:hover": {
+                                    background: "var(--bg-color)",
+                                    color: "var(--cl-neutral-60)",
+                                  },
+                                }}
+                                className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
+                              >
+                                <span className="material-symbols-outlined">
+                                  arrow_upward
+                                </span>
+                                {/* <span className="material-symbols-outlined">
+                                  arrow_downward
+                                </span> */}
+                              </IconButton>
+                            </div>
+                          </th>
+                          <th>
+                            <span className="font-medium">Description</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="w-12 text-center">
+                            <span className="material-symbols-outlined mt-1 connection-icon">
+                              language
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="py-2 text-left font-medium truncate tend"
+                            >
+                              Caready
+                            </button>
+                          </td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td className="w-12 text-center">
+                            <span className="material-symbols-outlined mt-1 connection-icon">
+                              apps
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="py-2 text-left font-medium truncate tend"
+                            >
+                              Caready AI
+                            </button>
+                          </td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td className="w-12 text-center">
+                            <span className="material-symbols-outlined mt-1 connection-icon">
+                              thumb_up
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="py-2 text-left font-medium truncate tend"
+                            >
+                              Facebook
+                            </button>
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </TabPanel>
+                </Tabs>
               </div>
             </div>
           </main>
         </div>
       </section>
+      <Modal open={showModalDelete} onClose={() => setShowModalDelete(false)}>
+        <ModalDialog
+          variant="outlined"
+          className="modal-dialog"
+          sx={{
+            "&.MuiModalDialog-root": {
+              width: "94%",
+              borderRadius: "20px",
+              maxWidth: "480px",
+              fontFamily: "var(--font)",
+              fontSize: "0.875rem",
+              bgcolor: "var(--cl-bg-dropdown)",
+              borderColor: "var(--cl-surface-container-low)",
+            },
+          }}
+        >
+          <ModalClose
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
+            className="modal-close"
+          />
+          <DialogTitle sx={{ color: "var(--cl-primary)" }}>
+            <span className="text-base font-medium">Delete prompt</span>
+          </DialogTitle>
+          <Divider />
+          <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
+            <p className="text-md font-medium">Are you sure?</p>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="solid"
+              sx={{
+                px: 3,
+                bgcolor: "var(--cl-primary-70)",
+                color: "var(--cl-neutral-10)",
+                borderRadius: "8px",
+                fontWeight: 400,
+                "&:hover": {
+                  bgcolor: "var(--cl-primary-80)",
+                  color: "var(--cl-neutral-10)",
+                },
+              }}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => setShowModalDelete(false)}
+              sx={{
+                borderRadius: "8px",
+                fontWeight: 400,
+                color: "var(--cl-neutral-90)",
+                "&:hover": {
+                  bgcolor: "var(--cl-item-dropdown)",
+                  color: "var(--cl-neutral-90)",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
       <Modal
-        open={showModalEditHeading}
-        onClose={() => setShowModalEditHeading(false)}
+        open={showModalNewConnection}
+        onClose={() => setShowModalNewConnection(false)}
       >
         <ModalDialog
           variant="outlined"
@@ -856,24 +1209,23 @@ const Settings = () => {
             className="modal-close"
           />
           <DialogTitle sx={{ color: "var(--cl-primary)" }}>
-            <span className="text-base font-medium">Save prompt</span>
+            <span className="text-base font-medium">New Connection</span>
           </DialogTitle>
           <Divider />
-          <DialogContent className="py-3">
+          <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
             <FormControl className="mb-4">
               <FormLabel
                 className="form-label"
                 sx={{ color: "var(--cl-primary)" }}
               >
-                Prompt name
+                Name
               </FormLabel>
               <Input
                 type="text"
                 className="input"
-                defaultValue="Untitled prompt"
                 slotProps={{
                   input: {
-                    ref: inputTitleRef,
+                    ref: inputNameRef,
                     autoFocus: true,
                   },
                 }}
@@ -884,18 +1236,12 @@ const Settings = () => {
                 className="form-label"
                 sx={{ color: "var(--cl-primary)" }}
               >
-                Description
+                Webhook
               </FormLabel>
-              <Textarea
-                placeholder="optional"
-                minRows={3}
+              <Input
+                type="text"
                 className="input"
-                sx={{
-                  "& .MuiTextarea-textarea": {
-                    maxHeight: "80px",
-                    overflow: "auto!important",
-                  },
-                }}
+                // defaultValue="Untitled prompt"
               />
             </FormControl>
           </DialogContent>
@@ -914,12 +1260,12 @@ const Settings = () => {
                 },
               }}
             >
-              Save
+              Delete
             </Button>
             <Button
               variant="plain"
               color="neutral"
-              onClick={() => setShowModalEditHeading(false)}
+              onClick={() => setShowModalNewConnection(false)}
               sx={{
                 borderRadius: "8px",
                 fontWeight: 400,

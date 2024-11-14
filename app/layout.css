@@ -197,12 +197,14 @@
 .single-role .toggle-role .status {
   color: var(--cl-neutral-60);
 }
-.img-wrap .loaded-image {
-  max-height: 30vh;
-  max-width: 100%;
-}
-.info-prompt .img-wrap {
+.image-container .image-wrap {
   border-color: var(--cl-neutral-30);
+}
+.image-container .image-wrap img {
+  width: auto !important;
+  height: auto !important;
+  max-height: min(30vh, 218px);
+  max-width: 100%;
 }
 .result-area p {
   margin-bottom: 1rem !important;
@@ -250,4 +252,19 @@
 }
 .connector {
   background-color: var(--cl-item-dropdown);
+}
+/* Upload */
+.uploadPicturesWrapper div {
+  justify-content: flex-start !important;
+}
+
+.uploadPictureContainer {
+  width: 200px !important;
+  height: auto !important;
+  margin: 2% 5% !important;
+  padding: 10px !important;
+}
+
+.uploadPictureContainer img {
+  height: 200px !important;
 }

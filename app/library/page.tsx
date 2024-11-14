@@ -64,50 +64,45 @@ const Library = () => {
   }, [showModalEditHeading]);
 
   // Search bar
-  const [inputValue, setInputValue] = useState('');
-  const handleInputSearchChange = async (event: any) => {
+  const [inputValue, setInputValue] = useState("");
+  const handleInputSearchChange = (event: any) => {
     setInputValue(event.target.value);
-    await fetchMessages(event.target.value, 1, 100);
   };
 
   // Pagination
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(100);
-  const [total, setTotal] = useState(100);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => {
-    fetchMessages(inputValue, newPage + 1, rowsPerPage);
     setPage(newPage);
   };
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    fetchMessages(inputValue, 1, parseInt(event.target.value, 10));
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
   const hasFetched = useRef(false);
   const [messages, setMessages] = useState(Array<any>);
-  const fetchMessages = useCallback(async (keywords: string, page: number, pagesize: number) => {
+  const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&filters[name][$contains]=${keywords}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
+        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=100`
       );
       setMessages(response.data.data);
-      setTotal(response.data.meta.pagination.total)
     } catch (e) {
       console.log(e);
     }
   }, []);
 
-  const fetchDeleteMessage = async (id: number) => {
+  const fetchDeleteMessage = async(id: number) => {
     try {
       const response = await axios.delete(
-        `https://cms.ciai.byte.vn/api/messages/${id}`
+        `http://localhost:1337/api/messages/${id}`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -127,10 +122,10 @@ const Library = () => {
 
   useEffect(() => {
     if (!hasFetched.current) {
-      fetchMessages(inputValue, 1, 100);
+      fetchMessages();
       hasFetched.current = true;
     }
-  }, [fetchMessages, inputValue]);
+  }, [fetchMessages]);
 
 
   function timeAgo(date: any) {
@@ -155,11 +150,6 @@ const Library = () => {
     }
 
     return 'Just now';
-  }
-
-  const clearSearch = async() => {
-    setInputValue('');
-    await fetchMessages('',1,100)
   }
 
   return (
@@ -327,11 +317,11 @@ const Library = () => {
                             px: 1,
                             fontFamily: "var(--font)",
                             fontWeight: 400,
-                            color: "var(--cl-primary)",
+                            color: "var(--cl-main)",
                             lineHeight: "24px",
                             borderRadius: "8px",
                             "&:hover": {
-                              background: "var(--bg-color)",
+                              background: "#d3d4d4",
                             },
                           }}
                           className="gap-x-1.5 transition font-medium"
@@ -355,7 +345,6 @@ const Library = () => {
                           placeholder="Search"
                           aria-label="Search field for prompts"
                           className="grow w-44 bg-transparent search-bar-input"
-                          value={inputValue}
                           onChange={(e) => handleInputSearchChange(e)}
                         />
                         <div className={`${inputValue ? "" : "opacity-0"}`}>
@@ -363,7 +352,6 @@ const Library = () => {
                             variant="plain"
                             aria-label="Click to clear search query"
                             className="close-button"
-                            onClick={clearSearch}
                             sx={{
                               minWidth: "28px",
                               minHeight: "28px",
@@ -566,7 +554,7 @@ const Library = () => {
                     <TablePagination
                       component="div"
                       className="navi-pagi"
-                      count={total}
+                      count={100}
                       page={page}
                       onPageChange={handleChangePage}
                       rowsPerPage={rowsPerPage}
@@ -586,36 +574,28 @@ const Library = () => {
                           },
                         },
                         "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                        {
-                          fontSize: "0.75rem",
-                        },
+                          {
+                            fontSize: "0.75rem",
+                          },
                         "& .MuiTablePagination-input": {
                           ml: 1,
                           mr: 2,
-                          bgcolor: "var(--cl-item-dropdown)",
+                          bgcolor: "#FFF",
                           borderRadius: "3px",
-                          border: "1px solid var(--cl-neutral-30)",
+                          border: "1px solid #bdc1ca",
                           fontSize: "0.75rem",
-                          color: "var(--cl-primary)",
-                        },
-                        "& .MuiSvgIcon-root": {
-                          fill: "var(--cl-primary)",
-                        },
-                        "& .MuiIconButton-root:hover": {
-                          bgcolor: "var(--cl-item-dropdown)",
+                          color: "#000",
                         },
                       }}
                       SelectProps={{
                         MenuProps: {
                           PaperProps: {
                             sx: {
-                              bgcolor: "var(--cl-bg-dropdown)",
-                              color: "var(--cl-primary)",
                               "& .MuiMenuItem-root": {
                                 fontSize: "0.75rem",
                                 minHeight: 32,
-                                "&.Mui-selected, &.Mui-selected:hover": {
-                                  bgcolor: "var(--cl-item-dropdown)!important",
+                                "&.Mui-selected": {
+                                  bgcolor: "#f2f4fd",
                                 },
                               },
                             },
