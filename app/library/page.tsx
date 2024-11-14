@@ -157,6 +157,11 @@ const Library = () => {
     return 'Just now';
   }
 
+  const clearSearch = async() => {
+    setInputValue('');
+    await fetchMessages('',1,100)
+  }
+
   return (
     <div id="app">
       <section className="flex h-full sec-main">
@@ -358,7 +363,7 @@ const Library = () => {
                             variant="plain"
                             aria-label="Click to clear search query"
                             className="close-button"
-                            onClick={() => setInputValue('')}
+                            onClick={clearSearch}
                             sx={{
                               minWidth: "28px",
                               minHeight: "28px",
