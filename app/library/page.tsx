@@ -91,7 +91,7 @@ const Library = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:1337/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=100`
+        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=100`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -99,10 +99,10 @@ const Library = () => {
     }
   }, []);
 
-  const fetchDeleteMessage = async(id: number) => {
+  const fetchDeleteMessage = async (id: number) => {
     try {
       const response = await axios.delete(
-        `http://localhost:1337/api/messages/${id}`
+        `https://cms.ciai.byte.vn/api/messages/${id}`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -574,9 +574,9 @@ const Library = () => {
                           },
                         },
                         "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                          {
-                            fontSize: "0.75rem",
-                          },
+                        {
+                          fontSize: "0.75rem",
+                        },
                         "& .MuiTablePagination-input": {
                           ml: 1,
                           mr: 2,
