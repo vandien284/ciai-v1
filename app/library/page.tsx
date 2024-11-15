@@ -95,7 +95,7 @@ const Library = () => {
   const fetchMessages = useCallback(async (keywords: string, page: number, pagesize: number) => {
     try {
       const response = await axios.get(
-        `http://localhost:1337/api/messages?sort=createdAt:desc${keywords != '' ? `&filters[name][$contains]=${keywords}` : ''}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
+        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc${keywords != '' ? `&filters[name][$contains]=${keywords}` : ''}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
       );
       setMessages(response.data.data);
       setTotal(response.data.meta.pagination.total)
@@ -157,9 +157,9 @@ const Library = () => {
     return 'Just now';
   }
 
-  const clearSearch = async() => {
+  const clearSearch = async () => {
     setInputValue('');
-    await fetchMessages('',1,100)
+    await fetchMessages('', 1, 100)
   }
 
   return (
@@ -399,9 +399,9 @@ const Library = () => {
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
                               >
-                                <span className="material-symbols-outlined">
+                                {/* <span className="material-symbols-outlined">
                                   arrow_upward
-                                </span>
+                                </span> */}
                                 {/* <span className="material-symbols-outlined">
                                   arrow_downward
                                 </span> */}
@@ -421,9 +421,9 @@ const Library = () => {
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
                               >
-                                <span className="material-symbols-outlined">
+                                {/* <span className="material-symbols-outlined">
                                   arrow_upward
-                                </span>
+                                </span> */}
                                 {/* <span className="material-symbols-outlined">
                                   arrow_downward
                                 </span> */}
@@ -443,9 +443,9 @@ const Library = () => {
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
                               >
-                                <span className="material-symbols-outlined">
+                                {/* <span className="material-symbols-outlined">
                                   arrow_upward
-                                </span>
+                                </span> */}
                                 {/* <span className="material-symbols-outlined">
                                   arrow_downward
                                 </span> */}
@@ -465,9 +465,9 @@ const Library = () => {
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
                               >
-                                <span className="material-symbols-outlined">
+                                {/* <span className="material-symbols-outlined">
                                   arrow_upward
-                                </span>
+                                </span> */}
                                 {/* <span className="material-symbols-outlined">
                                   arrow_downward
                                 </span> */}
