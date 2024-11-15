@@ -296,6 +296,7 @@ const Home = () => {
     if (newValue !== null) {
       setSelectedOption(newValue);
     }
+    setSelectedPromt(false);
   };
 
   // Handle the change when a prompt button is clicked
@@ -1587,7 +1588,11 @@ const Home = () => {
                               variant="outlined"
                               onKeyDown={handleListKeyDown}
                               className="dropdown-menu"
-                              sx={{ boxShadow: "md", p: 0 }}
+                              sx={{
+                                bgcolor: "var(--cl-bg-dropdown)",
+                                borderColor: "var(--cl-neutral-8)",
+                                p: 0,
+                              }}
                             >
                               <Tooltip
                                 componentsProps={{
@@ -2240,7 +2245,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        language
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2267,7 +2272,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        thumb_up
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2298,7 +2303,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2325,7 +2330,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        money_bag
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2352,7 +2357,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        verified_user
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2383,7 +2388,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2410,7 +2415,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2437,7 +2442,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2468,7 +2473,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        folder_open
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">

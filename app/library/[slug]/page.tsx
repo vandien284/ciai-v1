@@ -62,6 +62,10 @@ const Detail = () => {
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
+  const [activitie, setActivitie] = useState<IActivitieRespones>();
+  const [categorys, setCategorys] = useState<ICategoryRespones[]>([]);
+  const [category, setCategory] = useState<ICategoryRespones>();
+ 
   const handleClickSidebarLeft = () => {
     setToggleSidebarLeft(!toggleSidebarLeft);
   };
@@ -486,6 +490,25 @@ const Detail = () => {
     }
   }, [posts]);
 
+  useEffect(() => {
+    debugger;
+    if (typeof window !== "undefined") {
+      const storedData = localStorage.getItem("activitie");
+      if(storedData && categorys.length > 0)
+      {
+ 
+        const foundCategory = categorys.find(category => 
+          category.attributes.activities.data.some(activity => activity.id.toString() === storedData)
+        );
+        setCategory(foundCategory);
+        const temp = categorys
+        .flatMap(category => category.attributes.activities.data) // Flatten the arrays
+        .find(activity => activity.id.toString() === storedData);
+        setActivitie(temp);
+        localStorage.clear();
+      }
+    }
+  }, [categorys]);
 
   return (
     <div id="app">
@@ -1662,6 +1685,12 @@ const Detail = () => {
               setModelChoose={setModelChoose}
               modelChoose={modelChoose}
               setContent={setContent}
+              activitie={activitie}
+              setActivitie={setActivitie}
+              categorys={categorys}
+              setCategorys={setCategorys}
+              category={category}
+              setCategory={setCategory}
               />
           </main>
         </div>

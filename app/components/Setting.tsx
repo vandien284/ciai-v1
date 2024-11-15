@@ -53,6 +53,12 @@ interface ChildProps {
   modelChoose :string;
   setModelChoose: React.Dispatch<React.SetStateAction<string>>;
   setContent: React.Dispatch<React.SetStateAction<string>>;
+  activitie: IActivitieRespones | undefined,
+  setActivitie: React.Dispatch<React.SetStateAction<IActivitieRespones | undefined>>,
+  categorys: ICategoryRespones[],
+  setCategorys: React.Dispatch<React.SetStateAction<ICategoryRespones[]>>
+  category: ICategoryRespones | undefined,
+  setCategory: React.Dispatch<React.SetStateAction<ICategoryRespones | undefined>>
 }
 
 const Setting: React.FC<ChildProps> = ({
@@ -61,7 +67,13 @@ const Setting: React.FC<ChildProps> = ({
   type,
   modelChoose,
   setModelChoose,
-  setContent
+  setContent,
+  activitie,
+  setActivitie,
+  categorys,
+  setCategorys,
+  category,
+  setCategory
 }) => {
   // Collapse Menu
   const handleClickSidebarRight = () => {
@@ -79,9 +91,8 @@ const Setting: React.FC<ChildProps> = ({
   const [selectedItem, setSelectedItem] = useState("content");
 
   const [companys, setCompanys] = useState<ICompanieRespones[]>([]);
-  const [categorys, setCategorys] = useState<ICategoryRespones[]>([]);
-  const [category, setCategory] = useState<ICategoryRespones>();
-  const [activitie, setActivitie] = useState<IActivitieRespones>();
+  
+
 
   useEffect(() => {
     if (selectedItem == "content") {
@@ -92,7 +103,6 @@ const Setting: React.FC<ChildProps> = ({
       type.current = "link";
     }
   }, [selectedItem, type]);
-
 
 
   const model = useSelector((state: any) => state.store.model);
@@ -447,6 +457,7 @@ const Setting: React.FC<ChildProps> = ({
                         <RadioComponents
                           data={category?.attributes.activities.data} 
                           setContent={setContent}
+                          activitieId={activitie?.id??0}
                           />
                       }
                     </div>

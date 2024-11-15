@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 interface IPros{
     data: IActivitieRespones[],
     setContent: React.Dispatch<React.SetStateAction<string>>;
+    activitieId: number
 }
 
 interface radio{
@@ -14,7 +15,8 @@ interface radio{
 const RadioComponents = (
     {
         data,
-        setContent
+        setContent,
+        activitieId
     }: IPros,
     
 ) => {
@@ -23,19 +25,22 @@ const RadioComponents = (
     const [radioId, setRadioId] = useState(0);
     useEffect(() => {
         if (Array.isArray(data)) {
-            const temp: radio[] = data.map(item => ({
-                id: item.id,
-                name: item.attributes?.name || '', 
-            }));
+          const temp: radio[] = data.map(item => ({
+              id: item.id,
+              name: item.attributes?.name || '', 
+          }));
 
 
 
-            if(temp && temp.length > 0)
-            {
-                setRadioId(temp[0].id);
-            }
-    
-            setRadios(temp);
+          if(activitieId == 0 && temp && temp.length > 0)
+          {
+              setRadioId(temp[0].id);
+          } else if(activitieId != 0 && temp && temp.length > 0)
+          {
+            setRadioId(activitieId);
+          }
+  
+          setRadios(temp);
         }
         if(data && data.length > 0)
         {

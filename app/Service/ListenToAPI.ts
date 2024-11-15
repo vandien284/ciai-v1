@@ -1,4 +1,5 @@
 import axios from "axios"
+import { PromptGalleriesRespose } from "../ModelsCustom/Respone/PromptGalleriesRespose";
 
 const url_api = process.env.NEXT_PUBLIC_API?? "";
 
@@ -35,3 +36,19 @@ export const GetApiCategorys = async (
       setCategorys([]);
     }
 };
+
+export const GetApiPromptGalleries = async(
+  setPromptGalleriesRespose: React.Dispatch<React.SetStateAction<PromptGalleriesRespose[]>>
+) => {
+  try
+  {
+    const response = await axios.get<{data: PromptGalleriesRespose[]}>(`${url_api}/api/prompt-galleries?populate=*`);
+    if (response.status === 200) {
+      setPromptGalleriesRespose(response.data.data);
+    }
+  } catch (error)
+  {
+    console.error("Error fetching companies:", error);
+    setPromptGalleriesRespose([]);
+  }
+}

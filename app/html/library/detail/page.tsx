@@ -3552,7 +3552,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        language
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3579,7 +3579,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        thumb_up
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3610,7 +3610,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3637,7 +3637,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        money_bag
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3664,7 +3664,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        verified_user
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3695,7 +3695,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3722,7 +3722,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3749,7 +3749,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3780,7 +3780,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        folder_open
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">

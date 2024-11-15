@@ -34,6 +34,8 @@ import { Tooltip } from "@mui/material";
 
 import sanitizeHtml from "sanitize-html";
 import ContentEditable from "react-contenteditable";
+import { PromptGalleriesRespose } from "./ModelsCustom/Respone/PromptGalleriesRespose";
+import { GetApiPromptGalleries } from "./Service/ListenToAPI";
 const Models = [
   {Name:"ChatGPT 4o-mini", model:"4o-mini"},
   {Name:"Germini 1.5", model:"gemini"},
@@ -60,6 +62,11 @@ const Home = () => {
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
+  const [promptGalleriesResposes, setPromptGalleriesResposes] = useState<PromptGalleriesRespose[]>([]);
+  const [activitie, setActivitie] = useState<IActivitieRespones>();
+  const [categorys, setCategorys] = useState<ICategoryRespones[]>([]);
+  const [category, setCategory] = useState<ICategoryRespones>();
+
   const handleClickSidebarLeft = () => {
     setToggleSidebarLeft(!toggleSidebarLeft);
   };
@@ -126,6 +133,9 @@ const Home = () => {
       hasFetched.current = true;
     }
   }, [fetchMessages]);
+  useEffect(() => {
+    GetApiPromptGalleries(setPromptGalleriesResposes);
+  }, []);
 
   async function createMessage(prompt: string) { 
     const uid = generateRandomUid();
@@ -138,6 +148,11 @@ const Home = () => {
           type: type.current
         },
       });
+
+      if (typeof window !== "undefined" && activitie) {
+        localStorage.setItem("activitie", activitie.id.toString());
+      }
+
       router.push("/library/" + uid);
       return response;
     } catch (e) {
@@ -161,6 +176,15 @@ const Home = () => {
 
     return `${type.current}-${randomString}`;
   }
+
+  const onClickPromptGalleries = (promptGalleriesRespose: PromptGalleriesRespose) => {
+    debugger;
+    if (typeof window !== "undefined") {
+      localStorage.setItem("activitie", promptGalleriesRespose.attributes.activity.data.id.toString());
+    }
+    createMessage(promptGalleriesRespose.attributes.prompt);
+  }
+
 
   return (
     <div id="app">
@@ -447,6 +471,7 @@ const Home = () => {
                         Try a sample prompt or add your own input below
                       </p>
                     </div>
+
                     <Box
                       className="featured-guides"
                       sx={{
@@ -454,11 +479,9 @@ const Home = () => {
                       }}
                     >
                       <div className="flex flex-wrap gap-y-4 -mx-2">
-                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item">
-                          <Link
-                            className="w-full h-full"
-                            href="/library"
-                          >
+                      {
+                        promptGalleriesResposes.map((promptGalleriesRespose, index) => (
+                          <div key={index} className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item" onClick={() => onClickPromptGalleries(promptGalleriesRespose)}>
                             <div className="w-full h-full p-3 sm:p-6 bg-color flex gap-x-2 rounded-xl cursor-pointer box-guide">
                               <div className="w-8 flex-shrink-0 hidden sm:block icon">
                                 <Image
@@ -470,68 +493,16 @@ const Home = () => {
                               </div>
                               <div className="caption">
                                 <p className="text-base sm:text-xl font-medium mb-2 name">
-                                  Time complexity
+                                  {promptGalleriesRespose.attributes.title}
                                 </p>
                                 <p className="font-medium des">
-                                  Identify the time complexity of a function and
-                                  optimize it.
+                                  <DescriptionComponent description={promptGalleriesRespose.attributes.description}/>
                                 </p>
                               </div>
                             </div>
-                          </Link>
-                        </div>
-                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item">
-                          <Link
-                            className="w-full h-full"
-                            href="/library"
-                          >
-                            <div className="w-full h-full p-3 sm:p-6 bg-color flex gap-x-2 rounded-xl cursor-pointer box-guide">
-                              <div className="w-8 flex-shrink-0 hidden sm:block icon">
-                                <Image
-                                  src="/images/icon/audio-diarization.svg"
-                                  width={32}
-                                  height={32}
-                                  alt="Audio Diarization"
-                                />
-                              </div>
-                              <div className="caption">
-                                <p className="text-base sm:text-xl font-medium mb-2 name">
-                                  Audio Diarization
-                                </p>
-                                <p className="font-medium des">
-                                  Writing a script in Docker to set up your
-                                  environment.
-                                </p>
-                              </div>
-                            </div>
-                          </Link>
-                        </div>
-                        <div className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item">
-                          <Link
-                            className="w-full h-full"
-                            href="/library"
-                          >
-                            <div className="w-full h-full p-3 sm:p-6 bg-color flex gap-x-2 rounded-xl cursor-pointer box-guide">
-                              <div className="w-8 flex-shrink-0 hidden sm:block icon">
-                                <Image
-                                  src="/images/icon/recipe-creator.svg"
-                                  width={32}
-                                  height={32}
-                                  alt="Recipe creator"
-                                />
-                              </div>
-                              <div className="caption">
-                                <p className="text-base sm:text-xl font-medium mb-2 name">
-                                  Recipe creator
-                                </p>
-                                <p className="font-medium des">
-                                  Generate a custom recipe from a photo of what
-                                  you want to eat.
-                                </p>
-                              </div>
-                            </div>
-                          </Link>
-                        </div>
+                          </div>
+                        ))
+                      }
                       </div>
                     </Box>
                   </div>
@@ -760,6 +731,12 @@ const Home = () => {
               setModelChoose={setModelChoose}
               modelChoose={modelChoose}
               setContent={setContent}
+              activitie={activitie}
+              setActivitie={setActivitie}
+              categorys={categorys}
+              setCategorys={setCategorys}
+              category={category}
+              setCategory={setCategory}
               />
           </main>
         </div>
@@ -866,3 +843,41 @@ const Home = () => {
 };
 
 export default Home;
+
+const DescriptionComponent: React.FC<{ description: any[] }> = ({ description }) => {
+  const getDescriptionHTML = (description: any[]) =>  {
+    return description
+      .map((item) => {
+        const childrenHTML = item.children
+          .map((child: any) => {
+            if (child.type === 'link' && child.children) {
+              const linkText = child.children.map((linkChild: any) => linkChild.text).join('');
+              return `<a href="${child.url}" target="_blank">${linkText}</a>`;
+            }
+            
+            let textContent = child.text || '';
+  
+            // Áp dụng các style (bold, italic, underline) nếu có
+            if (child.bold) textContent = `<strong>${textContent}</strong>`;
+            if (child.italic) textContent = `<em>${textContent}</em>`;
+            if (child.underline) textContent = `<u>${textContent}</u>`;
+  
+            return textContent;
+          })
+          .join('');
+  
+        // Kiểm tra loại thẻ (paragraph hoặc heading)
+        if (item.type === 'heading') {
+          return `<h${item.level}>${childrenHTML}</h${item.level}>`;
+        }
+        return `<p>${childrenHTML}</p>`;
+      })
+      .join('');
+  } 
+
+  const htmlContent = getDescriptionHTML(description);
+
+  return (
+    <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+  );
+}
