@@ -772,7 +772,7 @@ const Home = () => {
             </div>
           </div>
         </aside>
-        <div className="grow flex flex-col h-screen overflow-hidden">
+        <div className="grow flex flex-col h-full overflow-hidden">
           <nav className="w-full h-16 relative z-50">
             <div className="h-full px-3 lg:px-6 py-3 flex items-center justify-between gap-x-3 border-b border-solid bar">
               <div className="flex items-center gap-x-2 overflow-hidden bar-left">
