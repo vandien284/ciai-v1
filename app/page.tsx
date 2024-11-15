@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef,useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -30,16 +30,21 @@ import {
   selectClasses,
   Option
 } from "@mui/joy";
-import { Tooltip } from "@mui/material";
+import {
+  Collapse,
+  Tooltip,
+  Popover,
+  ClickAwayListener,
+} from "@mui/material";
 
 import sanitizeHtml from "sanitize-html";
 import ContentEditable from "react-contenteditable";
 import { PromptGalleriesRespose } from "./ModelsCustom/Respone/PromptGalleriesRespose";
 import { GetApiPromptGalleries } from "./Service/ListenToAPI";
 const Models = [
-  {Name:"ChatGPT 4o-mini", model:"4o-mini"},
-  {Name:"Germini 1.5", model:"gemini"},
-  {Name:"GPT-test", model:"gpt"},
+  { Name: "ChatGPT 4o-mini", model: "4o-mini" },
+  { Name: "Germini 1.5", model: "gemini" },
+  { Name: "GPT-test", model: "gpt" },
 ]
 
 const useViewport = () => {
@@ -59,6 +64,57 @@ const useViewport = () => {
 const Home = () => {
   const router = useRouter();
 
+  // Collapse Button
+  const [expanded, setExpanded] = React.useState(true);
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
+
+  // React Textarea
+  // State to store the content of each <textarea>
+  const [texts, setTexts] = useState({
+    textarea1: "",
+    textarea2: "",
+  });
+
+  // Refs to store each <textarea> element
+  const textareaRefs: { [key: string]: React.RefObject<HTMLTextAreaElement> } =
+  {
+    textarea1: useRef<HTMLTextAreaElement>(null),
+    textarea2: useRef<HTMLTextAreaElement>(null),
+  };
+
+  // UseEffect hook to focus the first textarea when the component mounts
+  useEffect(() => {
+    if (textareaRefs?.textarea2.current) {
+      textareaRefs.textarea2.current?.focus(); // Focus the first textarea
+    }
+  }, [textareaRefs.textarea2]);
+
+  const handleChangeText = (
+    event: React.ChangeEvent<HTMLTextAreaElement>,
+    id: string
+  ) => {
+    const newText = event.target.value;
+    setTexts((prevTexts) => ({
+      ...prevTexts,
+      [id]: newText,
+    }));
+
+    // Auto-resize the specific textarea if its ref exists
+    const ref = textareaRefs[id];
+    if (ref && ref.current) {
+      ref.current.style.height = "21px"; // Reset height first
+      ref.current.style.height = `${ref.current.scrollHeight}px`; // Adjust height based on content
+    }
+  };
+  useEffect(() => {
+    if (textareaRefs.textarea1?.current) {
+      textareaRefs.textarea1.current.style.height = "21px"; // Reset height
+      textareaRefs.textarea1.current.style.height = `${textareaRefs.textarea1.current.scrollHeight}px`; // Adjust height based on content
+    }
+  }, [textareaRefs.textarea1, expanded]);
+
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
@@ -75,6 +131,7 @@ const Home = () => {
   };
   const viewPort = useViewport();
   const isMobile = typeof window !== "undefined" && viewPort.width <= 1100;
+
 
   // React ContentEditable
   const sanitizeConf = useRef({
@@ -105,7 +162,7 @@ const Home = () => {
   const onKeyPressHandler = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));  
+      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));
       createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
     }
     if (e.key === "Enter" && e.shiftKey) {
@@ -137,7 +194,8 @@ const Home = () => {
     GetApiPromptGalleries(setPromptGalleriesResposes);
   }, []);
 
-  async function createMessage(prompt: string) { 
+  async function createMessage(prompt: string) {
+
     const uid = generateRandomUid();
     try {
       const response = await axios.post(`https://cms.ciai.byte.vn/api/messages`, {
@@ -149,6 +207,9 @@ const Home = () => {
         },
       });
 
+      if (typeof window !== "undefined" && category) {
+        localStorage.setItem("categories", category.id.toString())
+      }
       if (typeof window !== "undefined" && activitie) {
         localStorage.setItem("activitie", activitie.id.toString());
       }
@@ -163,7 +224,7 @@ const Home = () => {
   function generateRandomUid() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let randomString = "";
-  
+
     for (let i = 0; i < 28; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       randomString += characters[randomIndex];
@@ -172,7 +233,7 @@ const Home = () => {
         randomString += "-";
       }
     }
-  
+
 
     return `${type.current}-${randomString}`;
   }
@@ -327,6 +388,7 @@ const Home = () => {
                             },
                           },
                         }}
+                        placement="left"
                         title="Open menu options"
                       >
                         <MenuButton
@@ -336,6 +398,10 @@ const Home = () => {
                             border: "none",
                             borderRadius: "100%",
                             minHeight: "40px",
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--bg-color)",
+                            },
                           }}
                         >
                           <span className="material-symbols-outlined">
@@ -348,6 +414,8 @@ const Home = () => {
                         className="dropdown-menu"
                         sx={{
                           py: 0,
+                          bgcolor: "var(--cl-bg-dropdown)",
+                          borderColor: "var(--cl-neutral-8)",
                         }}
                       >
                         <MenuItem
@@ -358,11 +426,10 @@ const Home = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
-                            pointerEvents: "none",
-                            color: '#aaa',
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -379,11 +446,10 @@ const Home = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
-                            pointerEvents: "none",
-                            color: '#aaa',
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -400,9 +466,10 @@ const Home = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -419,9 +486,10 @@ const Home = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -460,6 +528,61 @@ const Home = () => {
           </nav>
           <main className="w-full grow flex" id="main-content">
             <div className="grow flex flex-col">
+              <div className="w-full px-3 border-b border-solid border-color">
+                <div className="flex items-center gap-x-1 mt-0.5">
+                  <IconButton
+                    variant="plain"
+                    aria-label="Show more"
+                    onClick={handleExpandClick}
+                    className="w-9 h-9 flex items-center justify-center transition show-more"
+                    aria-expanded={expanded ? "true" : "false"}
+                    sx={{
+                      minWidth: "40px",
+                      minHeight: "40px",
+                      borderRadius: "100%",
+                      color: "var(--cl-primary)",
+
+                      "&:hover": {
+                        background: "var(--bg-color)",
+                        color: "var(--cl-primary)",
+                      },
+                    }}
+                  >
+                    <span className="material-symbols-outlined">
+                      keyboard_arrow_up
+                    </span>
+                  </IconButton>
+                  <span className="text-base font-medium">
+                    System Instructions
+                  </span>
+                </div>
+                <Collapse in={expanded} timeout="auto" unmountOnExit>
+                  <div className="sys-ins">
+                    <div
+                      className="ml-12 mb-2 lg:mb-3 overflow-auto"
+                      style={{
+                        minHeight: "21px",
+                        maxHeight: "200px",
+                      }}
+                    >
+                      <textarea
+                        ref={textareaRefs.textarea1}
+                        value={texts.textarea1}
+                        onChange={(e) => handleChangeText(e, "textarea1")}
+                        placeholder="Optional tone and style instructions for the model"
+                        style={{
+                          width: "100%",
+                          height: "21px",
+                          maxHeight: "200px",
+                          resize: "none", // Disable manual resizing
+                          whiteSpace: "pre-wrap",
+                          verticalAlign: "middle",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </Collapse>
+              </div>
               <div className="grow overflow-auto guide-prompt">
                 <div className="h-full flex data-area">
                   <div className="w-full px-6 py-3 lg:py-4 mt-auto sm:my-auto">
@@ -479,30 +602,30 @@ const Home = () => {
                       }}
                     >
                       <div className="flex flex-wrap gap-y-4 -mx-2">
-                      {
-                        promptGalleriesResposes.map((promptGalleriesRespose, index) => (
-                          <div key={index} className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item" onClick={() => onClickPromptGalleries(promptGalleriesRespose)}>
-                            <div className="w-full h-full p-3 sm:p-6 bg-color flex gap-x-2 rounded-xl cursor-pointer box-guide">
-                              <div className="w-8 flex-shrink-0 hidden sm:block icon">
-                                <Image
-                                  src="/images/icon/time-complexity.svg"
-                                  width={32}
-                                  height={32}
-                                  alt="Time complexity"
-                                />
-                              </div>
-                              <div className="caption">
-                                <p className="text-base sm:text-xl font-medium mb-2 name">
-                                  {promptGalleriesRespose.attributes.title}
-                                </p>
-                                <p className="font-medium des">
-                                  <DescriptionComponent description={promptGalleriesRespose.attributes.description}/>
-                                </p>
+                        {
+                          promptGalleriesResposes.map((promptGalleriesRespose, index) => (
+                            <div key={index} className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item" onClick={() => onClickPromptGalleries(promptGalleriesRespose)}>
+                              <div className="w-full h-full p-3 sm:p-6 bg-color flex gap-x-2 rounded-xl cursor-pointer box-guide">
+                                <div className="w-8 flex-shrink-0 hidden sm:block icon">
+                                  <Image
+                                    src="/images/icon/time-complexity.svg"
+                                    width={32}
+                                    height={32}
+                                    alt="Time complexity"
+                                  />
+                                </div>
+                                <div className="caption">
+                                  <p className="text-base sm:text-xl font-medium mb-2 name">
+                                    {promptGalleriesRespose.attributes.title}
+                                  </p>
+                                  <p className="font-medium des">
+                                    <DescriptionComponent description={promptGalleriesRespose.attributes.description} />
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))
-                      }
+                          ))
+                        }
                       </div>
                     </Box>
                   </div>
@@ -724,7 +847,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <Setting 
+            <Setting
               toggleSidebarRight={toggleSidebarRight}
               setToggleSidebarRight={setToggleSidebarRight}
               type={type}
@@ -737,7 +860,7 @@ const Home = () => {
               setCategorys={setCategorys}
               category={category}
               setCategory={setCategory}
-              />
+            />
           </main>
         </div>
       </section>
@@ -775,7 +898,7 @@ const Home = () => {
                 type="text"
                 className="input"
                 defaultValue={namePrompt.current}
-                onChange={(e) => namePrompt.current = e.target.value }
+                onChange={(e) => namePrompt.current = e.target.value}
                 slotProps={{
                   input: {
                     ref: inputTitleRef,
@@ -845,7 +968,7 @@ const Home = () => {
 export default Home;
 
 const DescriptionComponent: React.FC<{ description: any[] }> = ({ description }) => {
-  const getDescriptionHTML = (description: any[]) =>  {
+  const getDescriptionHTML = (description: any[]) => {
     return description
       .map((item) => {
         const childrenHTML = item.children
@@ -854,18 +977,18 @@ const DescriptionComponent: React.FC<{ description: any[] }> = ({ description })
               const linkText = child.children.map((linkChild: any) => linkChild.text).join('');
               return `<a href="${child.url}" target="_blank">${linkText}</a>`;
             }
-            
+
             let textContent = child.text || '';
-  
+
             // Áp dụng các style (bold, italic, underline) nếu có
             if (child.bold) textContent = `<strong>${textContent}</strong>`;
             if (child.italic) textContent = `<em>${textContent}</em>`;
             if (child.underline) textContent = `<u>${textContent}</u>`;
-  
+
             return textContent;
           })
           .join('');
-  
+
         // Kiểm tra loại thẻ (paragraph hoặc heading)
         if (item.type === 'heading') {
           return `<h${item.level}>${childrenHTML}</h${item.level}>`;
@@ -873,7 +996,7 @@ const DescriptionComponent: React.FC<{ description: any[] }> = ({ description })
         return `<p>${childrenHTML}</p>`;
       })
       .join('');
-  } 
+  }
 
   const htmlContent = getDescriptionHTML(description);
 

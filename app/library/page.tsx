@@ -421,9 +421,9 @@ const Library = () => {
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
                               >
-                                {/* <span className="material-symbols-outlined">
+                                <span className="material-symbols-outlined">
                                   arrow_upward
-                                </span> */}
+                                </span>
                                 {/* <span className="material-symbols-outlined">
                                   arrow_downward
                                 </span> */}
@@ -443,9 +443,9 @@ const Library = () => {
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
                               >
-                                {/* <span className="material-symbols-outlined">
+                                <span className="material-symbols-outlined">
                                   arrow_upward
-                                </span> */}
+                                </span>
                                 {/* <span className="material-symbols-outlined">
                                   arrow_downward
                                 </span> */}
@@ -465,9 +465,9 @@ const Library = () => {
                                 }}
                                 className="flex items-center justify-center w-6 h-6 rounded-full transition ml-2 icon-sort"
                               >
-                                {/* <span className="material-symbols-outlined">
+                                <span className="material-symbols-outlined">
                                   arrow_upward
-                                </span> */}
+                                </span>
                                 {/* <span className="material-symbols-outlined">
                                   arrow_downward
                                 </span> */}

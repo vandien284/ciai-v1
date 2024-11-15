@@ -21,6 +21,13 @@ import {
   RadioGroup,
   Radio,
 } from "@mui/joy";
+import {
+  Collapse,
+  Tooltip,
+  Popover,
+  Popper,
+  ClickAwayListener,
+} from "@mui/material";
 
 import { useOutsideClick } from "outsideclick-react";
 import { GetApiCategorys, GetApiCompanies } from "../Service/ListenToAPI";
@@ -124,9 +131,11 @@ const Setting: React.FC<ChildProps> = ({
   };
 
   const resetSetting = () => {
-    dispatch(setModel("chatgpt"));
-    dispatch(setCompany("caready"));
-    setSelectedItem("content");
+    setModelChoose(Models[0].model)
+    if (typeof window !== "undefined") {
+      localStorage.setItem('model',Models[0].model);
+    }
+    setCategory(undefined)
   };
 
   useEffect(() => {
@@ -144,6 +153,10 @@ const Setting: React.FC<ChildProps> = ({
   ) => {
     if (value) {
       setModelChoose(value);
+      if (typeof window !== "undefined" && value) {
+        localStorage.setItem("model", value.toString());
+      }
+
     }
   };
 
@@ -194,22 +207,45 @@ const Setting: React.FC<ChildProps> = ({
           </Button>
           {isMobile && (
             <Dropdown>
-              <MenuButton
-                className="flex items-center justify-center w-10 h-10"
-                sx={{
-                  p: 0,
-                  border: "none",
-                  borderRadius: "100%",
-                  minHeight: "40px",
-                }}
-              >
-                <span className="material-symbols-outlined">more_vert</span>
-              </MenuButton>
+              <Tooltip
+                        componentsProps={{
+                          tooltip: {
+                            sx: {
+                              maxWidth: "12rem",
+                              bgcolor: "var(--cl-neutral-8)",
+                              fontFamily: "var(--font)",
+                              color: "var(--cl-neutral-80)",
+                            },
+                          },
+                        }}
+                        placement="left"
+                        title="Open menu options"
+                      >
+                        <MenuButton
+                          className="flex items-center justify-center w-10 h-10"
+                          sx={{
+                            p: 0,
+                            border: "none",
+                            borderRadius: "100%",
+                            minHeight: "40px",
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--bg-color)",
+                            },
+                          }}
+                        >
+                          <span className="material-symbols-outlined">
+                            more_vert
+                          </span>
+                        </MenuButton>
+                      </Tooltip>
               <Menu
                 placement="bottom-end"
                 className="dropdown-menu"
                 sx={{
                   py: 0,
+                  bgcolor: "var(--cl-bg-dropdown)",
+                  borderColor: "var(--cl-neutral-8)",
                 }}
               >
                 <MenuItem
@@ -220,9 +256,10 @@ const Setting: React.FC<ChildProps> = ({
                     minHeight: "auto",
                     fontSize: 15,
                     gap: 1.25,
+                    color: "var(--cl-primary)",
                     "&:hover": {
-                      background: "#F6F6F6!important",
-                      color: "#000!important",
+                      background: "var(--cl-item-dropdown) !important",
+                      color: "var(--cl-primary) !important",
                     },
                   }}
                 >
@@ -237,9 +274,10 @@ const Setting: React.FC<ChildProps> = ({
                     minHeight: "auto",
                     fontSize: 15,
                     gap: 1.25,
+                    color: "var(--cl-primary)",
                     "&:hover": {
-                      background: "#F6F6F6!important",
-                      color: "#000!important",
+                      background: "var(--cl-item-dropdown) !important",
+                      color: "var(--cl-primary) !important",
                     },
                   }}
                 >
@@ -254,9 +292,10 @@ const Setting: React.FC<ChildProps> = ({
                     minHeight: "auto",
                     fontSize: 15,
                     gap: 1.25,
+                    color: "var(--cl-primary)",
                     "&:hover": {
-                      background: "#F6F6F6!important",
-                      color: "#000!important",
+                      background: "var(--cl-item-dropdown) !important",
+                      color: "var(--cl-primary) !important",
                     },
                   }}
                 >
@@ -271,9 +310,10 @@ const Setting: React.FC<ChildProps> = ({
                     minHeight: "auto",
                     fontSize: 15,
                     gap: 1.25,
+                    color: "var(--cl-primary)",
                     "&:hover": {
-                      background: "#F6F6F6!important",
-                      color: "#000!important",
+                      background: "var(--cl-item-dropdown) !important",
+                      color: "var(--cl-primary) !important",
                     },
                   }}
                 >
@@ -314,7 +354,7 @@ const Setting: React.FC<ChildProps> = ({
                         },
                         [`& .${selectClasses.indicator}`]: {
                           transition: "0.2s",
-                          color: "var(--cl-main)",
+                          color: "var(--cl-primary)",
                           [`&.${selectClasses.expanded}`]: {
                             transform: "rotate(-180deg)",
                           },
@@ -324,13 +364,23 @@ const Setting: React.FC<ChildProps> = ({
                         listbox: {
                           sx: {
                             py: 0,
-                            borderColor: "#e2e2e5",
+                            borderColor: "var(--cl-neutral-20)",
+                            bgcolor: "var(--cl-bg-dropdown)",
                             borderRadius: "8px",
                             width: "100%",
                             fontFamily: "var(--font)",
                             fontSize: "0.875rem",
+                            "& .MuiOption-root": {
+                              color: "var(--cl-primary)",
+                            },
+                            "& .MuiOption-root:hover": {
+                              bgcolor:
+                                "var(--cl-item-dropdown)!important",
+                              color: "var(--cl-primary)!important",
+                            },
                             "& .MuiOption-root.Mui-selected": {
-                              bgcolor: "#f5f5f5",
+                              bgcolor: "var(--cl-item-dropdown)",
+                              color: "var(--cl-primary-70)!important",
                             },
                           },
                         },
@@ -366,7 +416,7 @@ const Setting: React.FC<ChildProps> = ({
                         },
                         [`& .${selectClasses.indicator}`]: {
                           transition: "0.2s",
-                          color: "var(--cl-main)",
+                          color: "var(--cl-primary)",
                           [`&.${selectClasses.expanded}`]: {
                             transform: "rotate(-180deg)",
                           },
@@ -376,13 +426,27 @@ const Setting: React.FC<ChildProps> = ({
                         listbox: {
                           sx: {
                             py: 0,
-                            borderColor: "#e2e2e5",
+                            borderColor: "var(--cl-neutral-20)",
+                            bgcolor: "var(--cl-bg-dropdown)",
                             borderRadius: "8px",
                             width: "100%",
                             fontFamily: "var(--font)",
                             fontSize: "0.875rem",
+                            "& .MuiOption-root": {
+                              color: "var(--cl-primary)",
+                            },
+                            "& .MuiOption-root.MuiOption-highlighted": {
+                              bgcolor: "transparent!important",
+                            },
+                            "& .MuiOption-root:hover": {
+                              bgcolor:
+                                "var(--cl-item-dropdown)!important",
+                              color: "var(--cl-primary)!important",
+                            },
                             "& .MuiOption-root.Mui-selected": {
-                              bgcolor: "#f5f5f5",
+                              bgcolor:
+                                "var(--cl-item-dropdown)!important",
+                              color: "var(--cl-primary-70)!important",
                             },
                           },
                         },
@@ -400,9 +464,9 @@ const Setting: React.FC<ChildProps> = ({
                 <div className="item">
                   <p className="flex items-center gap-x-2 mb-2">
                     <span className="material-symbols-outlined">
-                      construction
+                    category
                     </span>
-                    <span className="font-medium name">Activities</span>
+                    <span className="font-medium name">Module</span>
                   </p>
                   <div className="ml-7">
                     <FormControl className="mr-8 mb-5">
@@ -410,7 +474,7 @@ const Setting: React.FC<ChildProps> = ({
                         indicator={<ArrowDropDownOutlined />}
                         className="w-full custom-select"
                         name="select-activities"
-                        placeholder="Select Activities"
+                        placeholder="Select Module"
                         value={category?.id??0}
                         sx={{
                           fontFamily: "var(--font)",
@@ -420,7 +484,7 @@ const Setting: React.FC<ChildProps> = ({
                           },
                           [`& .${selectClasses.indicator}`]: {
                             transition: "0.2s",
-                            color: "var(--cl-main)",
+                            color: "var(--cl-primary)",
                             [`&.${selectClasses.expanded}`]: {
                               transform: "rotate(-180deg)",
                             },
@@ -430,13 +494,27 @@ const Setting: React.FC<ChildProps> = ({
                           listbox: {
                             sx: {
                               py: 0,
-                              borderColor: "#e2e2e5",
+                              borderColor: "var(--cl-neutral-20)",
+                              bgcolor: "var(--cl-bg-dropdown)",
                               borderRadius: "8px",
                               width: "100%",
                               fontFamily: "var(--font)",
                               fontSize: "0.875rem",
+                              "& .MuiOption-root": {
+                                color: "var(--cl-primary)",
+                              },
+                              "& .MuiOption-root.MuiOption-highlighted": {
+                                bgcolor: "transparent!important",
+                              },
+                              "& .MuiOption-root:hover": {
+                                bgcolor:
+                                  "var(--cl-item-dropdown)!important",
+                                color: "var(--cl-primary)!important",
+                              },
                               "& .MuiOption-root.Mui-selected": {
-                                bgcolor: "#f5f5f5",
+                                bgcolor:
+                                  "var(--cl-item-dropdown)!important",
+                                color: "var(--cl-primary-70)!important",
                               },
                             },
                           },
@@ -451,6 +529,16 @@ const Setting: React.FC<ChildProps> = ({
                       </Select>
                     </FormControl>
                     <div className="setting-options">
+                      
+                      {
+                        category && category?.attributes.activities.data.length > 0
+                        &&
+                        <p className="flex items-center gap-x-2 mb-2">
+                        <span className="font-medium name">
+                          Prompt model
+                        </span>
+                      </p>
+                      }
                       {
                         category
                         &&
@@ -495,8 +583,10 @@ const Setting: React.FC<ChildProps> = ({
                       borderRadius: "9999px",
                       minWidth: "40px",
                       minHeight: "40px",
+                      color: "var(--cl-primary)",
                       "&.MuiIconButton-root:hover": {
-                        bgcolor: "#e5e7eb",
+                        bgcolor: "var(--cl-neutral-20)",
+                        color: "var(--cl-primary)",
                       },
                     }}
                   >
@@ -513,8 +603,10 @@ const Setting: React.FC<ChildProps> = ({
                       borderRadius: "9999px",
                       minWidth: "40px",
                       minHeight: "40px",
+                      color: "var(--cl-primary)",
                       "&.MuiIconButton-root:hover": {
-                        bgcolor: "#e5e7eb",
+                        bgcolor: "var(--cl-neutral-20)",
+                        color: "var(--cl-primary)",
                       },
                     }}
                   >

@@ -29,10 +29,17 @@ import {
   Option,
   Chip,
 } from "@mui/joy";
-import { Tooltip } from "@mui/material";
+import {
+  Collapse,
+  Tooltip,
+  Popover,
+  Popper,
+  ClickAwayListener,
+} from "@mui/material";
 
 import sanitizeHtml from "sanitize-html";
 import ContentEditable from "react-contenteditable";
+import { setModel } from "@/app/store/slice";
 
 const Models = [
   {Name:"ChatGPT 4o-mini", model:"4o-mini"},
@@ -58,6 +65,57 @@ const url_api_cms = process.env.NEXT_PUBLIC_API;
 const Detail = () => {
   const router = useRouter();
   const { slug } = useParams();
+
+  // Collapse Button
+  const [expanded, setExpanded] = React.useState(true);
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
+
+  // React Textarea
+  // State to store the content of each <textarea>
+  const [texts, setTexts] = useState({
+    textarea1: "",
+    textarea2: "",
+  });
+
+  // Refs to store each <textarea> element
+  const textareaRefs: { [key: string]: React.RefObject<HTMLTextAreaElement> } =
+    {
+      textarea1: useRef<HTMLTextAreaElement>(null),
+      textarea2: useRef<HTMLTextAreaElement>(null),
+    };
+
+  // UseEffect hook to focus the first textarea when the component mounts
+  useEffect(() => {
+    if (textareaRefs?.textarea2.current) {
+      textareaRefs.textarea2.current?.focus(); // Focus the first textarea
+    }
+  }, [textareaRefs.textarea2]);
+
+  const handleChangeText = (
+    event: React.ChangeEvent<HTMLTextAreaElement>,
+    id: string
+  ) => {
+    const newText = event.target.value;
+    setTexts((prevTexts) => ({
+      ...prevTexts,
+      [id]: newText,
+    }));
+
+    // Auto-resize the specific textarea if its ref exists
+    const ref = textareaRefs[id];
+    if (ref && ref.current) {
+      ref.current.style.height = "21px"; // Reset height first
+      ref.current.style.height = `${ref.current.scrollHeight}px`; // Adjust height based on content
+    }
+  };
+  useEffect(() => {
+    if (textareaRefs.textarea1?.current) {
+      textareaRefs.textarea1.current.style.height = "21px"; // Reset height
+      textareaRefs.textarea1.current.style.height = `${textareaRefs.textarea1.current.scrollHeight}px`; // Adjust height based on content
+    }
+  }, [textareaRefs.textarea1, expanded]);
 
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
@@ -112,6 +170,25 @@ const Detail = () => {
   const [newPrompt, setNewPrompt] = useState('');
   const [newContent, setNewContent] = useState('');
 
+  useEffect(() => {
+    if(typeof window !== "undefined") {
+      const cateChoose = localStorage.getItem('categories');
+      switch(cateChoose) {
+        case "1":
+          type.current = 'content'
+          break;
+        case "2":
+          type.current = 'chatbot'
+          break;
+        case "3":
+          type.current = 'business'
+          break;
+        case "4":
+          type.current = 'scraping'
+          break;
+      }
+    }
+  })
 
   const setupApiContent = (prompt: string, type: string, model: string) => {
     const newPrompt = prompt.replace(/<br\s*\/?>/gi, '.');
@@ -126,29 +203,30 @@ const Detail = () => {
     } else if (type == 'url') {
       api = 'https://gelding-mature-severely.ngrok-free.app/api/vn';
       body = {
-        url: prompt
+        url: prompt,
+        model: modelChoose
       }
-    } else if (type == 'chatbox') {
+    } else if (type == 'chatbot') {
       api = 'https://sailfish-discrete-mayfly.ngrok-free.app/ask';
       body = {
         chat_id: slug,
         type: type,
-        question: newPrompt
+        question: newPrompt,
+        model: modelChoose
       }
     } else if (type == 'link' || type == 'multi') {
       api = 'https://hook.eu2.make.com/hy7791yv6fy5qtq4xh1t5o0kkvvx1jww'
       body = {
         uid: slug,
         link: newPrompt,
-        type: type
+        type: type,
+        model: modelChoose
       }
     }
     return { api, body };
   }
 
-
   const fetchContent = async (prompt: string, type: string, model: string) => {
-    
     const { api, body } = setupApiContent(prompt, type, model)
     try {
       const response = await axios.post(api, body);
@@ -241,11 +319,14 @@ const Detail = () => {
     }
   }
 
-
-  const checkPosts = async (value: Array<any>,  model: string) => {
-    
-    if (!value[0].attributes.content && (value[0].attributes.type !== 'link' && value[0].attributes.type !== 'multi')) {
-      const content = await fetchContent(value[0].attributes.prompt, value[0].attributes.type, model);
+  const checkPosts = async (value: Array<any>) => {
+    let model = '4o-mini'
+    if (typeof window !== "undefined") {
+      model = localStorage.getItem("model") || '4o-mini';
+      setModelChoose(model);
+    }
+    if (!value[0].attributes.content) {
+      const content = await fetchContent(value[0].attributes.prompt, type.current, model);
       if (content) {
         const data = await fetchContentPost(value[0].id, content);
         setPosts((prevPosts) =>
@@ -265,11 +346,13 @@ const Detail = () => {
       setPosts(response.data.data.attributes.posts.data);
       message.current = response.data.data.id;
       nameMessage.current = response.data.data.attributes.name
-      await checkPosts(response.data.data.attributes.posts.data, modelChoose);
+      if(response.data.data.attributes.posts.data.length == 1) {
+        await checkPosts(response.data.data.attributes.posts.data);
+      }
     } catch (e) {
       console.log(e);
     }
-  }, [slug, modelChoose]);
+  }, [slug]);
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -354,6 +437,20 @@ const Detail = () => {
 
   const handleUpdateNameMessage = async () => {
     await fetchMessage(nameMessage.current);
+
+    const messageIndex = messages.findIndex((item) => item.id === message.current);
+      if (messageIndex === -1) return;
+
+      const updatedMessages = [...messages];
+      updatedMessages[messageIndex] = {
+        ...updatedMessages[messageIndex],
+        attributes: {
+          ...updatedMessages[messageIndex].attributes,
+          name: nameMessage.current,
+        },
+      };
+
+      setMessages(updatedMessages);
   }
 
   const handleCreatePost = async (value: string, model: string) => {
@@ -491,21 +588,20 @@ const Detail = () => {
   }, [posts]);
 
   useEffect(() => {
-    debugger;
     if (typeof window !== "undefined") {
       const storedData = localStorage.getItem("activitie");
       if(storedData && categorys.length > 0)
       {
- 
         const foundCategory = categorys.find(category => 
           category.attributes.activities.data.some(activity => activity.id.toString() === storedData)
         );
         setCategory(foundCategory);
+        
         const temp = categorys
-        .flatMap(category => category.attributes.activities.data) // Flatten the arrays
+        .flatMap(category => category.attributes.activities.data)
         .find(activity => activity.id.toString() === storedData);
         setActivitie(temp);
-        localStorage.clear();
+        // localStorage.clear();
       }
     }
   }, [categorys]);
@@ -623,7 +719,7 @@ const Detail = () => {
                 {!isMobile && (
                   <div className="flex items-center gap-x-3">
                     <div className="btn-save">
-                      <Button
+                      {/* <Button
                         variant="plain"
                         sx={{
                           px: 1,
@@ -640,7 +736,7 @@ const Detail = () => {
                       >
                         <span className="material-symbols-outlined">save</span>
                         Save
-                      </Button>
+                      </Button> */}
                     </div>
                     <Dropdown>
                       <Tooltip
@@ -663,6 +759,10 @@ const Detail = () => {
                             border: "none",
                             borderRadius: "100%",
                             minHeight: "40px",
+                            color: "var(--cl-primary)",
+                            "&:hover": {
+                              background: "var(--bg-color)",
+                            },
                           }}
                         >
                           <span className="material-symbols-outlined">
@@ -685,9 +785,10 @@ const Detail = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -704,9 +805,10 @@ const Detail = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -723,9 +825,10 @@ const Detail = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -742,9 +845,10 @@ const Detail = () => {
                             minHeight: "auto",
                             fontSize: 15,
                             gap: 1.25,
+                            color: "var(--cl-primary)",
                             "&:hover": {
-                              background: "#F6F6F6!important",
-                              color: "#000!important",
+                              background: "var(--cl-item-dropdown) !important",
+                              color: "var(--cl-primary) !important",
                             },
                           }}
                         >
@@ -783,6 +887,61 @@ const Detail = () => {
           </nav>
           <main className="w-full grow flex" id="main-content">
             <div className="grow flex flex-col">
+            <div className="w-full px-3 border-b border-solid border-color">
+                <div className="flex items-center gap-x-1 mt-0.5">
+                  <IconButton
+                    variant="plain"
+                    aria-label="Show more"
+                    onClick={handleExpandClick}
+                    className="w-9 h-9 flex items-center justify-center transition show-more"
+                    aria-expanded={expanded ? "true" : "false"}
+                    sx={{
+                      minWidth: "40px",
+                      minHeight: "40px",
+                      borderRadius: "100%",
+                      color: "var(--cl-primary)",
+
+                      "&:hover": {
+                        background: "var(--bg-color)",
+                        color: "var(--cl-primary)",
+                      },
+                    }}
+                  >
+                    <span className="material-symbols-outlined">
+                      keyboard_arrow_up
+                    </span>
+                  </IconButton>
+                  <span className="text-base font-medium">
+                    System Instructions
+                  </span>
+                </div>
+                <Collapse in={expanded} timeout="auto" unmountOnExit>
+                  <div className="sys-ins">
+                    <div
+                      className="ml-12 mb-2 lg:mb-3 overflow-auto"
+                      style={{
+                        minHeight: "21px",
+                        maxHeight: "200px",
+                      }}
+                    >
+                      <textarea
+                        ref={textareaRefs.textarea1}
+                        value={texts.textarea1}
+                        onChange={(e) => handleChangeText(e, "textarea1")}
+                        placeholder="Optional tone and style instructions for the model"
+                        style={{
+                          width: "100%",
+                          height: "21px",
+                          maxHeight: "200px",
+                          resize: "none", // Disable manual resizing
+                          whiteSpace: "pre-wrap",
+                          verticalAlign: "middle",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </Collapse>
+              </div>
               <div className="grow overflow-auto detail-post">
                 <div className="pt-4 px-4">
                   <div className="result-area" ref={resultAreaRef}>

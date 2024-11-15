@@ -761,6 +761,7 @@ const Library = () => {
                           component="a"
                           variant="plain"
                           aria-label="Drive Folder"
+                          href="/html/home"
                           sx={{
                             px: 1,
                             fontFamily: "var(--font)",
