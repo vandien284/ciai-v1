@@ -3,7 +3,6 @@ import { useEffect, useState } from "react"
 
 interface IPros{
     data: IActivitieRespones[],
-    handleRadioChange : (e: any) => void,
     setContent: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -15,7 +14,6 @@ interface radio{
 const RadioComponents = (
     {
         data,
-        handleRadioChange,
         setContent
     }: IPros,
     
@@ -45,6 +43,16 @@ const RadioComponents = (
         }
     }, [data]);
 
+    const handleRadioChange = (e: any) => {
+        const value = e.target.value;
+        const temp = data.find(item => `${item.id}` === value);
+        
+        if(temp)
+        {
+            setContent(temp.attributes.prompt_default?? "")
+            setRadioId(temp.id);
+        }
+    };
 
     return(
         <RadioGroup

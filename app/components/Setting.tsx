@@ -93,17 +93,7 @@ const Setting: React.FC<ChildProps> = ({
     }
   }, [selectedItem, type]);
 
-  const handleRadioChange = (e: any) => {
-    const value = e.target.value;
-    if(category)
-    {
-      const temp = category.attributes.activities.data.find(item => `${item.id}` === value);
-      if(temp)
-      {
-        setContent(temp.attributes.prompt_default?? "")
-      }
-    }
-  };
+
 
   const model = useSelector((state: any) => state.store.model);
   const company = useSelector((state: any) => state.store.company);
@@ -457,7 +447,6 @@ const Setting: React.FC<ChildProps> = ({
                         &&
                         <RadioComponents
                           data={category?.attributes.activities.data} 
-                          handleRadioChange={handleRadioChange}
                           setContent={setContent}
                           />
                       }
