@@ -228,12 +228,29 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         />
                         </a>
                         <Button
+                            component="a"
                             variant="plain"
-                            color="neutral"
                             onClick={() => setShowModalEditHeading(true)}
-                            sx={{ borderRadius: "8px", fontWeight: 400 }}
+                            sx={{
+                                pl: 2,
+                                pr: 2,
+                                py: 0,
+                                opacity: 0.3,
+                                marginLeft:3,
+                                justifyContent: "flex-start",
+                                fontFamily: "var(--font)",
+                                color: "var(--cl-neutral-80)",
+                                borderRadius: "20px",
+                                "&.MuiButton-root:hover": {
+                                    background: "var(--cl-surface-container-lowest)",
+                                },
+                            }}
+                            className="sidebar-btn justify-center"
                         >
+                            <span className="whitespace-nowrap opacity-transition font-medium leading-snug name">
                             121124.1730
+                                    </span>
+                            
                         </Button>
                     </div>
                     <div className="w-full grow overflow-y-auto top-sidebar">

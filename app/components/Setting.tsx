@@ -23,7 +23,8 @@ import {
 } from "@mui/joy";
 
 import { useOutsideClick } from "outsideclick-react";
-import { convertToQueryString, GetApiActivities, GetApiCompanies, test } from "../Service/ListenToAPI";
+import { GetApiCategorys, GetApiCompanies } from "../Service/ListenToAPI";
+import RadioComponents from "./RadioComponents";
 
 const Models = [
   {Name:"ChatGPT 4o-mini", model:"4o-mini"},
@@ -51,6 +52,7 @@ interface ChildProps {
   type: MutableRefObject<string>;
   modelChoose :string;
   setModelChoose: React.Dispatch<React.SetStateAction<string>>;
+  setContent: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const Setting: React.FC<ChildProps> = ({
@@ -58,7 +60,8 @@ const Setting: React.FC<ChildProps> = ({
   setToggleSidebarRight,
   type,
   modelChoose,
-  setModelChoose
+  setModelChoose,
+  setContent
 }) => {
   // Collapse Menu
   const handleClickSidebarRight = () => {
@@ -76,14 +79,9 @@ const Setting: React.FC<ChildProps> = ({
   const [selectedItem, setSelectedItem] = useState("content");
 
   const [companys, setCompanys] = useState<ICompanieRespones[]>([]);
-  const [activities, setActivities] = useState<IActivitieRespones[]>([]);
-
-  const handleChangeActivities = (
-    event: React.SyntheticEvent | null,
-    newValue: string | null
-  ) => {
-    setSelectedItem(newValue!);
-  };
+  const [categorys, setCategorys] = useState<ICategoryRespones[]>([]);
+  const [category, setCategory] = useState<ICategoryRespones>();
+  const [activitie, setActivitie] = useState<IActivitieRespones>();
 
   useEffect(() => {
     if (selectedItem == "content") {
@@ -96,7 +94,15 @@ const Setting: React.FC<ChildProps> = ({
   }, [selectedItem, type]);
 
   const handleRadioChange = (e: any) => {
-    type.current = e.target.value;
+    const value = e.target.value;
+    if(category)
+    {
+      const temp = category.attributes.activities.data.find(item => `${item.id}` === value);
+      if(temp)
+      {
+        setContent(temp.attributes.prompt_default?? "")
+      }
+    }
   };
 
   const model = useSelector((state: any) => state.store.model);
@@ -125,8 +131,7 @@ const Setting: React.FC<ChildProps> = ({
 
   useEffect(() => {
     GetApiCompanies(setCompanys);
-    GetApiActivities(setActivities);
-    // test();
+    GetApiCategorys(setCategorys);
   },[]);
 
   const onChangeModel = (
@@ -135,12 +140,29 @@ const Setting: React.FC<ChildProps> = ({
     | React.KeyboardEvent<Element>
     | React.FocusEvent<Element, Element>
     | null,
-  value: string | null
+    value: string | null
   ) => {
     if (value) {
       setModelChoose(value);
     }
   };
+
+  const onChangeActivitie = (
+    event:
+    | React.MouseEvent<Element, MouseEvent>
+    | React.KeyboardEvent<Element>
+    | React.FocusEvent<Element, Element>
+    | null,
+    value: number | null
+  ) => {
+    debugger;
+    const temp = categorys.find(item => item.id === value);
+    setCategory(temp)
+    if(temp && temp.attributes.activities.data.length > 0)
+    {
+      setActivitie(temp.attributes.activities.data[0]);
+    }
+  }
 
   return (
     <aside
@@ -390,8 +412,7 @@ const Setting: React.FC<ChildProps> = ({
                         className="w-full custom-select"
                         name="select-activities"
                         placeholder="Select Activities"
-                        value={selectedItem}
-                        defaultValue="content"
+                        value={category?.id??0}
                         sx={{
                           fontFamily: "var(--font)",
                           fontSize: "0.875rem",
@@ -421,260 +442,25 @@ const Setting: React.FC<ChildProps> = ({
                             },
                           },
                         }}
-                        onChange={handleChangeActivities}
+                        onChange={onChangeActivitie}
                       >
                         {
-                          activities.map((activitie, index) => (
-                            <Option key={index} value="content">{activitie.attributes.name}</Option>
+                          categorys.map((category, index) => (
+                            <Option key={index} value={category.id}>{category.attributes.title}</Option>
                           ))
                         }
                       </Select>
                     </FormControl>
                     <div className="setting-options">
-                      {selectedItem == "content" && (
-                        <RadioGroup
-                          name="content"
-                          orientation="vertical"
-                          defaultValue="content"
-                          className="flex-wrap"
-                          aria-hidden={selectedItem == "content" ? false : true}
-                          onChange={handleRadioChange}
-                        >
-                          <Radio
-                            value="content"
-                            label="Content writer"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
+                      {
+                        category
+                        &&
+                        <RadioComponents
+                          data={category?.attributes.activities.data} 
+                          handleRadioChange={handleRadioChange}
+                          setContent={setContent}
                           />
-                          <Radio
-                            value="url"
-                            label="Copy post"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                        </RadioGroup>
-                      )}
-                      {selectedItem == "scraping" && (
-                        <RadioGroup
-                          name="scraping"
-                          orientation="vertical"
-                          defaultValue="link"
-                          className="flex-wrap"
-                          aria-hidden={
-                            selectedItem == "scraping" ? false : true
-                          }
-                          onChange={handleRadioChange}
-                        >
-                          <Radio
-                            value="link"
-                            label="1 Link"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                          <Radio
-                            value="multi"
-                            label="Multi link"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                        </RadioGroup>
-                      )}
-                      {selectedItem == "business" && (
-                        <RadioGroup
-                          name="business"
-                          orientation="vertical"
-                          defaultValue="chart"
-                          className="flex-wrap"
-                          aria-hidden={
-                            selectedItem == "business" ? false : true
-                          }
-                          onChange={handleRadioChange}
-                        >
-                          <Radio
-                            value="chart"
-                            label="Chart"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                          <Radio
-                            value="search"
-                            label="Search"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                          <Radio
-                            value="compare"
-                            label="Compare"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                          <Radio
-                            value="estimate"
-                            label="Estimate"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                          <Radio
-                            value="revenue"
-                            label="Revenue"
-                            sx={{
-                              ml: 0,
-                              fontFamily: "var(--font)",
-                              fontSize: "0.875rem",
-                              "&.MuiRadio-root": {
-                                gap: "6px",
-                                color: "var(--cl-primary)",
-                              },
-                              "& .MuiRadio-radio": {
-                                background: "none",
-                                borderColor: "var(--cl-primary)",
-                                ":hover": {
-                                  background: "none",
-                                },
-                                "&.Mui-checked .MuiRadio-icon": {
-                                  bgcolor: "var(--cl-primary)",
-                                },
-                              },
-                            }}
-                          />
-                        </RadioGroup>
-                      )}
+                      }
                     </div>
                   </div>
                 </div>

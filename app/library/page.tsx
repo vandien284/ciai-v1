@@ -95,7 +95,7 @@ const Library = () => {
   const fetchMessages = useCallback(async (keywords: string, page: number, pagesize: number) => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&filters[name][$contains]=${keywords}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
+        `http://localhost:1337/api/messages?sort=createdAt:desc${keywords != '' ? `&filters[name][$contains]=${keywords}` : ''}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
       );
       setMessages(response.data.data);
       setTotal(response.data.meta.pagination.total)

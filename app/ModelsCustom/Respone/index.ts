@@ -13,13 +13,14 @@ interface IActivitieRespones {
     attributes: {
       name: string;
       value: string | null;
+      prompt_default: string | null;
     };
 }
   
 interface ICategoryRespones {
     id: number;
     attributes: {
-      name: string;
+      title: string;
       activities: {
         data: IActivitieRespones[];
       };

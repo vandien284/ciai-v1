@@ -759,6 +759,7 @@ const Home = () => {
               type={type}
               setModelChoose={setModelChoose}
               modelChoose={modelChoose}
+              setContent={setContent}
               />
           </main>
         </div>

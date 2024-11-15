@@ -144,7 +144,7 @@ const Detail = () => {
 
 
   const fetchContent = async (prompt: string, type: string, model: string) => {
-    debugger;
+    
     const { api, body } = setupApiContent(prompt, type, model)
     try {
       const response = await axios.post(api, body);
@@ -239,7 +239,7 @@ const Detail = () => {
 
 
   const checkPosts = async (value: Array<any>,  model: string) => {
-    debugger;
+    
     if (!value[0].attributes.content && (value[0].attributes.type !== 'link' && value[0].attributes.type !== 'multi')) {
       const content = await fetchContent(value[0].attributes.prompt, value[0].attributes.type, model);
       if (content) {
@@ -1661,6 +1661,7 @@ const Detail = () => {
               type={type}
               setModelChoose={setModelChoose}
               modelChoose={modelChoose}
+              setContent={setContent}
               />
           </main>
         </div>
