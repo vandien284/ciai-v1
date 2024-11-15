@@ -210,7 +210,7 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                                 height={31}
                                 className="light-logo i2"
                             />
-                            {/* <Image
+                            <Image
                             src="/images/favicon-white.png"
                             priority
                             alt="CIAI"
@@ -225,7 +225,7 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                             width={80}
                             height={31}
                             className="dark-logo i2"
-                        /> */}
+                        />
                         </a>
                         <Button
                             variant="plain"
