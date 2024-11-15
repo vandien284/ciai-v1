@@ -1202,7 +1202,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -1592,7 +1592,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -1899,7 +1899,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {

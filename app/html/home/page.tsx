@@ -149,6 +149,18 @@ const Home = () => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
 
+  // Set full height in Iphone
+  const [height, setHeight] = useState("100vh");
+  useEffect(() => {
+    const updateHeight = () => {
+      setHeight(`${window.innerHeight}px`);
+    };
+
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
@@ -344,7 +356,7 @@ const Home = () => {
   };
 
   return (
-    <div id="app">
+    <div id="app" style={{ height }}>
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
