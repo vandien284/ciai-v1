@@ -325,6 +325,7 @@ const Detail = () => {
       model = localStorage.getItem("model") || '4o-mini';
       setModelChoose(model);
     }
+    
     if (!value[0].attributes.content) {
       const content = await fetchContent(value[0].attributes.prompt, type.current, model);
       if (content) {

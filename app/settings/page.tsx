@@ -76,6 +76,7 @@ const useViewport = () => {
 
   return { width };
 };
+const url_api = process.env.NEXT_PUBLIC_API;
 
 const Settings = () => {
   const router = useRouter();
@@ -101,7 +102,7 @@ const Settings = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `${url_api}/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {

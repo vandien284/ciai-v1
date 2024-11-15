@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef,useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowDropDownOutlined } from "@mui/icons-material";
 import Header from "@/app/components/Header";
 import Setting from "@/app/components/Setting";
+const url_api = process.env.NEXT_PUBLIC_API;
 import {
   Button,
   IconButton,
@@ -30,21 +31,21 @@ import {
   selectClasses,
   Option
 } from "@mui/joy";
-import {
+import { 
   Collapse,
   Tooltip,
   Popover,
   ClickAwayListener,
-} from "@mui/material";
+ } from "@mui/material";
 
 import sanitizeHtml from "sanitize-html";
 import ContentEditable from "react-contenteditable";
 import { PromptGalleriesRespose } from "./ModelsCustom/Respone/PromptGalleriesRespose";
 import { GetApiPromptGalleries } from "./Service/ListenToAPI";
 const Models = [
-  { Name: "ChatGPT 4o-mini", model: "4o-mini" },
-  { Name: "Germini 1.5", model: "gemini" },
-  { Name: "GPT-test", model: "gpt" },
+  {Name:"ChatGPT 4o-mini", model:"4o-mini"},
+  {Name:"Germini 1.5", model:"gemini"},
+  {Name:"GPT-test", model:"gpt"},
 ]
 
 const useViewport = () => {
@@ -79,10 +80,10 @@ const Home = () => {
 
   // Refs to store each <textarea> element
   const textareaRefs: { [key: string]: React.RefObject<HTMLTextAreaElement> } =
-  {
-    textarea1: useRef<HTMLTextAreaElement>(null),
-    textarea2: useRef<HTMLTextAreaElement>(null),
-  };
+    {
+      textarea1: useRef<HTMLTextAreaElement>(null),
+      textarea2: useRef<HTMLTextAreaElement>(null),
+    };
 
   // UseEffect hook to focus the first textarea when the component mounts
   useEffect(() => {
@@ -162,7 +163,7 @@ const Home = () => {
   const onKeyPressHandler = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));
+      setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));  
       createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
     }
     if (e.key === "Enter" && e.shiftKey) {
@@ -176,7 +177,7 @@ const Home = () => {
   const fetchMessages = useCallback(async () => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
+        `${url_api}/api/messages?sort=createdAt:desc&pagination[page]=1&pagination[pageSize]=10`
       );
       setMessages(response.data.data);
     } catch (e) {
@@ -194,11 +195,11 @@ const Home = () => {
     GetApiPromptGalleries(setPromptGalleriesResposes);
   }, []);
 
-  async function createMessage(prompt: string) {
-
+  async function createMessage(prompt: string) { 
+    
     const uid = generateRandomUid();
     try {
-      const response = await axios.post(`https://cms.ciai.byte.vn/api/messages`, {
+      const response = await axios.post(`${url_api}/api/messages`, {
         data: {
           name: namePrompt.current,
           uid: uid,
@@ -208,7 +209,7 @@ const Home = () => {
       });
 
       if (typeof window !== "undefined" && category) {
-        localStorage.setItem("categories", category.id.toString())
+        localStorage.setItem("categories",category.id.toString())
       }
       if (typeof window !== "undefined" && activitie) {
         localStorage.setItem("activitie", activitie.id.toString());
@@ -224,7 +225,7 @@ const Home = () => {
   function generateRandomUid() {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let randomString = "";
-
+  
     for (let i = 0; i < 28; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       randomString += characters[randomIndex];
@@ -233,9 +234,9 @@ const Home = () => {
         randomString += "-";
       }
     }
+  
 
-
-    return `${type.current}-${randomString}`;
+    return `${randomString}`;
   }
 
   const onClickPromptGalleries = (promptGalleriesRespose: PromptGalleriesRespose) => {
@@ -528,7 +529,7 @@ const Home = () => {
           </nav>
           <main className="w-full grow flex" id="main-content">
             <div className="grow flex flex-col">
-              <div className="w-full px-3 border-b border-solid border-color">
+            <div className="w-full px-3 border-b border-solid border-color">
                 <div className="flex items-center gap-x-1 mt-0.5">
                   <IconButton
                     variant="plain"
@@ -602,30 +603,30 @@ const Home = () => {
                       }}
                     >
                       <div className="flex flex-wrap gap-y-4 -mx-2">
-                        {
-                          promptGalleriesResposes.map((promptGalleriesRespose, index) => (
-                            <div key={index} className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item" onClick={() => onClickPromptGalleries(promptGalleriesRespose)}>
-                              <div className="w-full h-full p-3 sm:p-6 bg-color flex gap-x-2 rounded-xl cursor-pointer box-guide">
-                                <div className="w-8 flex-shrink-0 hidden sm:block icon">
-                                  <Image
-                                    src="/images/icon/time-complexity.svg"
-                                    width={32}
-                                    height={32}
-                                    alt="Time complexity"
-                                  />
-                                </div>
-                                <div className="caption">
-                                  <p className="text-base sm:text-xl font-medium mb-2 name">
-                                    {promptGalleriesRespose.attributes.title}
-                                  </p>
-                                  <p className="font-medium des">
-                                    <DescriptionComponent description={promptGalleriesRespose.attributes.description} />
-                                  </p>
-                                </div>
+                      {
+                        promptGalleriesResposes.map((promptGalleriesRespose, index) => (
+                          <div key={index} className="w-full sm:w-1/2 xl:w-1/2 xxl:w-1/3 px-2 item" onClick={() => onClickPromptGalleries(promptGalleriesRespose)}>
+                            <div className="w-full h-full p-3 sm:p-6 bg-color flex gap-x-2 rounded-xl cursor-pointer box-guide">
+                              <div className="w-8 flex-shrink-0 hidden sm:block icon">
+                                <Image
+                                  src="/images/icon/time-complexity.svg"
+                                  width={32}
+                                  height={32}
+                                  alt="Time complexity"
+                                />
+                              </div>
+                              <div className="caption">
+                                <p className="text-base sm:text-xl font-medium mb-2 name">
+                                  {promptGalleriesRespose.attributes.title}
+                                </p>
+                                <p className="font-medium des">
+                                  <DescriptionComponent description={promptGalleriesRespose.attributes.description}/>
+                                </p>
                               </div>
                             </div>
-                          ))
-                        }
+                          </div>
+                        ))
+                      }
                       </div>
                     </Box>
                   </div>
@@ -847,7 +848,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <Setting
+            <Setting 
               toggleSidebarRight={toggleSidebarRight}
               setToggleSidebarRight={setToggleSidebarRight}
               type={type}
@@ -860,7 +861,7 @@ const Home = () => {
               setCategorys={setCategorys}
               category={category}
               setCategory={setCategory}
-            />
+              />
           </main>
         </div>
       </section>
@@ -898,7 +899,7 @@ const Home = () => {
                 type="text"
                 className="input"
                 defaultValue={namePrompt.current}
-                onChange={(e) => namePrompt.current = e.target.value}
+                onChange={(e) => namePrompt.current = e.target.value }
                 slotProps={{
                   input: {
                     ref: inputTitleRef,
@@ -968,7 +969,7 @@ const Home = () => {
 export default Home;
 
 const DescriptionComponent: React.FC<{ description: any[] }> = ({ description }) => {
-  const getDescriptionHTML = (description: any[]) => {
+  const getDescriptionHTML = (description: any[]) =>  {
     return description
       .map((item) => {
         const childrenHTML = item.children
@@ -977,18 +978,18 @@ const DescriptionComponent: React.FC<{ description: any[] }> = ({ description })
               const linkText = child.children.map((linkChild: any) => linkChild.text).join('');
               return `<a href="${child.url}" target="_blank">${linkText}</a>`;
             }
-
+            
             let textContent = child.text || '';
-
+  
             // Áp dụng các style (bold, italic, underline) nếu có
             if (child.bold) textContent = `<strong>${textContent}</strong>`;
             if (child.italic) textContent = `<em>${textContent}</em>`;
             if (child.underline) textContent = `<u>${textContent}</u>`;
-
+  
             return textContent;
           })
           .join('');
-
+  
         // Kiểm tra loại thẻ (paragraph hoặc heading)
         if (item.type === 'heading') {
           return `<h${item.level}>${childrenHTML}</h${item.level}>`;
@@ -996,7 +997,7 @@ const DescriptionComponent: React.FC<{ description: any[] }> = ({ description })
         return `<p>${childrenHTML}</p>`;
       })
       .join('');
-  }
+  } 
 
   const htmlContent = getDescriptionHTML(description);
 

@@ -3,7 +3,7 @@ import axios from "axios";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
-
+const url_api = process.env.NEXT_PUBLIC_API;
 import {
   Button,
   IconButton,
@@ -95,7 +95,7 @@ const Library = () => {
   const fetchMessages = useCallback(async (keywords: string, page: number, pagesize: number) => {
     try {
       const response = await axios.get(
-        `https://cms.ciai.byte.vn/api/messages?sort=createdAt:desc${keywords != '' ? `&filters[name][$contains]=${keywords}` : ''}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
+        `${url_api}/api/messages?sort=createdAt:desc${keywords != '' ? `&filters[name][$contains]=${keywords}` : ''}&pagination[page]=${page}&pagination[pageSize]=${pagesize}`
       );
       setMessages(response.data.data);
       setTotal(response.data.meta.pagination.total)
@@ -107,7 +107,7 @@ const Library = () => {
   const fetchDeleteMessage = async (id: number) => {
     try {
       const response = await axios.delete(
-        `https://cms.ciai.byte.vn/api/messages/${id}`
+        `${url_api}/api/messages/${id}`
       );
       setMessages(response.data.data);
     } catch (e) {
