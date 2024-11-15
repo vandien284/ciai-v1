@@ -164,6 +164,18 @@ const Settings = () => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
 
+  // Set full height in Iphone
+  const [height, setHeight] = useState("100vh");
+  useEffect(() => {
+    const updateHeight = () => {
+      setHeight(`${window.innerHeight}px`);
+    };
+
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
@@ -211,7 +223,7 @@ const Settings = () => {
   };
 
   return (
-    <div id="app">
+    <div id="app" style={{ height }}>
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
@@ -627,7 +639,7 @@ const Settings = () => {
             </div>
           </div>
         </aside>
-        <div className="grow flex flex-col h-screen overflow-hidden">
+        <div className="grow flex flex-col h-full overflow-hidden">
           <nav className="w-full h-16 relative z-50">
             <div className="h-full px-3 lg:px-6 py-3 flex items-center justify-between gap-x-3 border-b border-solid bar">
               <div className="flex items-center gap-x-2 overflow-hidden bar-left">

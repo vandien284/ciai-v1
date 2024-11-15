@@ -149,6 +149,18 @@ const Home = () => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
 
+  // Set full height in Iphone
+  const [height, setHeight] = useState("100vh");
+  useEffect(() => {
+    const updateHeight = () => {
+      setHeight(`${window.innerHeight}px`);
+    };
+
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
@@ -296,6 +308,7 @@ const Home = () => {
     if (newValue !== null) {
       setSelectedOption(newValue);
     }
+    setSelectedPromt(false);
   };
 
   // Handle the change when a prompt button is clicked
@@ -343,7 +356,7 @@ const Home = () => {
   };
 
   return (
-    <div id="app">
+    <div id="app" style={{ height }}>
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
@@ -759,7 +772,7 @@ const Home = () => {
             </div>
           </div>
         </aside>
-        <div className="grow flex flex-col h-screen overflow-hidden">
+        <div className="grow flex flex-col h-full overflow-hidden">
           <nav className="w-full h-16 relative z-50">
             <div className="h-full px-3 lg:px-6 py-3 flex items-center justify-between gap-x-3 border-b border-solid bar">
               <div className="flex items-center gap-x-2 overflow-hidden bar-left">
@@ -1587,7 +1600,11 @@ const Home = () => {
                               variant="outlined"
                               onKeyDown={handleListKeyDown}
                               className="dropdown-menu"
-                              sx={{ boxShadow: "md", p: 0 }}
+                              sx={{
+                                bgcolor: "var(--cl-bg-dropdown)",
+                                borderColor: "var(--cl-neutral-8)",
+                                p: 0,
+                              }}
                             >
                               <Tooltip
                                 componentsProps={{
@@ -2235,12 +2252,12 @@ const Home = () => {
                                         background: "var(--cl-item-dropdown)",
                                       },
                                     }}
-                                    className="w-full active"
+                                    className="w-full"
                                     onClick={handlePromptChange}
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        language
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2267,7 +2284,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        thumb_up
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2298,7 +2315,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2325,7 +2342,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        money_bag
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2352,7 +2369,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        verified_user
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2383,7 +2400,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2410,7 +2427,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2437,7 +2454,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -2468,7 +2485,7 @@ const Home = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        folder_open
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">

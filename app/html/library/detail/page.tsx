@@ -151,6 +151,18 @@ const Detail = () => {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
 
+  // Set full height in Iphone
+  const [height, setHeight] = useState("100vh");
+  useEffect(() => {
+    const updateHeight = () => {
+      setHeight(`${window.innerHeight}px`);
+    };
+
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
   // Collapse Menu
   const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
   const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
@@ -359,7 +371,7 @@ const Detail = () => {
   const [showRole, setShowRole] = React.useState(true);
 
   return (
-    <div id="app">
+    <div id="app" style={{ height }}>
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
@@ -775,7 +787,7 @@ const Detail = () => {
             </div>
           </div>
         </aside>
-        <div className="grow flex flex-col h-screen overflow-hidden">
+        <div className="grow flex flex-col h-full overflow-hidden">
           <nav className="w-full h-16 relative z-50">
             <div className="h-full px-3 lg:px-6 py-3 flex items-center justify-between gap-x-3 border-b border-solid bar">
               <div className="flex items-center gap-x-2 overflow-hidden bar-left">
@@ -1202,7 +1214,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -1592,7 +1604,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -1899,7 +1911,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 lg:opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -3552,7 +3564,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        language
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3579,7 +3591,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        thumb_up
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3610,7 +3622,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3637,7 +3649,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        money_bag
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3664,7 +3676,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        verified_user
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3695,7 +3707,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3722,7 +3734,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        directions_car
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3749,7 +3761,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        payments
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
@@ -3780,7 +3792,7 @@ const Detail = () => {
                                   >
                                     <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                                       <span className="material-symbols-outlined">
-                                        folder_open
+                                        chat_bubble
                                       </span>
                                     </span>
                                     <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
