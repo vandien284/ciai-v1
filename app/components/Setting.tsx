@@ -145,7 +145,6 @@ const Setting: React.FC<ChildProps> = ({
     | null,
     value: number | null
   ) => {
-    debugger;
     const temp = categorys.find(item => item.id === value);
     setCategory(temp)
     if(temp && temp.attributes.activities.data.length > 0)
