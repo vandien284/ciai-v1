@@ -581,7 +581,8 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                     <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
                         <span className="text-base">- Thêm business</span>
                         <span className="text-base">- Thêm các tính năng của chatbot</span>
-                        <span className="text-base">- Thêm các tính năng của librảy</span>
+                        <span className="text-base">- Thêm các tính năng của library</span>
+                        <span className="text-base">- Thêm tính năng reset của setting</span>
                     </DialogContent>
                 </ModalDialog>
             </Modal>
