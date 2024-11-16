@@ -56,6 +56,7 @@ const useViewport = () => {
 interface ChildProps {
   toggleSidebarRight: boolean;
   setToggleSidebarRight: React.Dispatch<React.SetStateAction<boolean>>;
+  activitieRef: MutableRefObject<string>;
   type: MutableRefObject<string>;
   modelChoose :string;
   setModelChoose: React.Dispatch<React.SetStateAction<string>>;
@@ -71,6 +72,7 @@ interface ChildProps {
 const Setting: React.FC<ChildProps> = ({
   toggleSidebarRight,
   setToggleSidebarRight,
+  activitieRef,
   type,
   modelChoose,
   setModelChoose,
@@ -170,9 +172,11 @@ const Setting: React.FC<ChildProps> = ({
   ) => {
     const temp = categorys.find(item => item.id === value);
     setCategory(temp)
+    type.current = temp?.id.toString() || 'content';
     if(temp && temp.attributes.activities.data.length > 0)
     {
       setActivitie(temp.attributes.activities.data[0]);
+      activitieRef.current = temp.attributes.activities.data[0].id.toString() || '1'
     }
   }
 

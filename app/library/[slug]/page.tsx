@@ -162,6 +162,7 @@ const Detail = () => {
   }, [showModalEditHeading]);
 
   const type = useRef('content');
+  const activitieRef = useRef('')
   const nameMessage = useRef('Untitled prompt')
   const [posts, setPosts] = useState(Array<any>);
   const message = useRef(0);
@@ -172,7 +173,7 @@ const Detail = () => {
 
   useEffect(() => {
     if(typeof window !== "undefined") {
-      const cateChoose = localStorage.getItem('categories');
+      const cateChoose = localStorage.getItem('categories');  
       switch(cateChoose) {
         case "1":
           type.current = 'content'
@@ -1841,6 +1842,7 @@ const Detail = () => {
             <Setting 
               toggleSidebarRight={toggleSidebarRight}
               setToggleSidebarRight={setToggleSidebarRight}
+              activitieRef={activitieRef}
               type={type}
               setModelChoose={setModelChoose}
               modelChoose={modelChoose}

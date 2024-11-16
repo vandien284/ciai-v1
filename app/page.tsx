@@ -157,7 +157,8 @@ const Home = () => {
     }
   }, [showModalEditHeading]);
 
-  const type = useRef('');
+  const type = useRef('content');
+  const activitieRef = useRef('')
   const namePrompt = useRef('Untitled prompt')
 
   const onKeyPressHandler = (e: any) => {
@@ -165,6 +166,7 @@ const Home = () => {
       e.preventDefault();
       setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));  
       createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
+      
     }
     if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
@@ -195,7 +197,9 @@ const Home = () => {
     GetApiPromptGalleries(setPromptGalleriesResposes);
   }, []);
 
-  async function createMessage(prompt: string) { 
+  async function createMessage(prompt: string) {  
+    
+    
     
     const uid = generateRandomUid();
     try {
@@ -210,9 +214,14 @@ const Home = () => {
 
       if (typeof window !== "undefined" && category) {
         localStorage.setItem("categories",category.id.toString())
+      } else if(typeof window !== "undefined") {
+        localStorage.setItem("categories",type.current.toString())
       }
+  
       if (typeof window !== "undefined" && activitie) {
         localStorage.setItem("activitie", activitie.id.toString());
+      } else if(typeof window !== "undefined") {
+        localStorage.setItem("activitie",activitieRef.current)
       }
 
       router.push("/library/" + uid);
@@ -851,6 +860,7 @@ const Home = () => {
             <Setting 
               toggleSidebarRight={toggleSidebarRight}
               setToggleSidebarRight={setToggleSidebarRight}
+              activitieRef={activitieRef}
               type={type}
               setModelChoose={setModelChoose}
               modelChoose={modelChoose}
