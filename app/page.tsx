@@ -247,10 +247,10 @@ const Home = () => {
   const createContentBusiness = (message: string,type: string) => {
     const api = `https://analytix.byte.vn/chart-box?message="${message}"&type=${type}`
     let style = `style="width:200px; height: 100px;";`
-    if(type == 'chart' || type == 'compare') {
-      style= `style="width:100%; height: 592px;";`
+    if(type == 'chart' || type == 'compare' || 'searching') {
+      style= `style="width: 100%; height: 592px;";`
     } else {
-      style = `style="width:200px; height: 100px;";`
+      style = `style="width: 200px; height: 100px;";`
     }
     return `<iframe src='${api}' ${style}></iframe>`
   }

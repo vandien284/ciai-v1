@@ -397,32 +397,51 @@ const Detail = () => {
   }
 
   const renderIframe = (content: string) => {
-    const iframeMatches = content.match(/<iframe src="([^"]+)"[^>]*style="([^"]+)"[^>]*><\/iframe>/g);
+    const iframeRegex = /<iframe\s+src=(["'])(.*?)\1(?:[^>]*style=(["'])(.*?)\3)?[^>]*><\/iframe>/g;
+    const iframeMatches = [];
+    let match;
   
-    return iframeMatches ? iframeMatches.map((iframeMatch, index) => {
-      const styleString = iframeMatch.match(/style="([^"]+)"/)?.[1];
-      const styleObject = styleString ? Object.fromEntries(
-        styleString.split(';').filter(Boolean).map((rule) => {
-          const [property, value] = rule.split(':').map((str) => str.trim());
-          return [property.replace(/-([a-z])/g, (_, char) => char.toUpperCase()), value];
+    while ((match = iframeRegex.exec(content)) !== null) {
+      iframeMatches.push(match);
+    }
+  
+    return iframeMatches.length
+      ? iframeMatches.map((iframeMatch, index) => {
+          const src = iframeMatch[2]; 
+          const styleString = iframeMatch[4] || '';
+  
+          const styleObject = styleString
+            ? Object.fromEntries(
+                styleString
+                  .split(';')
+                  .filter(Boolean)
+                  .map((rule) => {
+                    const [property, value] = rule.split(':').map((str) => str.trim());
+                    return [property.replace(/-([a-z])/g, (_, char) => char.toUpperCase()), value];
+                  })
+              )
+            : {};
+  
+          return (
+            <iframe
+              key={index}
+              src={src}
+              style={styleObject}
+            />
+          );
         })
-      ) : {};
-  
-      return (
-        <iframe
-          key={index}
-          src={iframeMatch.match(/src="([^"]+)"/)?.[1]}
-          style={styleObject}
-        />
-      );
-    }) : [];
+      : null;
   };
+  
+  
 
   const renderContent = (content: any) => {
+    
     const formattedContent = formatContent(content);
   
     const parts = formattedContent.split(/(<iframe[^>]*>.*?<\/iframe>)/g);
-  
+    
+
     return (
       <div>
         {parts.map((part: string, index: React.Key | null | undefined) => {
@@ -481,10 +500,10 @@ const Detail = () => {
   const createContentBusiness = (message: string,type: string) => {
     const api = `https://analytix.byte.vn/chart-box?message="${message}"&type=${type}`
     let style = `style="width:200px; height: 100px;";`
-    if(type == 'chart' || type == 'compare') {
-      style= `style="width:100%; height: 592px;";`
+    if(type == 'chart' || type == 'compare' || 'searching') {
+      style= `style="width: 100%; height: 592px;";`
     } else {
-      style = `style="width:200px; height: 100px;";`
+      style = `style="width: 200px; height: 100px;";`
     }
     return `<iframe src='${api}' ${style}></iframe>`
   }

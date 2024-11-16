@@ -576,11 +576,12 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         <span className="text-base">- Đã sửa lại format content</span>
                     </DialogContent>
                     <DialogTitle sx={{ color: "var(--cl-primary)" }}>
-                        <span className="text-base font-medium">Ngày 13/11/2024</span>
+                        <span className="text-base font-medium">Ngày 16/11/2024</span>
                     </DialogTitle>
                     <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
-                        <span className="text-base">- </span>
-                        <span className="text-base">- </span>
+                        <span className="text-base">- Thêm business</span>
+                        <span className="text-base">- Thêm các tính năng của chatbot</span>
+                        <span className="text-base">- Thêm các tính năng của librảy</span>
                     </DialogContent>
                 </ModalDialog>
             </Modal>
