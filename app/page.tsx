@@ -198,9 +198,6 @@ const Home = () => {
   }, []);
 
   async function createMessage(prompt: string) {  
-    
-    
-    
     const uid = generateRandomUid();
     try {
       const response = await axios.post(`${url_api}/api/messages`, {

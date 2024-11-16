@@ -171,25 +171,22 @@ const Detail = () => {
   const [newPrompt, setNewPrompt] = useState('');
   const [newContent, setNewContent] = useState('');
 
-  useEffect(() => {
-    if(typeof window !== "undefined") {
-      const cateChoose = localStorage.getItem('categories');  
-      switch(cateChoose) {
-        case "1":
-          type.current = 'content'
-          break;
-        case "2":
-          type.current = 'chatbot'
-          break;
-        case "3":
-          type.current = 'business'
-          break;
-        case "4":
-          type.current = 'scraping'
-          break;
-      }
+  const setTypeCategories = (value: string) => {
+    switch(value) {
+      case "1":
+        type.current = 'content'
+        break;
+      case "2":
+        type.current = 'chatbot'
+        break;
+      case "3":
+        type.current = 'business'
+        break;
+      case "4":
+        type.current = 'scraping'
+        break;
     }
-  })
+  }
 
   const setupApiContent = (prompt: string, type: string, model: string) => {
     const newPrompt = prompt.replace(/<br\s*\/?>/gi, '.');
@@ -326,6 +323,7 @@ const Detail = () => {
       model = localStorage.getItem("model") || '4o-mini';
       setModelChoose(model);
     }
+    setTypeCategories(value[0].attributes.type)
     
     if (!value[0].attributes.content) {
       const content = await fetchContent(value[0].attributes.prompt, type.current, model);
@@ -457,6 +455,9 @@ const Detail = () => {
 
   const handleCreatePost = async (value: string, model: string) => {
     if (value != "") {
+      setTypeCategories(type.current)
+      console.log(type.current);
+      
       const post = await fetchPost(value, message.current, type.current);
       if (post) {
         setContent("")
@@ -598,7 +599,7 @@ const Detail = () => {
           category.attributes.activities.data.some(activity => activity.id.toString() === storedData)
         );
         setCategory(foundCategory);
-        
+        type.current = foundCategory?.id.toString() || '1';
         const temp = categorys
         .flatMap(category => category.attributes.activities.data)
         .find(activity => activity.id.toString() === storedData);

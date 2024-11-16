@@ -96,24 +96,8 @@ const Setting: React.FC<ChildProps> = ({
   const viewPort = useViewport();
   const isMobile = typeof window !== "undefined" && viewPort.width <= 1100;
 
-  // Select Options
-  const [selectedItem, setSelectedItem] = useState("content");
-
   const [companys, setCompanys] = useState<ICompanieRespones[]>([]);
   
-
-
-  useEffect(() => {
-    if (selectedItem == "content") {
-      type.current = "content";
-    } else if (selectedItem == "chatbox") {
-      type.current = "chatbox";
-    } else if (selectedItem == "scraping") {
-      type.current = "link";
-    }
-  }, [selectedItem, type]);
-
-
   const model = useSelector((state: any) => state.store.model);
   const company = useSelector((state: any) => state.store.company);
   const dispatch = useDispatch();
@@ -172,7 +156,7 @@ const Setting: React.FC<ChildProps> = ({
   ) => {
     const temp = categorys.find(item => item.id === value);
     setCategory(temp)
-    type.current = temp?.id.toString() || 'content';
+    type.current = temp?.id.toString() || '1';
     if(temp && temp.attributes.activities.data.length > 0)
     {
       setActivitie(temp.attributes.activities.data[0]);
