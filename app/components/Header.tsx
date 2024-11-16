@@ -583,6 +583,7 @@ const Header: React.FC<ChildProps> = ({ page, data, toggleSidebarLeft, setToggle
                         <span className="text-base">- Thêm các tính năng của chatbot</span>
                         <span className="text-base">- Thêm các tính năng của library</span>
                         <span className="text-base">- Thêm tính năng reset của setting</span>
+                        <span className="text-base">- Thêm tính năng chọn prompt gallery ở trang home</span>
                     </DialogContent>
                 </ModalDialog>
             </Modal>

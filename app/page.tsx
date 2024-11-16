@@ -165,12 +165,8 @@ const Home = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));  
-      if(type.current == '3') {
-        fetchPostTypeBusiness(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
-      } else {
-        createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
-      }
-      
+      const  iframe = type.current == '3' ? createContentBusiness(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current),activitieRef.current) : null
+      createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current),iframe);
     }
     if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
@@ -202,60 +198,31 @@ const Home = () => {
   }, []);
 
 
-  const fetchPostTypeBusiness = async (prompt: string) => {
-    const uid = generateRandomUid();
-    const iframe = createContentBusiness(prompt,activitieRef.current)
-    console.log(iframe);
-    
-    try {
-      const response = await axios.post(`${url_api}/api/messages`, {
-        data: {
-          prompt: prompt,
-          type: type.current,
-          uid: uid,
-          content: [
-            {
-            "type": "paragraph",
-            "children": [
-              {
-                "text": iframe,
-                "type": "text"
-              }
-            ]
-          }
-        ]
-        },
-      });
-      if (typeof window !== "undefined" && category) {
-        localStorage.setItem("categories",category.id.toString())
-      } else if(typeof window !== "undefined") {
-        localStorage.setItem("categories",type.current.toString())
-      }
-  
-      if (typeof window !== "undefined" && activitie) {
-        localStorage.setItem("activitie", activitie.id.toString());
-      } else if(typeof window !== "undefined") {
-        localStorage.setItem("activitie",activitieRef.current)
-      }
-      router.push("/library/" + uid);
-      return response.data;
-    } catch (e) {
-      console.log(e);
-    }
-  }
-  
-  const createContentBusiness = (message: string,type: string) => {
+ 
+  const createContentBusiness = (message: string, type: string) => {
     const api = `https://analytix.byte.vn/chart-box?message="${message}"&type=${type}`
     let style = `style="width:200px; height: 100px;";`
-    if(type == 'chart' || type == 'compare' || 'searching') {
-      style= `style="width: 100%; height: 592px;";`
+    if (type == 'chart' || type == 'compare' ) {
+      style = `style="width: 100%; height: 592px;";`
+    } else if(type =='searching') {
+      style = `style="width: 100%; height: 200px;";`
     } else {
       style = `style="width: 200px; height: 100px;";`
     }
-    return `<iframe src='${api}' ${style}></iframe>`
+    return [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "text": `<iframe src='${api}' ${style}></iframe>`,
+            "type": "text"
+          }
+        ]
+      }
+    ]
   }
 
-  async function createMessage(prompt: string) {  
+  async function createMessage(prompt: string, content: any) {  
     const uid = generateRandomUid();
     try {
       const response = await axios.post(`${url_api}/api/messages`, {
@@ -264,7 +231,7 @@ const Home = () => {
           uid: uid,
           prompt: prompt,
           type: type.current,
-          content: null
+          content: content
         },
       });
 
@@ -305,19 +272,16 @@ const Home = () => {
   }
 
   const onClickPromptGalleries = (promptGalleriesRespose: PromptGalleriesRespose) => {
-    debugger;
+    activitieRef.current = promptGalleriesRespose.attributes.activity.data.id.toString();
     if (typeof window !== "undefined") {
       localStorage.setItem("activitie", promptGalleriesRespose.attributes.activity.data.id.toString());
     }
-    createMessage(promptGalleriesRespose.attributes.prompt);
+    createMessage(promptGalleriesRespose.attributes.prompt, promptGalleriesRespose.attributes.description)
   }
 
   const handleCreatePost = () => {
-    if(type.current == '3') {
-      fetchPostTypeBusiness(content)
-    } else {
-      createMessage(content)
-    }
+    const  iframe = type.current == '3' ? createContentBusiness(content,activitieRef.current) : null
+    createMessage(content,iframe);
   }
 
 

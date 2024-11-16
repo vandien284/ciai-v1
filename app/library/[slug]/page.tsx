@@ -234,17 +234,16 @@ const Detail = () => {
     }
   }
 
-  async function fetchPost(prompt: string, message: number, type: string) {
+  const fetchPost = async (prompt: string, message: number, type: string, content: any) => {
     try {
       const response = await axios.post(`${url_api_cms}/api/posts`, {
         data: {
           prompt: prompt,
           message: message,
           type: type,
-          content: null
+          content: content
         },
       });
-
       return response.data;
     } catch (e) {
       console.log(e);
@@ -473,56 +472,40 @@ const Detail = () => {
       setMessages(updatedMessages);
   }
 
-  const fetchPostTypeBusiness = async (prompt: string, message: number, type: string, content: string) => {
-    try {
-      const response = await axios.post(`${url_api_cms}/api/posts`, {
-        data: {
-          prompt: prompt,
-          message: message,
-          type: type,
-          content: [{
-            "type": "paragraph",
-            "children": [
-              {
-                "text": content,
-                "type": "text"
-              }
-            ]
-          }]
-        },
-      });
-      return response.data;
-    } catch (e) {
-      console.log(e);
-    }
-  }
-  
-  const createContentBusiness = (message: string,type: string) => {
+  const createContentBusiness = (message: string, type: string) => {
     const api = `https://analytix.byte.vn/chart-box?message="${message}"&type=${type}`
     let style = `style="width:200px; height: 100px;";`
-    if(type == 'chart' || type == 'compare' || 'searching') {
-      style= `style="width: 100%; height: 592px;";`
+    if (type == 'chart' || type == 'compare' ) {
+      style = `style="width: 100%; height: 592px;";`
+    } else if(type =='searching') {
+      style = `style="width: 100%; height: 200px;";`
     } else {
       style = `style="width: 200px; height: 100px;";`
     }
-    return `<iframe src='${api}' ${style}></iframe>`
+    return [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "text": `<iframe src='${api}' ${style}></iframe>`,
+            "type": "text"
+          }
+        ]
+      }
+    ]
   }
 
   const handleCreatePost = async (value: string, model: string) => {
     if (value != "") {
       setTypeCategories(type.current)
-      if (type.current == 'business') {
-        const content = createContentBusiness(value,activitieRef.current);
-        const post = await fetchPostTypeBusiness(value, message.current, type.current,content);
-        if (post) {
-          setContent("")
-          setPosts((prevPosts) => [...prevPosts, post.data]);
-        }
-      } else {
-        const post = await fetchPost(value, message.current, type.current);
-        if (post) {
-          setContent("")
-          setPosts((prevPosts) => [...prevPosts, post.data]);
+      
+      const content = type.current == 'business' ? createContentBusiness(value, activitieRef.current) : null;
+      
+      const post = await fetchPost(value, message.current, type.current, content);
+      if (post) {
+        setContent("")
+        setPosts((prevPosts) => [...prevPosts, post.data]);
+        if (type.current != 'business') {
           const content = await fetchContent(value, type.current, model);
           if (content) {
             const newPost = await fetchContentPost(post.data.id, content);
@@ -534,7 +517,6 @@ const Detail = () => {
           }
         }
       }
-
     }
   }
 
