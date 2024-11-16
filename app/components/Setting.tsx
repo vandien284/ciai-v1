@@ -122,6 +122,7 @@ const Setting: React.FC<ChildProps> = ({
       localStorage.setItem('model',Models[0].model);
     }
     setCategory(undefined)
+    setContent('');
   };
 
   useEffect(() => {
@@ -160,7 +161,11 @@ const Setting: React.FC<ChildProps> = ({
     if(temp && temp.attributes.activities.data.length > 0)
     {
       setActivitie(temp.attributes.activities.data[0]);
-      activitieRef.current = temp.attributes.activities.data[0].id.toString() || '1'
+      if(temp.attributes.activities.data[0].attributes.value) {
+        activitieRef.current = temp.attributes.activities.data[0].attributes.value.toString() || '1'
+      } else {
+        activitieRef.current = temp.attributes.activities.data[0].id.toString() || '1'
+      }
     }
   }
 
@@ -534,7 +539,9 @@ const Setting: React.FC<ChildProps> = ({
                           data={category?.attributes.activities.data} 
                           setContent={setContent}
                           activitieId={activitie?.id??0}
+                          activitieRef={activitieRef}
                           />
+                        
                       }
                     </div>
                   </div>

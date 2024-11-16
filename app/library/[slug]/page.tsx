@@ -220,7 +220,7 @@ const Detail = () => {
         type: type,
         model: modelChoose
       }
-    }
+    } 
     return { api, body };
   }
 
@@ -377,8 +377,9 @@ const Detail = () => {
     const formattedContent = content
       .replace(/^\s*\* /gm, '')
       .replace(/https\s*\/\//g, 'https://')
-      .replace(/### (.+?)(?:[.#*#]|\n|$)/g, '<h3>$1</h3>')
-      .replace(/## (.+?)(?:[.#*#]|\n|$)/g, '<h2>$1</h2>')
+      .replace(/####\s*(.+)/g, '<h3>$1</h3>')
+      .replace(/###\s*(.+)/g, '<h3>$1</h3>')
+      .replace(/##\s*(.+)/g, '<h2>$1</h2>')
       .replace(/\*\*([^*]+)\*\*/g, '<span style="font-weight:bolder">$1</span>')
       .replace(/\n/g, '<br>')
       .replace(/\*:\s?([^*]+)\*/g, '<div style="outline: 1px solid; padding: 5px;">$1</div>')
@@ -453,25 +454,68 @@ const Detail = () => {
       setMessages(updatedMessages);
   }
 
+  const fetchPostTypeBusiness = async (prompt: string, message: number, type: string, content: string) => {
+    try {
+      const response = await axios.post(`${url_api_cms}/api/posts`, {
+        data: {
+          prompt: prompt,
+          message: message,
+          type: type,
+          content: [{
+            "type": "paragraph",
+            "children": [
+              {
+                "text": content,
+                "type": "text"
+              }
+            ]
+          }]
+        },
+      });
+      return response.data;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  
+  const createContentBusiness = (message: string,type: string) => {
+    const api = `https://analytix.byte.vn/chart-box?message="${message}"&type=${type}`
+    let style = `style="width:200px; height: 100px;";`
+    if(type == 'chart' || type == 'compare') {
+      style= `style="width:100%; height: 592px;";`
+    } else {
+      style = `style="width:200px; height: 100px;";`
+    }
+    return `<iframe src='${api}' ${style}></iframe>`
+  }
+
   const handleCreatePost = async (value: string, model: string) => {
     if (value != "") {
       setTypeCategories(type.current)
-      console.log(type.current);
-      
-      const post = await fetchPost(value, message.current, type.current);
-      if (post) {
-        setContent("")
-        setPosts((prevPosts) => [...prevPosts, post.data]);
-        const content = await fetchContent(value, type.current, model);
-        if (content) {
-          const newPost = await fetchContentPost(post.data.id, content);
-          if (newPost) {
-            setPosts((prevPosts) =>
-              prevPosts.map((p) => (p.id == newPost.data.id ? newPost.data : p))
-            );
+      if (type.current == 'business') {
+        const content = createContentBusiness(value,activitieRef.current);
+        const post = await fetchPostTypeBusiness(value, message.current, type.current,content);
+        if (post) {
+          setContent("")
+          setPosts((prevPosts) => [...prevPosts, post.data]);
+        }
+      } else {
+        const post = await fetchPost(value, message.current, type.current);
+        if (post) {
+          setContent("")
+          setPosts((prevPosts) => [...prevPosts, post.data]);
+          const content = await fetchContent(value, type.current, model);
+          if (content) {
+            const newPost = await fetchContentPost(post.data.id, content);
+            if (newPost) {
+              setPosts((prevPosts) =>
+                prevPosts.map((p) => (p.id == newPost.data.id ? newPost.data : p))
+              );
+            }
           }
         }
       }
+
     }
   }
 
@@ -484,7 +528,7 @@ const Detail = () => {
         ...updatedPosts[postIndex],
         attributes: {
           ...updatedPosts[postIndex].attributes,
-          prompt: value,
+          prompt: value
         },
       };
       setPosts([...updatedPosts]);
@@ -593,6 +637,7 @@ const Detail = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedData = localStorage.getItem("activitie");
+      activitieRef.current = storedData || '1'
       if(storedData && categorys.length > 0)
       {
         const foundCategory = categorys.find(category => 

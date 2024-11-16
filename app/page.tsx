@@ -165,7 +165,11 @@ const Home = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       setContent(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current));  
-      createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
+      if(type.current == '3') {
+        fetchPostTypeBusiness(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
+      } else {
+        createMessage(sanitizeHtml(e.currentTarget.innerHTML, sanitizeConf.current))
+      }
       
     }
     if (e.key === "Enter" && e.shiftKey) {
@@ -197,6 +201,60 @@ const Home = () => {
     GetApiPromptGalleries(setPromptGalleriesResposes);
   }, []);
 
+
+  const fetchPostTypeBusiness = async (prompt: string) => {
+    const uid = generateRandomUid();
+    const iframe = createContentBusiness(prompt,activitieRef.current)
+    console.log(iframe);
+    
+    try {
+      const response = await axios.post(`${url_api}/api/messages`, {
+        data: {
+          prompt: prompt,
+          type: type.current,
+          uid: uid,
+          content: [
+            {
+            "type": "paragraph",
+            "children": [
+              {
+                "text": iframe,
+                "type": "text"
+              }
+            ]
+          }
+        ]
+        },
+      });
+      if (typeof window !== "undefined" && category) {
+        localStorage.setItem("categories",category.id.toString())
+      } else if(typeof window !== "undefined") {
+        localStorage.setItem("categories",type.current.toString())
+      }
+  
+      if (typeof window !== "undefined" && activitie) {
+        localStorage.setItem("activitie", activitie.id.toString());
+      } else if(typeof window !== "undefined") {
+        localStorage.setItem("activitie",activitieRef.current)
+      }
+      router.push("/library/" + uid);
+      return response.data;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  
+  const createContentBusiness = (message: string,type: string) => {
+    const api = `https://analytix.byte.vn/chart-box?message="${message}"&type=${type}`
+    let style = `style="width:200px; height: 100px;";`
+    if(type == 'chart' || type == 'compare') {
+      style= `style="width:100%; height: 592px;";`
+    } else {
+      style = `style="width:200px; height: 100px;";`
+    }
+    return `<iframe src='${api}' ${style}></iframe>`
+  }
+
   async function createMessage(prompt: string) {  
     const uid = generateRandomUid();
     try {
@@ -205,7 +263,8 @@ const Home = () => {
           name: namePrompt.current,
           uid: uid,
           prompt: prompt,
-          type: type.current
+          type: type.current,
+          content: null
         },
       });
 
@@ -251,6 +310,14 @@ const Home = () => {
       localStorage.setItem("activitie", promptGalleriesRespose.attributes.activity.data.id.toString());
     }
     createMessage(promptGalleriesRespose.attributes.prompt);
+  }
+
+  const handleCreatePost = () => {
+    if(type.current == '3') {
+      fetchPostTypeBusiness(content)
+    } else {
+      createMessage(content)
+    }
   }
 
 
@@ -833,7 +900,7 @@ const Home = () => {
                         <button
                           type="button"
                           className="flex items-center justify-center gap-x-2 px-1 md:pl-3 md:pr-5 h-8 md:h-9 rounded-3xl transition text-white font-medium btn-color"
-                          onClick={() => createMessage(content)}
+                          onClick={handleCreatePost}
                         >
                           <svg
                             width="24"
