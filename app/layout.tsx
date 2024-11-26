@@ -1,9 +1,9 @@
 "use client";
 import "./globals.css";
 import "./layout.css";
-import { ThemeProvider } from "./components/theme-provider";
 import { Provider } from 'react-redux';
 import store from '@/app/store/store';
+import { ThemeProvider } from "./(pages)/(display)/components/theme-provider";
 
 export default function RootLayout({
   children,
@@ -24,13 +24,14 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300&amp;family=Google+Sans+Text_old:ital,wght@0,400;0,500;1,400;1,500&amp;display=block"
         />
+        <meta httpEquiv="Content-Security-Policy" content="style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://static-production.npmjs.com https://www.gstatic.com;" />
       </head>
       <body>
         <Provider store={store}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            {children}</ThemeProvider>
+            {children}
+          </ThemeProvider>
         </Provider>
-
       </body>
     </html>
   );

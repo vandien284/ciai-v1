@@ -134,26 +134,44 @@ const Library = () => {
     return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
+  // Set ViewPort
+  const viewPort = useViewport();
+  const isMobile = typeof window !== "undefined" && viewPort.width < 768;
+  const isTablet =
+    typeof window !== "undefined" &&
+    viewPort.width >= 767 &&
+    viewPort.width < 1024;
+
   // Collapse Menu
-  const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
-  const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
+  const [sidebarOpenLeft, setSidebarOpenLeft] = React.useState(() =>
+    isTablet ? false : true
+  );
+  useEffect(() => {
+    setSidebarOpenLeft(isTablet || isMobile ? false : true);
+  }, [isTablet, isMobile]);
+
+  console.log(sidebarOpenLeft);
+  const [sidebarOpenRight, setSidebarOpenRight] = React.useState(() =>
+    isMobile ? false : true
+  );
+  useEffect(() => {
+    setSidebarOpenRight(isMobile ? false : true);
+  }, [isMobile]);
   const handleClickSidebarLeft = () => {
-    setToggleSidebarLeft(!toggleSidebarLeft);
+    setSidebarOpenLeft(!sidebarOpenLeft);
   };
   const handleClickSidebarRight = () => {
-    setToggleSidebarRight(!toggleSidebarRight);
+    setSidebarOpenRight(!sidebarOpenRight);
   };
   const handleOutsideClickSideLeft = () => {
-    setToggleSidebarLeft(true);
+    setSidebarOpenLeft(true);
   };
   const handleOutsideClickSideRight = () => {
-    setToggleSidebarRight(true);
+    setSidebarOpenRight(true);
   };
   const sideLeftRef = useOutsideClick(handleOutsideClickSideLeft);
   const sideRightRef = useOutsideClick(handleOutsideClickSideRight);
   const refNull = useRef(null);
-  const viewPort = useViewport();
-  const isMobile = typeof window !== "undefined" && viewPort.width <= 1100;
 
   // Popover
   const [popoverAccount, setPopoverAccount] = React.useState<CustomPopover>({
@@ -162,7 +180,17 @@ const Library = () => {
   });
 
   // Modal
+  const [showModalEditHeading, setShowModalEditHeading] = useState(false);
+  const [showModalSharePrompt, setShowModalSharePrompt] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
+
+  // Focus Input
+  const inputTitleRef = React.useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    if (showModalEditHeading) {
+      inputTitleRef.current?.focus();
+    }
+  }, [showModalEditHeading]);
 
   // Search bar
   const [inputValue, setInputValue] = useState("");
@@ -192,14 +220,16 @@ const Library = () => {
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
-            toggleSidebarLeft ? "expanded" : "compact"
+            sidebarOpenLeft ? "expanded" : "compact"
           }`}
           id="sidebar-left"
         >
-          <div
-            onClick={() => setToggleSidebarLeft(true)}
-            className="overlay-sidebar"
-          ></div>
+          {isMobile && (
+            <div
+              onClick={() => setSidebarOpenLeft(false)}
+              className="overlay-sidebar"
+            ></div>
+          )}
           <div
             className="w-full h-full flex flex-col justify-between inner"
             // ref={isMobile ? sideLeftRef : refNull}
@@ -334,6 +364,131 @@ const Library = () => {
                       <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
                         Croissant Recipe in JSON
                       </span>
+                      <div className="w-6 flex-shrink-0 ml-3 group-edit">
+                        <Dropdown>
+                          <Tooltip
+                            componentsProps={{
+                              tooltip: {
+                                sx: {
+                                  maxWidth: "12rem",
+                                  bgcolor:
+                                    "var(--cl-surface-container-highest)",
+                                  fontFamily: "var(--font)",
+                                  color: "var(--cl-neutral-80)",
+                                },
+                              },
+                            }}
+                            placement="top"
+                            title="Options"
+                          >
+                            <MenuButton
+                              className="flex items-center justify-center icon-click-menu"
+                              sx={{
+                                padding: 0,
+                                background: "none!important",
+                                border: "none",
+                                borderRadius: "100%",
+                                width: "24px",
+                                minHeight: "24px",
+                                color: "var(--cl-neutral-80)",
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M3 12C3 10.8954 3.89543 10 5 10C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14C3.89543 14 3 13.1046 3 12ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12ZM17 12C17 10.8954 17.8954 10 19 10C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14C17.8954 14 17 13.1046 17 12Z"
+                                ></path>
+                              </svg>
+                            </MenuButton>
+                          </Tooltip>
+                          <Menu
+                            placement="bottom-start"
+                            className="dropdown-menu"
+                            sx={{
+                              py: 0,
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              borderColor: "var(--cl-neutral-8)",
+                            }}
+                          >
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalSharePrompt(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                share
+                              </span>
+                              Share
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalEditHeading(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                edit
+                              </span>
+                              Rename
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                            >
+                              <span className="material-symbols-outlined">
+                                delete
+                              </span>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
+                      </div>
                     </Button>
                   </div>
                   <div className="sidebar-menu">
@@ -364,6 +519,131 @@ const Library = () => {
                       <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
                         Croissant Recipe: JSON Format
                       </span>
+                      <div className="w-6 flex-shrink-0 ml-3 group-edit">
+                        <Dropdown>
+                          <Tooltip
+                            componentsProps={{
+                              tooltip: {
+                                sx: {
+                                  maxWidth: "12rem",
+                                  bgcolor:
+                                    "var(--cl-surface-container-highest)",
+                                  fontFamily: "var(--font)",
+                                  color: "var(--cl-neutral-80)",
+                                },
+                              },
+                            }}
+                            placement="top"
+                            title="Options"
+                          >
+                            <MenuButton
+                              className="flex items-center justify-center icon-click-menu"
+                              sx={{
+                                padding: 0,
+                                background: "none!important",
+                                border: "none",
+                                borderRadius: "100%",
+                                width: "24px",
+                                minHeight: "24px",
+                                color: "var(--cl-neutral-80)",
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M3 12C3 10.8954 3.89543 10 5 10C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14C3.89543 14 3 13.1046 3 12ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12ZM17 12C17 10.8954 17.8954 10 19 10C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14C17.8954 14 17 13.1046 17 12Z"
+                                ></path>
+                              </svg>
+                            </MenuButton>
+                          </Tooltip>
+                          <Menu
+                            placement="bottom-start"
+                            className="dropdown-menu"
+                            sx={{
+                              py: 0,
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              borderColor: "var(--cl-neutral-8)",
+                            }}
+                          >
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalSharePrompt(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                share
+                              </span>
+                              Share
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalEditHeading(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                edit
+                              </span>
+                              Rename
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                            >
+                              <span className="material-symbols-outlined">
+                                delete
+                              </span>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
+                      </div>
                     </Button>
                   </div>
                   <div className="sidebar-menu">
@@ -398,6 +678,131 @@ const Library = () => {
                         the links of the sources you use) and consider diverse
                         perspectives
                       </span>
+                      <div className="w-6 flex-shrink-0 ml-3 group-edit">
+                        <Dropdown>
+                          <Tooltip
+                            componentsProps={{
+                              tooltip: {
+                                sx: {
+                                  maxWidth: "12rem",
+                                  bgcolor:
+                                    "var(--cl-surface-container-highest)",
+                                  fontFamily: "var(--font)",
+                                  color: "var(--cl-neutral-80)",
+                                },
+                              },
+                            }}
+                            placement="top"
+                            title="Options"
+                          >
+                            <MenuButton
+                              className="flex items-center justify-center icon-click-menu"
+                              sx={{
+                                padding: 0,
+                                background: "none!important",
+                                border: "none",
+                                borderRadius: "100%",
+                                width: "24px",
+                                minHeight: "24px",
+                                color: "var(--cl-neutral-80)",
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M3 12C3 10.8954 3.89543 10 5 10C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14C3.89543 14 3 13.1046 3 12ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12ZM17 12C17 10.8954 17.8954 10 19 10C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14C17.8954 14 17 13.1046 17 12Z"
+                                ></path>
+                              </svg>
+                            </MenuButton>
+                          </Tooltip>
+                          <Menu
+                            placement="bottom-start"
+                            className="dropdown-menu"
+                            sx={{
+                              py: 0,
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              borderColor: "var(--cl-neutral-8)",
+                            }}
+                          >
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalSharePrompt(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                share
+                              </span>
+                              Share
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalEditHeading(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                edit
+                              </span>
+                              Rename
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                            >
+                              <span className="material-symbols-outlined">
+                                delete
+                              </span>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
+                      </div>
                     </Button>
                   </div>
                   <div className="sidebar-menu">
@@ -545,7 +950,7 @@ const Library = () => {
                       minHeight: "32px",
                       color: "var(--cl-primary)",
                       "&.MuiIconButton-root:hover": {
-                        background: "var(--cl-neutral-20)",
+                        background: "var(--cl-toggle)",
                         color: "var(--cl-primary)",
                       },
                     }}
@@ -557,7 +962,7 @@ const Library = () => {
                 )}
                 {!isMobile && (
                   <div>
-                    {toggleSidebarLeft ? (
+                    {sidebarOpenLeft ? (
                       <IconButton
                         variant="plain"
                         onClick={handleClickSidebarLeft}
@@ -568,7 +973,7 @@ const Library = () => {
                           minHeight: "32px",
                           color: "var(--cl-primary)",
                           "&.MuiIconButton-root:hover": {
-                            bgcolor: "var(--cl-neutral-20)",
+                            background: "var(--cl-toggle)",
                             color: "var(--cl-primary)",
                           },
                         }}
@@ -588,7 +993,7 @@ const Library = () => {
                           minHeight: "32px",
                           color: "var(--cl-primary)",
                           "&.MuiIconButton-root:hover": {
-                            bgcolor: "var(--cl-neutral-20)",
+                            background: "var(--cl-toggle)",
                             color: "var(--cl-primary)",
                           },
                         }}
@@ -642,7 +1047,7 @@ const Library = () => {
                       tooltip: {
                         sx: {
                           maxWidth: "12rem",
-                          bgcolor: "var(--cl-neutral-8)",
+                          bgcolor: "var(--cl-surface-container-highest)",
                           fontFamily: "var(--font)",
                           color: "var(--cl-neutral-80)",
                         },
@@ -1257,6 +1662,117 @@ const Library = () => {
           </main>
         </div>
       </section>
+      <Modal
+        open={showModalEditHeading}
+        onClose={() => setShowModalEditHeading(false)}
+      >
+        <ModalDialog
+          variant="outlined"
+          className="modal-dialog"
+          sx={{
+            "&.MuiModalDialog-root": {
+              width: "94%",
+              borderRadius: "20px",
+              maxWidth: "480px",
+              fontFamily: "var(--font)",
+              fontSize: "0.875rem",
+              bgcolor: "var(--cl-bg-dropdown)",
+              borderColor: "var(--cl-surface-container-low)",
+            },
+          }}
+        >
+          <ModalClose
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
+            className="modal-close"
+          />
+          <DialogTitle sx={{ color: "var(--cl-primary)" }}>
+            <span className="text-base font-medium">Save prompt</span>
+          </DialogTitle>
+          <Divider />
+          <DialogContent className="py-3">
+            <FormControl className="mb-4">
+              <FormLabel
+                className="form-label"
+                sx={{ color: "var(--cl-primary)" }}
+              >
+                Prompt name
+              </FormLabel>
+              <Input
+                type="text"
+                className="input"
+                defaultValue="Untitled prompt"
+                slotProps={{
+                  input: {
+                    ref: inputTitleRef,
+                    autoFocus: true,
+                  },
+                }}
+              />
+            </FormControl>
+            <FormControl className="mb-4">
+              <FormLabel
+                className="form-label"
+                sx={{ color: "var(--cl-primary)" }}
+              >
+                Description
+              </FormLabel>
+              <Textarea
+                placeholder="optional"
+                minRows={3}
+                className="input"
+                sx={{
+                  "& .MuiTextarea-textarea": {
+                    maxHeight: "80px",
+                    overflow: "auto!important",
+                  },
+                }}
+              />
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="solid"
+              sx={{
+                px: 3,
+                bgcolor: "var(--cl-primary-70)",
+                color: "var(--cl-neutral-10)",
+                borderRadius: "8px",
+                fontWeight: 400,
+                "&:hover": {
+                  bgcolor: "var(--cl-primary-80)",
+                  color: "var(--cl-neutral-10)",
+                },
+              }}
+            >
+              Save
+            </Button>
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => setShowModalEditHeading(false)}
+              sx={{
+                borderRadius: "8px",
+                fontWeight: 400,
+                color: "var(--cl-neutral-90)",
+                "&:hover": {
+                  bgcolor: "var(--cl-item-dropdown)",
+                  color: "var(--cl-neutral-90)",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
       <Modal open={showModalDelete} onClose={() => setShowModalDelete(false)}>
         <ModalDialog
           variant="outlined"
@@ -1326,6 +1842,95 @@ const Library = () => {
               Cancel
             </Button>
           </DialogActions>
+        </ModalDialog>
+      </Modal>
+      <Modal
+        open={showModalSharePrompt}
+        onClose={() => setShowModalSharePrompt(false)}
+      >
+        <ModalDialog
+          variant="outlined"
+          className="modal-dialog"
+          sx={{
+            "&.MuiModalDialog-root": {
+              width: "94%",
+              borderRadius: "20px",
+              maxWidth: "550px",
+              fontFamily: "var(--font)",
+              fontSize: "0.875rem",
+              bgcolor: "var(--cl-bg-dropdown)",
+              borderColor: "var(--cl-surface-container-low)",
+            },
+          }}
+        >
+          <ModalClose
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
+            className="modal-close"
+          />
+          <DialogTitle sx={{ color: "var(--cl-primary)" }}>
+            <span className="text-base font-medium">
+              Share public link to chat
+            </span>
+          </DialogTitle>
+          <Divider />
+          <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
+            <p className="mb-6">
+              Your name, custom instructions, and any messages you add after
+              sharing stay private.
+            </p>
+            <div className="mb-2 flex items-center justify-between rounded-lg border border-solid border-color p-1.5 last:mb-2 sm:p-2">
+              <div className="relative ml-1 flex-grow">
+                <input
+                  readOnly
+                  className="w-full border-0 px-2 py-2 text-base focus-visible:outline-none focus-visible:ring-0"
+                  type="text"
+                  defaultValue="https://ai.ci.com.vn/share/67404e1a-3b84-8001-a87d-51528675103d"
+                />
+                <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-transparent" />
+              </div>
+              <Button
+                aria-label="Create link shared chat button"
+                variant="solid"
+                sx={{
+                  minHeight: 40,
+                  bgcolor: "var(--cl-primary-70)",
+                  color: "var(--cl-neutral-10)",
+                  borderRadius: "8px",
+                  fontWeight: 400,
+                  "&:hover": {
+                    bgcolor: "var(--cl-primary-80)",
+                    color: "var(--cl-neutral-10)",
+                  },
+                }}
+              >
+                <span className="flex w-full items-center justify-center gap-x-2 whitespace-nowrap">
+                  <svg
+                    width={24}
+                    height={24}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M18.2929 5.70711C16.4743 3.88849 13.5257 3.88849 11.7071 5.7071L10.7071 6.70711C10.3166 7.09763 9.68341 7.09763 9.29289 6.70711C8.90236 6.31658 8.90236 5.68342 9.29289 5.29289L10.2929 4.29289C12.8926 1.69323 17.1074 1.69323 19.7071 4.29289C22.3068 6.89256 22.3068 11.1074 19.7071 13.7071L18.7071 14.7071C18.3166 15.0976 17.6834 15.0976 17.2929 14.7071C16.9024 14.3166 16.9024 13.6834 17.2929 13.2929L18.2929 12.2929C20.1115 10.4743 20.1115 7.52572 18.2929 5.70711ZM15.7071 8.29289C16.0976 8.68342 16.0976 9.31658 15.7071 9.70711L9.7071 15.7071C9.31658 16.0976 8.68341 16.0976 8.29289 15.7071C7.90236 15.3166 7.90236 14.6834 8.29289 14.2929L14.2929 8.29289C14.6834 7.90237 15.3166 7.90237 15.7071 8.29289ZM6.7071 9.29289C7.09763 9.68342 7.09763 10.3166 6.7071 10.7071L5.7071 11.7071C3.88849 13.5257 3.88849 16.4743 5.7071 18.2929C7.52572 20.1115 10.4743 20.1115 12.2929 18.2929L13.2929 17.2929C13.6834 16.9024 14.3166 16.9024 14.7071 17.2929C15.0976 17.6834 15.0976 18.3166 14.7071 18.7071L13.7071 19.7071C11.1074 22.3068 6.89255 22.3068 4.29289 19.7071C1.69322 17.1074 1.69322 12.8926 4.29289 10.2929L5.29289 9.29289C5.68341 8.90237 6.31658 8.90237 6.7071 9.29289Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Copy link
+                </span>
+              </Button>
+            </div>
+          </DialogContent>
         </ModalDialog>
       </Modal>
     </div>

@@ -37,11 +37,10 @@ import {
   selectClasses,
   SelectStaticProps,
   Option,
-  RadioGroup,
-  Radio,
   Sheet,
   Chip,
   styled,
+  Slider,
 } from "@mui/joy";
 import {
   Collapse,
@@ -142,9 +141,9 @@ const Popup = styled(Popper)({
   zIndex: 1000,
 });
 
-interface FilePreview {
+interface UploadedFile {
   file: File;
-  preview: string;
+  preview: string | null; // Image preview URL or null for non-images
 }
 
 const Detail = () => {
@@ -163,29 +162,52 @@ const Detail = () => {
     return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
+  // Set ViewPort
+  const viewPort = useViewport();
+  const isMobile = typeof window !== "undefined" && viewPort.width < 768;
+  const isTablet =
+    typeof window !== "undefined" &&
+    viewPort.width >= 767 &&
+    viewPort.width < 1024;
+
   // Collapse Menu
-  const [toggleSidebarLeft, setToggleSidebarLeft] = React.useState(true);
-  const [toggleSidebarRight, setToggleSidebarRight] = React.useState(true);
+  const [sidebarOpenLeft, setSidebarOpenLeft] = React.useState(() =>
+    isTablet ? false : true
+  );
+  useEffect(() => {
+    setSidebarOpenLeft(isTablet || isMobile ? false : true);
+  }, [isTablet, isMobile]);
+
+  console.log(sidebarOpenLeft);
+  const [sidebarOpenRight, setSidebarOpenRight] = React.useState(() =>
+    isMobile ? false : true
+  );
+  useEffect(() => {
+    setSidebarOpenRight(isMobile ? false : true);
+  }, [isMobile]);
   const handleClickSidebarLeft = () => {
-    setToggleSidebarLeft(!toggleSidebarLeft);
+    setSidebarOpenLeft(!sidebarOpenLeft);
   };
   const handleClickSidebarRight = () => {
-    setToggleSidebarRight(!toggleSidebarRight);
+    setSidebarOpenRight(!sidebarOpenRight);
   };
   const handleOutsideClickSideLeft = () => {
-    setToggleSidebarLeft(true);
+    setSidebarOpenLeft(true);
   };
   const handleOutsideClickSideRight = () => {
-    setToggleSidebarRight(true);
+    setSidebarOpenRight(true);
   };
   const sideLeftRef = useOutsideClick(handleOutsideClickSideLeft);
   const sideRightRef = useOutsideClick(handleOutsideClickSideRight);
   const refNull = useRef(null);
-  const viewPort = useViewport();
-  const isMobile = typeof window !== "undefined" && viewPort.width <= 1100;
 
   // Collapse Button
-  const [expanded, setExpanded] = React.useState(true);
+  const [expanded, setExpanded] = React.useState(() =>
+    isMobile ? false : true
+  );
+  useEffect(() => {
+    setExpanded(isMobile ? false : true);
+  }, [isTablet, isMobile]);
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -289,7 +311,8 @@ const Detail = () => {
 
   // Modal
   const [showModalEditHeading, setShowModalEditHeading] = useState(false);
-  const [showModalConnections, setShowModalConnections] = useState(false);
+  const [showModalSharePrompt, setShowModalSharePrompt] = useState(false);
+  const [showModalDelete, setShowModalDelete] = useState(false);
 
   // Focus Input
   const inputTitleRef = React.useRef<HTMLInputElement | null>(null);
@@ -300,7 +323,8 @@ const Detail = () => {
   }, [showModalEditHeading]);
 
   // Select Options
-  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [selectedOption, setSelectedOption] =
+    useState<string>("content-creator");
   // State to track the selected radio button value
   const [selectedPromt, setSelectedPromt] = React.useState(false);
   const handleChangeCategories = (
@@ -337,23 +361,30 @@ const Detail = () => {
   };
 
   // Upload mutiple file
-  const [selectedFiles, setSelectedFiles] = useState<FilePreview[]>([]); // Explicitly type state
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const [files, setFiles] = useState<UploadedFile[]>([]);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    const previews = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setSelectedFiles((prev) => [...prev, ...previews]); // This works with the explicit type
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    const selectedFiles = event.target.files;
+    if (selectedFiles) {
+      const uploadedFiles: UploadedFile[] = Array.from(selectedFiles).map(
+        (file) => ({
+          file,
+          preview: file.type.startsWith("image/")
+            ? URL.createObjectURL(file)
+            : null,
+        })
+      );
+      // Add new files to existing ones
+      setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
+    }
   };
-
-  const handleDeleteFile = (index: number) => {
-    setSelectedFiles((prev) => {
-      const updatedFiles = prev.filter((_, i) => i !== index);
-      URL.revokeObjectURL(prev[index].preview);
+  const handleRemoveFile = (index: number) => {
+    // Remove file from the list and revoke URL for previews
+    setFiles((prevFiles) => {
+      const updatedFiles = [...prevFiles];
+      const removedFile = updatedFiles.splice(index, 1)[0];
+      if (removedFile.preview) {
+        URL.revokeObjectURL(removedFile.preview); // Clean up object URL
+      }
       return updatedFiles;
     });
   };
@@ -370,19 +401,37 @@ const Detail = () => {
   // Toggle role
   const [showRole, setShowRole] = React.useState(true);
 
+  // Slider
+  const [sliderValue, setSliderValue] = useState(1);
+  const [sliderOutputLengthValue, setSliderOutputLengthValue] = useState(512);
+  const handleSliderChange = (e: any, newValue: any) => {
+    setSliderValue(newValue);
+  };
+  const handleInputSliderChange = (e: any) => {
+    setSliderValue(e.target.value > 2 ? "2" : e.target.value);
+  };
+  const handleSliderOutputLengthChange = (e: any, newValue: any) => {
+    setSliderOutputLengthValue(newValue);
+  };
+  const handleInputSliderOutputLengthChange = (e: any) => {
+    setSliderOutputLengthValue(e.target.value > 4096 ? "4096" : e.target.value);
+  };
+
   return (
     <div id="app" style={{ height }}>
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
-            toggleSidebarLeft ? "expanded" : "compact"
+            sidebarOpenLeft ? "expanded" : "compact"
           }`}
           id="sidebar-left"
         >
-          <div
-            onClick={() => setToggleSidebarLeft(true)}
-            className="overlay-sidebar"
-          ></div>
+          {isMobile && (
+            <div
+              onClick={() => setSidebarOpenLeft(false)}
+              className="overlay-sidebar"
+            ></div>
+          )}
           <div
             className="w-full h-full flex flex-col justify-between inner"
             // ref={isMobile ? sideLeftRef : refNull}
@@ -507,7 +556,7 @@ const Detail = () => {
                           background: "var(--cl-surface-container-lowest)",
                         },
                       }}
-                      className="w-full sidebar-btn active"
+                      className="w-full sidebar-btn"
                     >
                       <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                         <span className="material-symbols-outlined">
@@ -517,6 +566,131 @@ const Detail = () => {
                       <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
                         Croissant Recipe in JSON
                       </span>
+                      <div className="w-6 flex-shrink-0 ml-3 group-edit">
+                        <Dropdown>
+                          <Tooltip
+                            componentsProps={{
+                              tooltip: {
+                                sx: {
+                                  maxWidth: "12rem",
+                                  bgcolor:
+                                    "var(--cl-surface-container-highest)",
+                                  fontFamily: "var(--font)",
+                                  color: "var(--cl-neutral-80)",
+                                },
+                              },
+                            }}
+                            placement="top"
+                            title="Options"
+                          >
+                            <MenuButton
+                              className="flex items-center justify-center icon-click-menu"
+                              sx={{
+                                padding: 0,
+                                background: "none!important",
+                                border: "none",
+                                borderRadius: "100%",
+                                width: "24px",
+                                minHeight: "24px",
+                                color: "var(--cl-neutral-80)",
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M3 12C3 10.8954 3.89543 10 5 10C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14C3.89543 14 3 13.1046 3 12ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12ZM17 12C17 10.8954 17.8954 10 19 10C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14C17.8954 14 17 13.1046 17 12Z"
+                                ></path>
+                              </svg>
+                            </MenuButton>
+                          </Tooltip>
+                          <Menu
+                            placement="bottom-start"
+                            className="dropdown-menu"
+                            sx={{
+                              py: 0,
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              borderColor: "var(--cl-neutral-8)",
+                            }}
+                          >
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalSharePrompt(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                share
+                              </span>
+                              Share
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalEditHeading(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                edit
+                              </span>
+                              Rename
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                            >
+                              <span className="material-symbols-outlined">
+                                delete
+                              </span>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
+                      </div>
                     </Button>
                   </div>
                   <div className="sidebar-menu">
@@ -547,6 +721,131 @@ const Detail = () => {
                       <span className="grow truncate whitespace-nowrap opacity-transition font-normal leading-snug name tend">
                         Croissant Recipe: JSON Format
                       </span>
+                      <div className="w-6 flex-shrink-0 ml-3 group-edit">
+                        <Dropdown>
+                          <Tooltip
+                            componentsProps={{
+                              tooltip: {
+                                sx: {
+                                  maxWidth: "12rem",
+                                  bgcolor:
+                                    "var(--cl-surface-container-highest)",
+                                  fontFamily: "var(--font)",
+                                  color: "var(--cl-neutral-80)",
+                                },
+                              },
+                            }}
+                            placement="top"
+                            title="Options"
+                          >
+                            <MenuButton
+                              className="flex items-center justify-center icon-click-menu"
+                              sx={{
+                                padding: 0,
+                                background: "none!important",
+                                border: "none",
+                                borderRadius: "100%",
+                                width: "24px",
+                                minHeight: "24px",
+                                color: "var(--cl-neutral-80)",
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M3 12C3 10.8954 3.89543 10 5 10C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14C3.89543 14 3 13.1046 3 12ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12ZM17 12C17 10.8954 17.8954 10 19 10C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14C17.8954 14 17 13.1046 17 12Z"
+                                ></path>
+                              </svg>
+                            </MenuButton>
+                          </Tooltip>
+                          <Menu
+                            placement="bottom-start"
+                            className="dropdown-menu"
+                            sx={{
+                              py: 0,
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              borderColor: "var(--cl-neutral-8)",
+                            }}
+                          >
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalSharePrompt(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                share
+                              </span>
+                              Share
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalEditHeading(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                edit
+                              </span>
+                              Rename
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                            >
+                              <span className="material-symbols-outlined">
+                                delete
+                              </span>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
+                      </div>
                     </Button>
                   </div>
                   <div className="sidebar-menu">
@@ -581,6 +880,131 @@ const Detail = () => {
                         the links of the sources you use) and consider diverse
                         perspectives
                       </span>
+                      <div className="w-6 flex-shrink-0 ml-3 group-edit">
+                        <Dropdown>
+                          <Tooltip
+                            componentsProps={{
+                              tooltip: {
+                                sx: {
+                                  maxWidth: "12rem",
+                                  bgcolor:
+                                    "var(--cl-surface-container-highest)",
+                                  fontFamily: "var(--font)",
+                                  color: "var(--cl-neutral-80)",
+                                },
+                              },
+                            }}
+                            placement="top"
+                            title="Options"
+                          >
+                            <MenuButton
+                              className="flex items-center justify-center icon-click-menu"
+                              sx={{
+                                padding: 0,
+                                background: "none!important",
+                                border: "none",
+                                borderRadius: "100%",
+                                width: "24px",
+                                minHeight: "24px",
+                                color: "var(--cl-neutral-80)",
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M3 12C3 10.8954 3.89543 10 5 10C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14C3.89543 14 3 13.1046 3 12ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12ZM17 12C17 10.8954 17.8954 10 19 10C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14C17.8954 14 17 13.1046 17 12Z"
+                                ></path>
+                              </svg>
+                            </MenuButton>
+                          </Tooltip>
+                          <Menu
+                            placement="bottom-start"
+                            className="dropdown-menu"
+                            sx={{
+                              py: 0,
+                              bgcolor: "var(--cl-bg-dropdown)",
+                              borderColor: "var(--cl-neutral-8)",
+                            }}
+                          >
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalSharePrompt(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                share
+                              </span>
+                              Share
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                              onClick={() => setShowModalEditHeading(true)}
+                            >
+                              <span className="material-symbols-outlined">
+                                edit
+                              </span>
+                              Rename
+                            </MenuItem>
+                            <MenuItem
+                              className="flex"
+                              sx={{
+                                background: "none",
+                                p: 1.25,
+                                minHeight: "auto",
+                                fontSize: 15,
+                                gap: 1.25,
+                                color: "var(--cl-primary)",
+                                "&:hover": {
+                                  background:
+                                    "var(--cl-item-dropdown) !important",
+                                  color: "var(--cl-primary) !important",
+                                },
+                              }}
+                            >
+                              <span className="material-symbols-outlined">
+                                delete
+                              </span>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
+                      </div>
                     </Button>
                   </div>
                   <div className="sidebar-menu">
@@ -728,7 +1152,7 @@ const Detail = () => {
                       minHeight: "32px",
                       color: "var(--cl-primary)",
                       "&.MuiIconButton-root:hover": {
-                        bgcolor: "var(--cl-neutral-20)",
+                        background: "var(--cl-toggle)",
                         color: "var(--cl-primary)",
                       },
                     }}
@@ -740,7 +1164,7 @@ const Detail = () => {
                 )}
                 {!isMobile && (
                   <div>
-                    {toggleSidebarLeft ? (
+                    {sidebarOpenLeft ? (
                       <IconButton
                         variant="plain"
                         onClick={handleClickSidebarLeft}
@@ -751,7 +1175,7 @@ const Detail = () => {
                           minHeight: "32px",
                           color: "var(--cl-primary)",
                           "&.MuiIconButton-root:hover": {
-                            bgcolor: "var(--cl-neutral-20)",
+                            background: "var(--cl-toggle)",
                             color: "var(--cl-primary)",
                           },
                         }}
@@ -771,7 +1195,7 @@ const Detail = () => {
                           minHeight: "32px",
                           color: "var(--cl-primary)",
                           "&.MuiIconButton-root:hover": {
-                            bgcolor: "var(--cl-neutral-20)",
+                            background: "var(--cl-toggle)",
                             color: "var(--cl-primary)",
                           },
                         }}
@@ -821,7 +1245,7 @@ const Detail = () => {
                       tooltip: {
                         sx: {
                           maxWidth: "12rem",
-                          bgcolor: "var(--cl-neutral-8)",
+                          bgcolor: "var(--cl-surface-container-highest)",
                           fontFamily: "var(--font)",
                           color: "var(--cl-neutral-80)",
                         },
@@ -930,7 +1354,7 @@ const Detail = () => {
                           tooltip: {
                             sx: {
                               maxWidth: "12rem",
-                              bgcolor: "var(--cl-neutral-8)",
+                              bgcolor: "var(--cl-surface-container-highest)",
                               fontFamily: "var(--font)",
                               color: "var(--cl-neutral-80)",
                             },
@@ -1078,7 +1502,7 @@ const Detail = () => {
           </nav>
           <main className="w-full grow flex" id="main-content">
             <div className="grow flex flex-col">
-              <div className="w-full px-3 border-b border-solid border-color">
+              <div className="w-full min-h-11 flex-shrink-0 px-3 border-b border-solid border-color">
                 <div className="flex items-center gap-x-1 mt-0.5">
                   <IconButton
                     variant="plain"
@@ -1099,7 +1523,7 @@ const Detail = () => {
                     }}
                   >
                     <span className="material-symbols-outlined">
-                      keyboard_arrow_up
+                      keyboard_arrow_down
                     </span>
                   </IconButton>
                   <span className="text-base font-medium">
@@ -1136,6 +1560,11 @@ const Detail = () => {
               <div className="grow overflow-auto detail-post">
                 <div className="pt-4 px-4">
                   <div className="result-area">
+                    <div className="flex items-center gap-2 mb-3 dots-loading">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
                     <div className="result-item">
                       <div
                         className={`${
@@ -1152,7 +1581,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1183,7 +1613,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1265,7 +1696,7 @@ const Detail = () => {
                             >
                               <IconButton
                                 variant="plain"
-                                aria-label="Move up"
+                                aria-label="Move down"
                                 sx={{
                                   borderRadius: "100%",
                                   minWidth: "24px",
@@ -1299,7 +1730,7 @@ const Detail = () => {
                             >
                               <IconButton
                                 variant="plain"
-                                aria-label="Move up"
+                                aria-label="Move down"
                                 sx={{
                                   borderRadius: "100%",
                                   minWidth: "24px",
@@ -1323,7 +1754,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1360,7 +1792,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1391,6 +1824,70 @@ const Detail = () => {
                                 </IconButton>
                               </Tooltip>
                             )}
+                            <Tooltip
+                              componentsProps={{
+                                tooltip: {
+                                  sx: {
+                                    maxWidth: "12rem",
+                                    bgcolor: "var(--cl-neutral-8)",
+                                    fontFamily: "var(--font)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
+                                },
+                              }}
+                              placement="top"
+                              title="Rerun"
+                            >
+                              <IconButton
+                                variant="plain"
+                                aria-label="Rerun"
+                                sx={{
+                                  borderRadius: "100%",
+                                  minWidth: "24px",
+                                  minHeight: "24px",
+                                  color: "var(--cl-neutral-80)",
+                                  ":hover": {
+                                    background: "var(--cl-neutral-8)",
+                                    color: "var(--cl-neutral-80)",
+                                  },
+                                }}
+                                className="flex items-center justify-center w-6 h-6 rounded-full transition"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  width="24"
+                                  height="24"
+                                >
+                                  <defs>
+                                    <clipPath
+                                      clipPathUnits="userSpaceOnUse"
+                                      id="cp1"
+                                    >
+                                      <path d="m29.14-5.14v34.28h-34.28v-34.28z" />
+                                    </clipPath>
+                                    <linearGradient
+                                      id="g1"
+                                      x2="1"
+                                      gradientUnits="userSpaceOnUse"
+                                      gradientTransform="matrix(0,34.286,-34.286,0,12,-5.143)"
+                                    >
+                                      <stop offset="0" stop-color="#87a9ff" />
+                                      <stop offset=".44" stop-color="#a7b8ee" />
+                                      <stop offset=".88" stop-color="#f1dcc7" />
+                                    </linearGradient>
+                                  </defs>
+                                  <g id="Clip-Path" clip-path="url(#cp1)">
+                                    <g>
+                                      <path
+                                        fill="url(#g1)"
+                                        d="m12 25q0-2.7-1-5.1-1-2.3-2.8-4.1-1.8-1.8-4.1-2.8-2.4-1-5.1-1 2.7 0 5.1-1 2.3-1 4.1-2.8 1.8-1.8 2.8-4.1 1-2.4 1-5.1 0 2.7 1 5.1 1 2.3 2.8 4.1 1.8 1.8 4.1 2.8 2.4 1 5.1 1-2.7 0-5.1 1-2.3 1-4.1 2.8-1.8 1.8-2.8 4.1-1 2.4-1 5.1z"
+                                      />
+                                    </g>
+                                  </g>
+                                </svg>
+                              </IconButton>
+                            </Tooltip>
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -1542,7 +2039,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1573,7 +2071,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1679,7 +2178,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1716,7 +2216,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1849,7 +2350,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1880,7 +2382,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -1986,7 +2489,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -2023,7 +2527,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -2486,7 +2991,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -2793,7 +3299,7 @@ const Detail = () => {
                         </div>
                       )}
                       {/* Preview Section */}
-                      {selectedFiles.length > 0 && (
+                      {files.length > 0 && (
                         <div
                           className="flex flex-wrap gap-x-3 pt-4 mt-3 overflow-y-auto image-container"
                           style={{
@@ -2801,38 +3307,64 @@ const Detail = () => {
                             maxHeight: "33vh",
                           }}
                         >
-                          {selectedFiles.map((file, index) => (
-                            <div
-                              key={index}
-                              className="border border-solid rounded overflow-hidden relative mb-3 image-wrap"
-                            >
-                              <Image
-                                src={file.preview}
-                                alt={`Image ${index + 1}`}
-                                width={200}
-                                height={218}
-                              />
-                              <IconButton
-                                variant="plain"
-                                aria-label="Remove image"
-                                sx={{
-                                  borderRadius: "100%",
-                                  bgcolor: "var(--cl-neutral-60)",
-                                  color: "#FFF",
-                                  minWidth: "24px",
-                                  minHeight: "24px",
-                                  ":hover": {
-                                    background: "var(--cl-neutral-8)",
-                                    color: "var(--cl-neutral-80)",
-                                  },
-                                }}
-                                className="absolute top-2 right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full transition"
-                                onClick={() => handleDeleteFile(index)}
-                              >
-                                <span className="material-symbols-outlined">
-                                  close
-                                </span>
-                              </IconButton>
+                          {files.map((uploadedFile, index) => (
+                            <div key={index} className="pb-2">
+                              {uploadedFile.preview ? (
+                                <div className="border border-solid rounded overflow-hidden relative mb-3 image-wrap">
+                                  <Image
+                                    width={200}
+                                    height={218}
+                                    src={uploadedFile.preview}
+                                    alt={`Preview ${index}`}
+                                  />
+                                  <IconButton
+                                    variant="plain"
+                                    aria-label="Remove image"
+                                    sx={{
+                                      borderRadius: "100%",
+                                      bgcolor: "var(--cl-neutral-60)",
+                                      color: "#FFF",
+                                      minWidth: "24px",
+                                      minHeight: "24px",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
+                                    }}
+                                    className="absolute top-2 right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full transition"
+                                    onClick={() => handleRemoveFile(index)}
+                                  >
+                                    <span className="material-symbols-outlined">
+                                      close
+                                    </span>
+                                  </IconButton>
+                                </div>
+                              ) : (
+                                <div className="flex gap-x-2">
+                                  <p>{uploadedFile.file.name}</p>
+                                  <IconButton
+                                    variant="plain"
+                                    aria-label="Remove File"
+                                    sx={{
+                                      borderRadius: "100%",
+                                      bgcolor: "var(--cl-neutral-60)",
+                                      color: "#FFF",
+                                      minWidth: "20px",
+                                      minHeight: "20px",
+                                      ":hover": {
+                                        background: "var(--cl-neutral-8)",
+                                        color: "var(--cl-neutral-80)",
+                                      },
+                                    }}
+                                    className="flex items-center justify-center w-5 h-5 rounded-full transition"
+                                    onClick={() => handleRemoveFile(index)}
+                                  >
+                                    <span className="material-symbols-outlined">
+                                      <span className="text-base">close</span>
+                                    </span>
+                                  </IconButton>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -2845,7 +3377,7 @@ const Detail = () => {
                             tooltip: {
                               sx: {
                                 maxWidth: "12rem",
-                                bgcolor: "var(--cl-neutral-8)",
+                                bgcolor: "var(--cl-surface-container-highest)",
                                 fontFamily: "var(--font)",
                                 color: "var(--cl-neutral-80)",
                               },
@@ -2918,7 +3450,8 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
@@ -2954,14 +3487,15 @@ const Detail = () => {
                                   tooltip: {
                                     sx: {
                                       maxWidth: "12rem",
-                                      bgcolor: "var(--cl-neutral-8)",
+                                      bgcolor:
+                                        "var(--cl-surface-container-highest)",
                                       fontFamily: "var(--font)",
                                       color: "var(--cl-neutral-80)",
                                     },
                                   },
                                 }}
                                 placement="left"
-                                title="Upload a file to Google Drive to include in your prompt"
+                                title="Upload a file to include in your prompt"
                               >
                                 <MenuItem
                                   sx={{
@@ -2971,6 +3505,7 @@ const Detail = () => {
                                     fontSize: 15,
                                     gap: 1.25,
                                     color: "var(--cl-primary)",
+                                    cursor: "pointer",
                                     "&:hover": {
                                       background:
                                         "var(--cl-item-dropdown) !important",
@@ -2979,20 +3514,15 @@ const Detail = () => {
                                   }}
                                 >
                                   <input
-                                    ref={fileInputRef}
                                     type="file"
                                     multiple
-                                    accept="image/*"
                                     onChange={handleFileChange}
-                                    style={{ display: "none" }}
+                                    className="absolute top-0 left-0 w-full h-full z-10 opacity-0 cursor-pointer"
                                   />
                                   <button
                                     type="button"
                                     className="flex"
                                     style={{ columnGap: "10px" }}
-                                    onClick={() =>
-                                      fileInputRef.current?.click()
-                                    }
                                   >
                                     <span className="material-symbols-outlined">
                                       upload
@@ -3078,7 +3608,7 @@ const Detail = () => {
                           tooltip: {
                             sx: {
                               maxWidth: "12rem",
-                              bgcolor: "var(--cl-neutral-8)",
+                              bgcolor: "var(--cl-surface-container-highest)",
                               fontFamily: "var(--font)",
                               color: "var(--cl-neutral-80)",
                             },
@@ -3112,7 +3642,7 @@ const Detail = () => {
             </div>
             <aside
               className={`flex-shrink-0 sidebar ${
-                toggleSidebarRight ? "expanded" : "compact"
+                sidebarOpenRight ? "expanded" : "compact"
               }`}
               id="sidebar-right"
             >
@@ -3121,7 +3651,7 @@ const Detail = () => {
                 // ref={isMobile ? sideRightRef : refNull}
               >
                 <div
-                  onClick={() => setToggleSidebarRight(true)}
+                  onClick={() => setSidebarOpenRight(false)}
                   className="overlay-sidebar"
                 ></div>
                 <div className="h-11 border-b border-solid border-color flex items-center justify-between whitespace-nowrap">
@@ -3148,7 +3678,7 @@ const Detail = () => {
                           tooltip: {
                             sx: {
                               maxWidth: "12rem",
-                              bgcolor: "var(--cl-neutral-8)",
+                              bgcolor: "var(--cl-surface-container-highest)",
                               fontFamily: "var(--font)",
                               color: "var(--cl-neutral-80)",
                             },
@@ -3218,6 +3748,7 @@ const Detail = () => {
                               color: "var(--cl-primary) !important",
                             },
                           }}
+                          onClick={() => setShowModalSharePrompt(true)}
                         >
                           <span className="material-symbols-outlined">
                             share
@@ -3271,8 +3802,8 @@ const Detail = () => {
                 <div className="w-full grow overflow-y-auto top-sidebar">
                   <div className="py-4 overflow-hidden settings">
                     <Box sx={{ width: "260px" }}>
-                      <Stack spacing={3}>
-                        <div className="item">
+                      <Stack>
+                        <div className="item mb-6">
                           <p className="flex items-center gap-x-2 mb-2">
                             <span className="material-symbols-outlined">
                               model_training
@@ -3331,7 +3862,125 @@ const Detail = () => {
                             </Select>
                           </FormControl>
                         </div>
-                        <div className="item">
+                        <div className="item mb-6">
+                          <p className="flex items-center gap-x-2 mb-2">
+                            <span className="material-symbols-outlined">
+                              thermostat
+                            </span>
+                            <span className="font-medium name">
+                              Temperature
+                            </span>
+                          </p>
+                          <div className="ml-7">
+                            <FormControl className="mr-8">
+                              <Stack direction="row" spacing={2}>
+                                <Slider
+                                  defaultValue={1}
+                                  max={2}
+                                  step={0.05}
+                                  sx={{
+                                    width: "140px",
+                                    "--Slider-trackSize": "6px",
+                                    "--Slider-thumbSize": "20px",
+                                    "& .MuiSlider-rail": {
+                                      height: "4px",
+                                      opacity: 0.24,
+                                      backgroundColor: "var(--cl-primary-70)",
+                                    },
+                                    "& .MuiSlider-track": {
+                                      backgroundColor: "var(--cl-primary-70)",
+                                    },
+                                    "& .MuiSlider-thumb": {
+                                      "&:before": {
+                                        backgroundColor: "var(--cl-primary-70)",
+                                        borderColor: "var(--cl-primary-70)",
+                                      },
+                                    },
+                                  }}
+                                  value={sliderValue}
+                                  onChange={handleSliderChange}
+                                />
+                                <Input
+                                  type="number"
+                                  className="input"
+                                  defaultValue="1"
+                                  sx={{
+                                    px: 0.5,
+                                    width: "48px",
+                                    minHeight: "34px!important",
+                                    height: "34px",
+                                    "& .MuiInput-input": {
+                                      textAlign: "center",
+                                      fontSize: "0.75rem",
+                                    },
+                                  }}
+                                  value={sliderValue}
+                                  onChange={handleInputSliderChange}
+                                />
+                              </Stack>
+                            </FormControl>
+                          </div>
+                        </div>
+                        <div className="item mb-6">
+                          <p className="flex items-center gap-x-2 mb-2">
+                            <span className="material-symbols-outlined">
+                              straighten
+                            </span>
+                            <span className="font-medium name">
+                              Output length
+                            </span>
+                          </p>
+                          <div className="ml-7">
+                            <FormControl className="mr-8">
+                              <Stack direction="row" spacing={2}>
+                                <Slider
+                                  defaultValue={512}
+                                  max={4096}
+                                  step={512}
+                                  sx={{
+                                    width: "140px",
+                                    "--Slider-trackSize": "6px",
+                                    "--Slider-thumbSize": "20px",
+                                    "& .MuiSlider-rail": {
+                                      height: "4px",
+                                      opacity: 0.24,
+                                      backgroundColor: "var(--cl-primary-70)",
+                                    },
+                                    "& .MuiSlider-track": {
+                                      backgroundColor: "var(--cl-primary-70)",
+                                    },
+                                    "& .MuiSlider-thumb": {
+                                      "&:before": {
+                                        backgroundColor: "var(--cl-primary-70)",
+                                        borderColor: "var(--cl-primary-70)",
+                                      },
+                                    },
+                                  }}
+                                  value={sliderOutputLengthValue}
+                                  onChange={handleSliderOutputLengthChange}
+                                />
+                                <Input
+                                  type="number"
+                                  className="input"
+                                  defaultValue="1"
+                                  sx={{
+                                    px: 0.5,
+                                    width: "48px",
+                                    minHeight: "34px!important",
+                                    height: "34px",
+                                    "& .MuiInput-input": {
+                                      textAlign: "center",
+                                      fontSize: "0.75rem",
+                                    },
+                                  }}
+                                  value={sliderOutputLengthValue}
+                                  onChange={handleInputSliderOutputLengthChange}
+                                />
+                              </Stack>
+                            </FormControl>
+                          </div>
+                        </div>
+                        <div className="item mb-6">
                           <p className="flex items-center gap-x-2 mb-2">
                             <span className="material-symbols-outlined">
                               home_work
@@ -3344,6 +3993,7 @@ const Detail = () => {
                               className="w-full custom-select"
                               name="select-company"
                               placeholder="Select Company"
+                              defaultValue="caready"
                               sx={{
                                 fontFamily: "var(--font)",
                                 fontSize: "0.875rem",
@@ -3394,7 +4044,7 @@ const Detail = () => {
                             </Select>
                           </FormControl>
                         </div>
-                        <div className="item">
+                        <div className="item mb-6">
                           <p className="flex items-center gap-x-2 mb-2">
                             <span className="material-symbols-outlined">
                               category
@@ -3402,13 +4052,13 @@ const Detail = () => {
                             <span className="font-medium name">Module</span>
                           </p>
                           <div className="ml-7">
-                            <FormControl className="mr-8 mb-4">
+                            <FormControl className="mr-8">
                               <Select
                                 indicator={<ArrowDropDownOutlined />}
                                 className="w-full custom-select"
                                 name="select-module"
                                 placeholder="Select Module"
-                                value={selectedOption}
+                                defaultValue="chatbot"
                                 sx={{
                                   fontFamily: "var(--font)",
                                   fontSize: "0.875rem",
@@ -3456,352 +4106,411 @@ const Detail = () => {
                                 onChange={handleChangeCategories}
                               >
                                 <Option value="content-creator">
-                                  Content creator
+                                  Content Creator
                                 </Option>
                                 <Option value="chatbot">Chatbot</Option>
                                 <Option value="business-intelligent">
-                                  Business intelligent
+                                  Business Intelligence
                                 </Option>
                                 <Option value="scraping">Scraping</Option>
                               </Select>
                             </FormControl>
-                            <div className="setting-options">
-                              {selectedOption === "content-creator" && (
-                                <>
-                                  <p className="flex items-center gap-x-2 mb-2">
-                                    <span className="font-medium name">
-                                      Channel
-                                    </span>
-                                  </p>
-                                  <FormControl className="mr-8 mb-4">
-                                    <Select
-                                      indicator={<ArrowDropDownOutlined />}
-                                      className="w-full custom-select"
-                                      name="select-channel"
-                                      placeholder="Select Channel"
-                                      sx={{
-                                        fontFamily: "var(--font)",
-                                        fontSize: "0.875rem",
-                                        "& .MuiSelect-button": {
-                                          opacity: 1,
-                                        },
-                                        [`& .${selectClasses.indicator}`]: {
-                                          transition: "0.2s",
-                                          color: "var(--cl-primary)",
-                                          [`&.${selectClasses.expanded}`]: {
-                                            transform: "rotate(-180deg)",
+                            {selectedOption && (
+                              <div className="setting-options mt-4">
+                                {selectedOption === "content-creator" && (
+                                  <>
+                                    <p className="flex items-center gap-x-2 mb-2">
+                                      <span className="font-medium name">
+                                        Channel
+                                      </span>
+                                    </p>
+                                    <FormControl className="mr-8 mb-4">
+                                      <Select
+                                        indicator={<ArrowDropDownOutlined />}
+                                        className="w-full custom-select"
+                                        name="select-channel"
+                                        placeholder="Select Channel"
+                                        sx={{
+                                          fontFamily: "var(--font)",
+                                          fontSize: "0.875rem",
+                                          "& .MuiSelect-button": {
+                                            opacity: 1,
                                           },
-                                        },
-                                      }}
-                                      slotProps={{
-                                        listbox: {
-                                          sx: {
-                                            py: 0,
-                                            borderColor: "var(--cl-neutral-20)",
-                                            bgcolor: "var(--cl-bg-dropdown)",
-                                            borderRadius: "8px",
-                                            width: "100%",
-                                            fontFamily: "var(--font)",
-                                            fontSize: "0.875rem",
-                                            "& .MuiOption-root": {
-                                              color: "var(--cl-primary)",
+                                          [`& .${selectClasses.indicator}`]: {
+                                            transition: "0.2s",
+                                            color: "var(--cl-primary)",
+                                            [`&.${selectClasses.expanded}`]: {
+                                              transform: "rotate(-180deg)",
                                             },
-                                            "& .MuiOption-root.MuiOption-highlighted":
-                                              {
-                                                bgcolor: "transparent",
+                                          },
+                                        }}
+                                        slotProps={{
+                                          listbox: {
+                                            sx: {
+                                              py: 0,
+                                              borderColor:
+                                                "var(--cl-neutral-20)",
+                                              bgcolor: "var(--cl-bg-dropdown)",
+                                              borderRadius: "8px",
+                                              width: "100%",
+                                              fontFamily: "var(--font)",
+                                              fontSize: "0.875rem",
+                                              "& .MuiOption-root": {
+                                                color: "var(--cl-primary)",
                                               },
-                                            "& .MuiOption-root:hover": {
-                                              bgcolor:
-                                                "var(--cl-item-dropdown)!important",
-                                              color:
-                                                "var(--cl-primary)!important",
-                                            },
-                                            "& .MuiOption-root.Mui-selected": {
-                                              bgcolor:
-                                                "var(--cl-item-dropdown)",
-                                              color:
-                                                "var(--cl-primary-70)!important",
+                                              "& .MuiOption-root.MuiOption-highlighted":
+                                                {
+                                                  bgcolor:
+                                                    "transparent!important",
+                                                },
+                                              "& .MuiOption-root:hover": {
+                                                bgcolor:
+                                                  "var(--cl-item-dropdown)!important",
+                                                color:
+                                                  "var(--cl-primary)!important",
+                                              },
+                                              "& .MuiOption-root.Mui-selected":
+                                                {
+                                                  bgcolor:
+                                                    "var(--cl-item-dropdown)!important",
+                                                  color:
+                                                    "var(--cl-primary-70)!important",
+                                                },
                                             },
                                           },
-                                        },
-                                      }}
-                                    >
-                                      <Option value="caready">Caready</Option>
-                                      <Option value="caready-ai">
-                                        Caready AI
-                                      </Option>
-                                      <Option value="facebook">Facebook</Option>
-                                    </Select>
-                                  </FormControl>
-                                </>
-                              )}
-                              {selectedOption && (
+                                        }}
+                                      >
+                                        <Option value="caready">Caready</Option>
+                                        <Option value="caready-ai">
+                                          Caready AI
+                                        </Option>
+                                        <Option value="facebook">
+                                          Facebook
+                                        </Option>
+                                      </Select>
+                                    </FormControl>
+                                  </>
+                                )}
                                 <p className="flex items-center gap-x-2 mb-2">
                                   <span className="font-medium name">
                                     Prompt model
                                   </span>
                                 </p>
-                              )}
-                              {selectedOption === "content-creator" && (
-                                <div className="-ml-2 mr-8">
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Post for website"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                {selectedOption === "content-creator" && (
+                                  <div className="-ml-2 mr-8">
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Post for website"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Post for website
-                                    </span>
-                                  </Button>
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Post for fanpage"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Post for website
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Post for fanpage
-                                    </span>
-                                  </Button>
-                                </div>
-                              )}
-                              {selectedOption === "chatbot" && (
-                                <div className="-ml-2 mr-8">
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Your perfect car"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                    </Button>
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Post for fanpage"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Your perfect car
-                                    </span>
-                                  </Button>
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Loan interest rates"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Post for fanpage
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Loan interest rates
-                                    </span>
-                                  </Button>
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Best Insurance company"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                    </Button>
+                                  </div>
+                                )}
+                                {selectedOption === "chatbot" && (
+                                  <div className="-ml-2 mr-8">
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Your Perfect Car"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Best Insurance company
-                                    </span>
-                                  </Button>
-                                </div>
-                              )}
-                              {selectedOption === "business-intelligent" && (
-                                <div className="-ml-2 mr-8">
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Monthly revenue"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Your Perfect Car
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Monthly revenue
-                                    </span>
-                                  </Button>
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Loan interest rates"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                    </Button>
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Loan Interest Rates"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Car best seller
-                                    </span>
-                                  </Button>
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Predictive revenue"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Loan Interest Rates
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Predictive revenue
-                                    </span>
-                                  </Button>
-                                </div>
-                              )}
-                              {selectedOption === "scraping" && (
-                                <div className="-ml-2 mr-8">
-                                  <Button
-                                    variant="plain"
-                                    aria-label="Scrap a website"
-                                    sx={{
-                                      pl: 0,
-                                      pr: 1,
-                                      py: 0,
-                                      justifyContent: "flex-start",
-                                      fontFamily: "var(--font)",
-                                      color: "var(--cl-neutral-80)",
-                                      borderRadius: "20px",
-                                      "&.MuiButton-root:hover": {
-                                        background: "var(--cl-item-dropdown)",
-                                      },
-                                    }}
-                                    className="w-full"
-                                    onClick={handlePromptChange}
-                                  >
-                                    <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                                      <span className="material-symbols-outlined">
-                                        chat_bubble
+                                    </Button>
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Best Insurance Company"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
                                       </span>
-                                    </span>
-                                    <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
-                                      Scrap a website
-                                    </span>
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Best Insurance Company
+                                      </span>
+                                    </Button>
+                                  </div>
+                                )}
+                                {selectedOption === "business-intelligent" && (
+                                  <div className="-ml-2 mr-8">
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Monthly Revenue"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
+                                      </span>
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Monthly Revenue
+                                      </span>
+                                    </Button>
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Loan Interest Rates"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
+                                      </span>
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Car Chart
+                                      </span>
+                                    </Button>
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Car Listing"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
+                                      </span>
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Car Listing
+                                      </span>
+                                    </Button>
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Compare Cars"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
+                                      </span>
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Compare Cars
+                                      </span>
+                                    </Button>
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Cost Estimate"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
+                                      </span>
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Cost Estimate
+                                      </span>
+                                    </Button>
+                                  </div>
+                                )}
+                                {selectedOption === "scraping" && (
+                                  <div className="-ml-2 mr-8">
+                                    <Button
+                                      variant="plain"
+                                      aria-label="Scrap a website"
+                                      sx={{
+                                        pl: 0,
+                                        pr: 1,
+                                        py: 0,
+                                        justifyContent: "flex-start",
+                                        fontFamily: "var(--font)",
+                                        color: "var(--cl-neutral-80)",
+                                        borderRadius: "20px",
+                                        "&.MuiButton-root:hover": {
+                                          background: "var(--cl-item-dropdown)",
+                                        },
+                                      }}
+                                      className="w-full"
+                                      onClick={handlePromptChange}
+                                    >
+                                      <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                        <span className="material-symbols-outlined">
+                                          chat_bubble
+                                        </span>
+                                      </span>
+                                      <span className="whitespace-nowrap opacity-transition font-normal leading-snug name">
+                                        Scrap a website
+                                      </span>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </Stack>
@@ -3821,7 +4530,7 @@ const Detail = () => {
                           minHeight: "40px",
                           color: "var(--cl-primary)",
                           "&.MuiIconButton-root:hover": {
-                            bgcolor: "var(--cl-neutral-20)",
+                            bgcolor: "var(--cl-toggle)",
                             color: "var(--cl-primary)",
                           },
                         }}
@@ -3833,7 +4542,7 @@ const Detail = () => {
                     )}
                     {!isMobile && (
                       <div>
-                        {toggleSidebarRight ? (
+                        {sidebarOpenRight ? (
                           <IconButton
                             variant="plain"
                             onClick={handleClickSidebarRight}
@@ -3844,7 +4553,7 @@ const Detail = () => {
                               minHeight: "40px",
                               color: "var(--cl-primary)",
                               "&.MuiIconButton-root:hover": {
-                                bgcolor: "var(--cl-neutral-20)",
+                                bgcolor: "var(--cl-toggle)",
                                 color: "var(--cl-primary)",
                               },
                             }}
@@ -3864,7 +4573,7 @@ const Detail = () => {
                               minHeight: "40px",
                               color: "var(--cl-primary)",
                               "&.MuiIconButton-root:hover": {
-                                bgcolor: "var(--cl-neutral-20)",
+                                bgcolor: "var(--cl-toggle)",
                                 color: "var(--cl-primary)",
                               },
                             }}
@@ -3994,10 +4703,7 @@ const Detail = () => {
           </DialogActions>
         </ModalDialog>
       </Modal>
-      <Modal
-        open={showModalConnections}
-        onClose={() => setShowModalConnections(false)}
-      >
+      <Modal open={showModalDelete} onClose={() => setShowModalDelete(false)}>
         <ModalDialog
           variant="outlined"
           className="modal-dialog"
@@ -4005,7 +4711,7 @@ const Detail = () => {
             "&.MuiModalDialog-root": {
               width: "94%",
               borderRadius: "20px",
-              maxWidth: "630px",
+              maxWidth: "480px",
               fontFamily: "var(--font)",
               fontSize: "0.875rem",
               bgcolor: "var(--cl-bg-dropdown)",
@@ -4026,100 +4732,123 @@ const Detail = () => {
             className="modal-close"
           />
           <DialogTitle sx={{ color: "var(--cl-primary)" }}>
-            <span className="text-base font-medium">All connections</span>
+            <span className="text-base font-medium">Delete prompt</span>
           </DialogTitle>
           <Divider />
           <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
-            <div className="flex flex-wrap gap-y-3 text-center popular-connectors">
-              <div className="w-1/2 sm:w-1/3 p-3">
-                <div className="h-full p-6 rounded-lg connector">
-                  <div className="h-16 flex items-center justify-center">
-                    <Image
-                      src="/images/icon/logo-caready.svg"
-                      alt="Caready"
-                      width={64}
-                      height={64}
-                    />
-                  </div>
-                  <p className="my-4 text-base font-medium name">Caready</p>
-                  <Button
-                    variant="solid"
-                    sx={{
-                      px: 3,
-                      bgcolor: "var(--cl-primary-70)",
-                      color: "var(--cl-neutral-10)",
-                      borderRadius: "8px",
-                      fontWeight: 400,
-                      "&:hover": {
-                        bgcolor: "var(--cl-primary-80)",
-                        color: "var(--cl-neutral-10)",
-                      },
-                    }}
-                  >
-                    Connect
-                  </Button>
-                </div>
+            <p className="text-md font-medium">Are you sure?</p>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="solid"
+              sx={{
+                px: 3,
+                bgcolor: "var(--cl-primary-70)",
+                color: "var(--cl-neutral-10)",
+                borderRadius: "8px",
+                fontWeight: 400,
+                "&:hover": {
+                  bgcolor: "var(--cl-primary-80)",
+                  color: "var(--cl-neutral-10)",
+                },
+              }}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="plain"
+              color="neutral"
+              onClick={() => setShowModalDelete(false)}
+              sx={{
+                borderRadius: "8px",
+                fontWeight: 400,
+                color: "var(--cl-neutral-90)",
+                "&:hover": {
+                  bgcolor: "var(--cl-item-dropdown)",
+                  color: "var(--cl-neutral-90)",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+          </DialogActions>
+        </ModalDialog>
+      </Modal>
+      <Modal
+        open={showModalSharePrompt}
+        onClose={() => setShowModalSharePrompt(false)}
+      >
+        <ModalDialog
+          variant="outlined"
+          className="modal-dialog"
+          sx={{
+            "&.MuiModalDialog-root": {
+              width: "94%",
+              borderRadius: "20px",
+              maxWidth: "480px",
+              fontFamily: "var(--font)",
+              fontSize: "0.875rem",
+              bgcolor: "var(--cl-bg-dropdown)",
+              borderColor: "var(--cl-surface-container-low)",
+            },
+          }}
+        >
+          <ModalClose
+            sx={{
+              top: 14,
+              right: 16,
+              zIndex: 3,
+              "&:hover": {
+                bgcolor: "var(--cl-item-dropdown)",
+                color: "var(--cl-primary)",
+              },
+            }}
+            className="modal-close"
+          />
+          <DialogTitle sx={{ color: "var(--cl-primary)" }}>
+            <span className="text-base font-medium">
+              Share public link to chat
+            </span>
+          </DialogTitle>
+          <Divider />
+          <DialogContent className="py-3" sx={{ color: "var(--cl-primary)" }}>
+            <p className="mb-6">
+              Your name, custom instructions, and any messages you add after
+              sharing stay private.
+            </p>
+            <div className="mb-2 flex items-center justify-between rounded-full border border-token-border-medium bg-token-main-surface-primary p-1.5 text-token-text-secondary last:mb-2 sm:p-2">
+              <div className="relative ml-1 flex-grow">
+                <input
+                  readOnly
+                  className="w-full rounded-xl border-0 bg-token-main-surface-primary px-2 py-1 text-lg sm:py-2.5 text-token-text-tertiary"
+                  type="text"
+                  defaultValue="https://chatgpt.com/share/..."
+                />
+                <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-token-main-surface-primary" />
               </div>
-              <div className="w-1/2 sm:w-1/3 p-3">
-                <div className="h-full p-6 rounded-lg connector">
-                  <div className="h-16 flex items-center justify-center">
-                    <Image
-                      src="/images/icon/facebook-icon.svg"
-                      alt="Facebook Post"
-                      width={64}
-                      height={64}
-                    />
-                  </div>
-                  <p className="my-4 text-base font-medium name">
-                    Facebook Post
-                  </p>
-                  <Button
-                    variant="solid"
-                    sx={{
-                      px: 3,
-                      bgcolor: "var(--cl-primary-70)",
-                      color: "var(--cl-neutral-10)",
-                      borderRadius: "8px",
-                      fontWeight: 400,
-                      "&:hover": {
-                        bgcolor: "var(--cl-primary-80)",
-                        color: "var(--cl-neutral-10)",
-                      },
-                    }}
+              <button
+                className="btn relative btn-primary ml-4 mr-0 mt-0 rounded-full px-4 py-1 text-base font-bold sm:py-3"
+                type="button"
+                data-testid="create-link-shared-chat-button"
+              >
+                <span className="flex w-full items-center justify-center gap-1.5">
+                  <svg
+                    width={24}
+                    height={24}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    Connect
-                  </Button>
-                </div>
-              </div>
-              <div className="w-1/2 sm:w-1/3 p-3">
-                <div className="h-full p-6 rounded-lg connector">
-                  <div className="h-16 flex items-center justify-center">
-                    <Image
-                      src="/images/icon/softr-icon.svg"
-                      alt="Softr"
-                      width={64}
-                      height={64}
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M18.2929 5.70711C16.4743 3.88849 13.5257 3.88849 11.7071 5.7071L10.7071 6.70711C10.3166 7.09763 9.68341 7.09763 9.29289 6.70711C8.90236 6.31658 8.90236 5.68342 9.29289 5.29289L10.2929 4.29289C12.8926 1.69323 17.1074 1.69323 19.7071 4.29289C22.3068 6.89256 22.3068 11.1074 19.7071 13.7071L18.7071 14.7071C18.3166 15.0976 17.6834 15.0976 17.2929 14.7071C16.9024 14.3166 16.9024 13.6834 17.2929 13.2929L18.2929 12.2929C20.1115 10.4743 20.1115 7.52572 18.2929 5.70711ZM15.7071 8.29289C16.0976 8.68342 16.0976 9.31658 15.7071 9.70711L9.7071 15.7071C9.31658 16.0976 8.68341 16.0976 8.29289 15.7071C7.90236 15.3166 7.90236 14.6834 8.29289 14.2929L14.2929 8.29289C14.6834 7.90237 15.3166 7.90237 15.7071 8.29289ZM6.7071 9.29289C7.09763 9.68342 7.09763 10.3166 6.7071 10.7071L5.7071 11.7071C3.88849 13.5257 3.88849 16.4743 5.7071 18.2929C7.52572 20.1115 10.4743 20.1115 12.2929 18.2929L13.2929 17.2929C13.6834 16.9024 14.3166 16.9024 14.7071 17.2929C15.0976 17.6834 15.0976 18.3166 14.7071 18.7071L13.7071 19.7071C11.1074 22.3068 6.89255 22.3068 4.29289 19.7071C1.69322 17.1074 1.69322 12.8926 4.29289 10.2929L5.29289 9.29289C5.68341 8.90237 6.31658 8.90237 6.7071 9.29289Z"
+                      fill="currentColor"
                     />
-                  </div>
-                  <p className="my-4 text-base font-medium name">Softr</p>
-                  <Button
-                    variant="solid"
-                    sx={{
-                      px: 3,
-                      bgcolor: "var(--cl-primary-70)",
-                      color: "var(--cl-neutral-10)",
-                      borderRadius: "8px",
-                      fontWeight: 400,
-                      "&:hover": {
-                        bgcolor: "var(--cl-primary-80)",
-                        color: "var(--cl-neutral-10)",
-                      },
-                    }}
-                  >
-                    Connect
-                  </Button>
-                </div>
-              </div>
+                  </svg>
+                  Create link
+                </span>
+              </button>
             </div>
           </DialogContent>
         </ModalDialog>
