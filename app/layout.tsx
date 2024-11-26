@@ -3,7 +3,7 @@ import "./globals.css";
 import "./layout.css";
 import { Provider } from 'react-redux';
 import store from '@/app/store/store';
-import { ThemeProvider } from "./(pages)/(display)/components/theme-provider";
+import { ThemeProvider } from "@/app/components/theme-provider";
 
 export default function RootLayout({
   children,
