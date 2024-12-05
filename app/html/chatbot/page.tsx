@@ -6,6 +6,7 @@ import {
   IconButton,
   RadioGroup,
   Radio,
+  radioClasses,
   Sheet,
   Dropdown,
   Menu,
@@ -129,6 +130,15 @@ const Chatbot = () => {
                     overlay
                     disableIcon
                     value={value}
+                    sx={{
+                      [`& .${radioClasses.action}`]: {
+                        borderColor: "#B0B0B0",
+                        "&:hover": {
+                          bgcolor: "#FFF",
+                          borderColor: "#222",
+                        },
+                      },
+                    }}
                     slotProps={{
                       label: ({ checked }) => ({
                         sx: {
@@ -138,11 +148,6 @@ const Chatbot = () => {
                           color: checked ? "#222" : "#707070",
                         },
                       }),
-                      radio: {
-                        sx: {
-                          borderColor: "#707070",
-                        },
-                      },
                       action: ({ checked }) => ({
                         sx: (theme) => ({
                           ...(checked && {
@@ -227,6 +232,7 @@ const Chatbot = () => {
                                 variant="plain"
                                 aria-label="Remove image"
                                 sx={{
+                                  position: "absolute",
                                   borderRadius: "100%",
                                   bgcolor: "#707070",
                                   color: "#FFF",
@@ -264,6 +270,7 @@ const Chatbot = () => {
                                 variant="plain"
                                 aria-label="Remove image"
                                 sx={{
+                                  position: "absolute",
                                   borderRadius: "100%",
                                   bgcolor: "#707070",
                                   color: "#FFF",
