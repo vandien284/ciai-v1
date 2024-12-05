@@ -194,9 +194,9 @@ const Home = () => {
   const handleOutsideClickSideRight = () => {
     setSidebarOpenRight(true);
   };
-  const sideLeftRef = useOutsideClick(handleOutsideClickSideLeft);
-  const sideRightRef = useOutsideClick(handleOutsideClickSideRight);
-  const refNull = useRef(null);
+  // const sideLeftRef = useOutsideClick(handleOutsideClickSideLeft);
+  // const sideRightRef = useOutsideClick(handleOutsideClickSideRight);
+  // const refNull = useRef(null);
 
   // Collapse Button
   const [expanded, setExpanded] = React.useState(() =>
@@ -272,8 +272,19 @@ const Home = () => {
     }
   };
 
+  // React ContentEditable
+  const sanitizeConf = useRef({
+    allowedTags: ["p"],
+    allowedAttributes: {},
+  });
+  const [contentPrompt, setContentPrompt] = React.useState("Type something");
+  const handleChangePrompt = React.useCallback((evt: any) => {
+    setContentPrompt(
+      sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf.current)
+    );
+  }, []);
   const editableRef = useRef(null);
-  const handleKeyDownEditable = (event: any) => {
+  const onKeyPressHandler = (event: any) => {
     if (event.key === "Enter" && event.shiftKey) {
       event.preventDefault(); // Prevent default behavior for Shift + Enter
 
@@ -292,21 +303,13 @@ const Home = () => {
     }
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
+      setContentPrompt(
+        sanitizeHtml(event.currentTarget.innerHTML, sanitizeConf.current)
+      );
       router.push("/html/library/detail");
     }
   };
 
-  // React ContentEditable
-  const sanitizeConf = useRef({
-    allowedTags: ["p"],
-    allowedAttributes: {},
-  });
-  const [contentPrompt, setContentPrompt] = React.useState("Type something");
-  const onContentPromptChange = React.useCallback((evt: any) => {
-    setContentPrompt(
-      sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf.current)
-    );
-  }, []);
   const handleSpanClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     const target = e.target as HTMLSpanElement;
 
@@ -1596,6 +1599,7 @@ const Home = () => {
                 <Collapse in={expanded} timeout="auto" unmountOnExit>
                   <div className="sys-ins">
                     <div
+                      ref={editableRef}
                       className="ml-12 mb-2 lg:mb-3 overflow-auto"
                       style={{
                         minHeight: "21px",
@@ -1730,11 +1734,11 @@ const Home = () => {
                     <div className="w-full input-prompt">
                       {(selectedOption === "" || !selectedPromt) && (
                         <div className="grow mb-2 type-prompt">
-                          <textarea
+                          {/* <textarea
                             ref={textareaRefs.textarea2}
                             value={texts.textarea2}
                             onChange={(e) => handleChangeText(e, "textarea2")}
-                            onKeyDown={handleKeyDown}
+                            onKeyPress={onKeyPressHandler}
                             placeholder="Type something"
                             style={{
                               width: "100%",
@@ -1744,7 +1748,20 @@ const Home = () => {
                               whiteSpace: "pre-wrap",
                               verticalAlign: "middle",
                             }}
-                          />
+                          /> */}
+                          <div
+                            ref={editableRef}
+                            className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                          >
+                            <ContentEditable
+                              onChange={handleChangePrompt}
+                              onBlur={handleChangePrompt}
+                              onKeyPress={onKeyPressHandler}
+                              html={contentPrompt}
+                              data-placeholder="Type something"
+                              suppressContentEditableWarning={true}
+                            />
+                          </div>
                         </div>
                       )}
                       {selectedOption === "content-creator" && (
@@ -1752,69 +1769,74 @@ const Home = () => {
                           {selectedPromt && (
                             <div
                               ref={editableRef}
-                              contentEditable
-                              onKeyDown={handleKeyDownEditable}
-                              onChange={onContentPromptChange}
-                              onBlur={onContentPromptChange}
-                              className="max-h-24 overflow-hidden overflow-y-auto content-wrap"
-                              data-placeholder="Type something"
-                              suppressContentEditableWarning={true}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
                             >
-                              <p>
-                                Bạn là chuyên gia trong lĩnh vực &nbsp; //{" "}
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [marketting...]
-                                </span>
-                                &nbsp;tại khu vực&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Sài Gòn, Hà Nội...]
-                                </span>
-                                &nbsp;hãy tạo bài viết với đề tài&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [Toyota Yaris Cross Hybrid 2024]
-                                </span>
-                                &nbsp;.
-                              </p>
-                              <p>
-                                Bài viết sẽ có giọng văn&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [chuyên nghiệp, dễ hiểu...]
-                                </span>
-                                &nbsp;và số lượng từ là&nbsp;
-                                <span
-                                  className="keyword"
-                                  onClick={handleSpanClick}
-                                >
-                                  [400, 600...]
-                                </span>
-                                &nbsp;
-                              </p>
+                              <div
+                                contentEditable
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
+                                data-placeholder="Type something"
+                                suppressContentEditableWarning={true}
+                              >
+                                <p>
+                                  Bạn là chuyên gia trong lĩnh vực &nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [marketting...]
+                                  </span>
+                                  &nbsp;tại khu vực&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Sài Gòn, Hà Nội...]
+                                  </span>
+                                  &nbsp;hãy tạo bài viết với đề tài&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [Toyota Yaris Cross Hybrid 2024]
+                                  </span>
+                                  &nbsp;.
+                                </p>
+                                <p>
+                                  Bài viết sẽ có giọng văn&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [chuyên nghiệp, dễ hiểu...]
+                                  </span>
+                                  &nbsp;và số lượng từ là&nbsp;
+                                  <span
+                                    className="keyword"
+                                    onClick={handleSpanClick}
+                                  >
+                                    [400, 600...]
+                                  </span>
+                                  &nbsp;
+                                </p>
+                              </div>
                             </div>
                           )}
                         </div>
                       )}
                       {selectedOption === "chatbot" && (
                         <div className="grow type-prompt">
-                          <div className="max-h-24 overflow-hidden overflow-y-auto">
-                            {selectedPromt && (
+                          {selectedPromt && (
+                            <div
+                              ref={editableRef}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                            >
                               <div
                                 contentEditable
-                                className="content-wrap"
-                                onChange={onContentPromptChange}
-                                onBlur={onContentPromptChange}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
                               >
@@ -1824,7 +1846,7 @@ const Home = () => {
                                     className="keyword"
                                     onClick={handleSpanClick}
                                   >
-                                    [ô tô]
+                                    [o tô...]
                                   </span>
                                   &nbsp;tại khu vực&nbsp;
                                   <span
@@ -1860,20 +1882,22 @@ const Home = () => {
                                   &nbsp;
                                 </p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {selectedOption === "business-intelligent" && (
                         <div className="grow type-prompt">
-                          <div className="max-h-24 overflow-hidden overflow-y-auto">
-                            {selectedPromt && (
+                          {selectedPromt && (
+                            <div
+                              ref={editableRef}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                            >
                               <div
                                 contentEditable
-                                className="content-wrap"
-                                onChange={onContentPromptChange}
-                                onBlur={onContentPromptChange}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
                               >
@@ -1883,7 +1907,7 @@ const Home = () => {
                                     className="keyword"
                                     onClick={handleSpanClick}
                                   >
-                                    [kế toán]
+                                    [business...]
                                   </span>
                                   &nbsp;tại khu vực&nbsp;
                                   <span
@@ -1919,20 +1943,22 @@ const Home = () => {
                                   &nbsp;
                                 </p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {selectedOption === "scraping" && (
                         <div className="grow type-prompt">
-                          <div className="max-h-24 overflow-hidden overflow-y-auto">
-                            {selectedPromt && (
+                          {selectedPromt && (
+                            <div
+                              ref={editableRef}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                            >
                               <div
                                 contentEditable
-                                className="content-wrap"
-                                onChange={onContentPromptChange}
-                                onBlur={onContentPromptChange}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
                               >
@@ -1942,7 +1968,7 @@ const Home = () => {
                                     className="keyword"
                                     onClick={handleSpanClick}
                                   >
-                                    [websites]
+                                    [website]
                                   </span>
                                   &nbsp;tại khu vực&nbsp;
                                   <span
@@ -1978,14 +2004,14 @@ const Home = () => {
                                   &nbsp;
                                 </p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {/* Preview Section */}
                       {files.length > 0 && (
                         <div
-                          className="flex flex-wrap gap-x-3 pt-4 mt-3 overflow-y-auto image-container"
+                          className="flex flex-wrap gap-x-3 pt-4 mt-3 overflow-y-auto file-container"
                           style={{
                             borderTop: "1px solid var(--cl-neutral-30)",
                             maxHeight: "33vh",
@@ -1994,7 +2020,7 @@ const Home = () => {
                           {files.map((uploadedFile, index) => (
                             <div key={index} className="pb-2">
                               {uploadedFile.preview ? (
-                                <div className="border border-solid rounded overflow-hidden relative mb-3 image-wrap">
+                                <div className="border border-solid rounded overflow-hidden relative image-wrap">
                                   <Image
                                     width={200}
                                     height={218}
@@ -2024,27 +2050,36 @@ const Home = () => {
                                   </IconButton>
                                 </div>
                               ) : (
-                                <div className="flex gap-x-2">
-                                  <p>{uploadedFile.file.name}</p>
+                                <div className="border border-solid rounded overflow-hidden relative flex flex-col file-wrap">
+                                  <div className="flex flex-col items-center justify-center file-icon">
+                                    <span className="material-symbols-outlined">
+                                      docs
+                                    </span>
+                                  </div>
+                                  <div className="file-info flex items-center justify-center">
+                                    <p className="truncate">
+                                      {uploadedFile.file.name}
+                                    </p>
+                                  </div>
                                   <IconButton
                                     variant="plain"
-                                    aria-label="Remove File"
+                                    aria-label="Remove image"
                                     sx={{
                                       borderRadius: "100%",
                                       bgcolor: "var(--cl-neutral-60)",
                                       color: "#FFF",
-                                      minWidth: "20px",
-                                      minHeight: "20px",
+                                      minWidth: "24px",
+                                      minHeight: "24px",
                                       ":hover": {
                                         background: "var(--cl-neutral-8)",
                                         color: "var(--cl-neutral-80)",
                                       },
                                     }}
-                                    className="flex items-center justify-center w-5 h-5 rounded-full transition"
+                                    className="absolute top-2 right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full transition"
                                     onClick={() => handleRemoveFile(index)}
                                   >
                                     <span className="material-symbols-outlined">
-                                      <span className="text-base">close</span>
+                                      close
                                     </span>
                                   </IconButton>
                                 </div>
@@ -2084,7 +2119,7 @@ const Home = () => {
                               borderRadius: "100%",
                               minHeight: "36px",
                               background: "none",
-                              color: "var(--cl-primary)",
+                              color: "var(--cl-neutral-90)",
                               "&:hover": {
                                 background: "var(--bg-color)",
                               },
@@ -2302,7 +2337,7 @@ const Home = () => {
                             },
                           },
                         }}
-                        title="Write text to run prompt (Ctrl + Enter)"
+                        title="Write text to run prompt (Shift + Enter to add a line break and Enter to view detail)"
                       >
                         <button
                           type="button"
@@ -2590,7 +2625,6 @@ const Home = () => {
                                 <Input
                                   type="number"
                                   className="input"
-                                  defaultValue="1"
                                   sx={{
                                     px: 0.5,
                                     width: "48px",
@@ -2649,7 +2683,6 @@ const Home = () => {
                                 <Input
                                   type="number"
                                   className="input"
-                                  defaultValue="1"
                                   sx={{
                                     px: 0.5,
                                     width: "48px",

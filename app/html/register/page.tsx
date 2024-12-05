@@ -17,9 +17,9 @@ const Register = () => {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="h-full flex items-center justify-center p-4">
         <div
-          className="max-w-md w-full space-y-8 p-8 rounded-2xl shadow-lg border border-solid border-color"
+          className="max-w-md w-full space-y-6 p-6 sm:p-8 rounded-2xl shadow-lg border border-solid border-color"
           style={{ backgroundColor: "var(--cl-bg-dropdown)" }}
         >
           <div className="text-center">

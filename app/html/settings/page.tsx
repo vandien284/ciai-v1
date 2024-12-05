@@ -241,7 +241,7 @@ const Settings = () => {
   }, [showModalEditHeading]);
 
   return (
-    <div id="app" style={{ height }}>
+    <div id="app">
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
@@ -256,10 +256,10 @@ const Settings = () => {
             ></div>
           )}
           <div
-            className="w-full h-full flex flex-col justify-between inner"
+            className="w-full h-full flex flex-col overflow-x-hidden overflow-y-auto justify-between inner"
             // ref={isMobile ? sideLeftRef : refNull}
           >
-            <div className="h-16 flex-shrink-0 flex items-center nav-logo">
+            <div className="h-16 flex-shrink-0 flex items-center sticky top-0 z-10 nav-logo">
               <a
                 href="/html/home"
                 className="flex flex-start cursor-pointer logo"
@@ -298,8 +298,12 @@ const Settings = () => {
                 />
               </a>
             </div>
-            <div className="w-full grow overflow-y-auto top-sidebar">
-              <div className="py-6 overflow-hidden menus">
+            <div
+              className="min-h-6 cursor-pointer clickable-space"
+              onClick={handleClickSidebarLeft}
+            ></div>
+            <div className="top-sidebar">
+              <div className="overflow-hidden menus">
                 <div className="sidebar-menu">
                   <Button
                     component="a"
@@ -886,7 +890,11 @@ const Settings = () => {
                 </div>
               </div>
             </div>
-            <div className="w-full pt-2 pb-4 border-t border-solid border-color bot-sidebar">
+            <div
+              className="grow cursor-pointer clickable-space"
+              onClick={handleClickSidebarLeft}
+            ></div>
+            <div className="pt-2 mt-2 border-t border-solid border-color bot-sidebar">
               <div className="sidebar-menu">
                 <Button
                   component="a"
@@ -915,7 +923,7 @@ const Settings = () => {
                   </span>
                 </Button>
               </div>
-              <div className="mt-2 mb-3 profile">
+              <div className="my-2 profile">
                 <button
                   type="button"
                   className="flex items-center info-account"
@@ -963,7 +971,9 @@ const Settings = () => {
                   {popoverAccount.child}
                 </Popover>
               </div>
-              <div className="btn-click-menu">
+            </div>
+            <div className="sticky bottom-0 z-10 pb-4 btn-click-menu">
+              <div className="py-1">
                 {isMobile && (
                   <IconButton
                     variant="plain"
@@ -986,7 +996,7 @@ const Settings = () => {
                   </IconButton>
                 )}
                 {!isMobile && (
-                  <div>
+                  <>
                     {sidebarOpenLeft ? (
                       <IconButton
                         variant="plain"
@@ -1028,7 +1038,7 @@ const Settings = () => {
                         </span>
                       </IconButton>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             </div>
@@ -1741,7 +1751,7 @@ const Settings = () => {
               <div className="relative ml-1 flex-grow">
                 <input
                   readOnly
-                  className="w-full border-0 px-2 py-2 text-base focus-visible:outline-none focus-visible:ring-0"
+                  className="w-full bg-transparent border-0 px-2 py-2 text-base focus-visible:outline-none focus-visible:ring-0"
                   type="text"
                   defaultValue="https://ai.ci.com.vn/share/67404e1a-3b84-8001-a87d-51528675103d"
                 />

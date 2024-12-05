@@ -14,9 +14,9 @@ const Login = () => {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="h-full flex items-center justify-center p-4">
         <div
-          className="max-w-md w-full space-y-8 p-8 rounded-2xl shadow-lg border border-solid border-color"
+          className="max-w-md w-full space-y-6 p-6 sm:p-8 rounded-2xl shadow-lg border border-solid border-color"
           style={{ backgroundColor: "var(--cl-bg-dropdown)" }}
         >
           <div className="text-center">
@@ -109,8 +109,8 @@ const Login = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex flex-wrap items-center justify-between">
+              <div className="flex items-center mr-4 mb-2">
                 <input
                   id="remember-me"
                   name="remember-me"
@@ -122,7 +122,7 @@ const Login = () => {
                   Remember me
                 </label>
               </div>
-              <div className="text-sm">
+              <div className="text-sm mb-2">
                 <a
                   className="font-medium"
                   href="/forgot-password"
@@ -135,6 +135,7 @@ const Login = () => {
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 btn-color"
+              style={{ marginTop: "16px" }}
             >
               <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                 <svg

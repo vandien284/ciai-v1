@@ -21,9 +21,13 @@
 }
 :root {
   --font: "Google Sans Text", "Helvetica Neue", sans-serif;
+  --font-chatbot: "Be Vietnam Pro", sans-serif;
   --tw-text-opacity: 1;
   --cl-role-model-bg: #1a3059;
   --cl-role-user-bg: #33573e;
+  --cl-pink-10: #fddee3;
+  --cl-pink-50: #fa91a4;
+  --cl-pink-80: #ff385c;
 }
 :root,
 .light {
@@ -41,6 +45,7 @@
   --cl-neutral-8: #edeef1;
   --cl-neutral-10: #e2e2e5;
   --cl-neutral-20: #c6c6c9;
+  --cl-neutral-25: #ceced0;
   --cl-neutral-30: #a8abb4;
   --cl-neutral-50: #76777a;
   --cl-neutral-60: #5d5e61;
@@ -68,6 +73,7 @@
   --cl-neutral-8: #242629;
   --cl-neutral-10: #1a1c1e;
   --cl-neutral-20: #2f3133;
+  --cl-neutral-25: #3a3b3e;
   --cl-neutral-30: #45474a;
   --cl-neutral-50: #76777a;
   --cl-neutral-60: #8f9194;
@@ -84,7 +90,7 @@ html,
 body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 body {
   font-family: var(--font);
@@ -441,6 +447,12 @@ textarea:focus-within {
   font-size: 0.875rem !important;
   word-break: break-word;
 }
+@media (max-width: 991px) {
+  [contenteditable="true"],
+  textarea {
+    font-size: 1rem !important;
+  }
+}
 .keyword[contenteditable="true"]:focus {
   outline: 2px solid var(--cl-primary-70);
 }
@@ -451,7 +463,7 @@ textarea:focus-within {
   content: attr(data-placeholder);
   pointer-events: none;
   display: block;
-  color: var(--cl-neutral-30);
+  color: var(--cl-neutral-90);
 }
 .ql-editor {
   font-size: 1rem;
@@ -491,7 +503,7 @@ ol {
   border: none;
   background: none;
 }
-.content-wrap {
+textarea.content-wrap {
   white-space: pre-wrap;
   outline: none;
 }

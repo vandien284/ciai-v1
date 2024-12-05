@@ -257,19 +257,48 @@ const Detail = () => {
     }
   }, [textareaRefs.textarea1, expanded]);
   const handleKeyDown = (e: any) => {
-    if (e.ctrlKey && e.key === "Enter") {
+    if (e.key === "Enter") {
       router.push("/html/library/detail");
     }
   };
   // React ContentEditable
+  const sanitizeConf = useRef({
+    allowedTags: ["p"],
+    allowedAttributes: {},
+  });
   const [contentPrompt, setContentPrompt] = React.useState("Type something");
-  const onContentPromptChange = React.useCallback((evt: any) => {
-    const sanitizeConf = {
-      allowedTags: ["p", "br"],
-      allowedAttributes: {},
-    };
-    setContentPrompt(sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf));
+  const handleChangePrompt = React.useCallback((evt: any) => {
+    setContentPrompt(
+      sanitizeHtml(evt.currentTarget.innerHTML, sanitizeConf.current)
+    );
   }, []);
+  const editableRef = useRef(null);
+  const onKeyPressHandler = (event: any) => {
+    if (event.key === "Enter" && event.shiftKey) {
+      event.preventDefault(); // Prevent default behavior for Shift + Enter
+
+      const element = editableRef.current;
+      if (element !== null) {
+        // Get the selection and range
+        document.execCommand("insertLineBreak");
+        const htmlElement = element as HTMLElement;
+
+        // Scroll the contentEditable to the bottom
+        htmlElement.scrollTop = htmlElement.scrollHeight;
+
+        // Maintain focus
+        htmlElement.focus();
+      }
+    }
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      setContentPrompt(
+        sanitizeHtml(event.currentTarget.innerHTML, sanitizeConf.current)
+      );
+      router.push("/html/library/detail");
+    }
+  };
+
   const handleSpanClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     const target = e.target as HTMLSpanElement;
 
@@ -347,7 +376,7 @@ const Detail = () => {
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [openDropdown, setOpenDropdown] = React.useState(false);
 
-  const handleClose = () => {
+  const handleCloseDropdown = () => {
     setOpenDropdown(false);
   };
 
@@ -418,7 +447,7 @@ const Detail = () => {
   };
 
   return (
-    <div id="app" style={{ height }}>
+    <div id="app">
       <section className="flex h-full sec-main">
         <aside
           className={`flex-shrink-0 sidebar ${
@@ -433,10 +462,10 @@ const Detail = () => {
             ></div>
           )}
           <div
-            className="w-full h-full flex flex-col justify-between inner"
+            className="w-full h-full flex flex-col overflow-x-hidden overflow-y-auto justify-between inner"
             // ref={isMobile ? sideLeftRef : refNull}
           >
-            <div className="h-16 flex-shrink-0 flex items-center nav-logo">
+            <div className="h-16 flex-shrink-0 flex items-center sticky top-0 z-10 nav-logo">
               <a
                 href="/html/home"
                 className="flex flex-start cursor-pointer logo"
@@ -475,8 +504,12 @@ const Detail = () => {
                 />
               </a>
             </div>
-            <div className="w-full grow overflow-y-auto top-sidebar">
-              <div className="py-6 overflow-hidden menus">
+            <div
+              className="min-h-6 cursor-pointer clickable-space"
+              onClick={handleClickSidebarLeft}
+            ></div>
+            <div className="top-sidebar">
+              <div className="overflow-hidden menus">
                 <div className="sidebar-menu">
                   <Button
                     component="a"
@@ -556,7 +589,7 @@ const Detail = () => {
                           background: "var(--cl-surface-container-lowest)",
                         },
                       }}
-                      className="w-full sidebar-btn"
+                      className="w-full sidebar-btn active"
                     >
                       <span className="w-9 h-9 flex items-center justify-center flex-shrink-0">
                         <span className="material-symbols-outlined">
@@ -1063,7 +1096,11 @@ const Detail = () => {
                 </div>
               </div>
             </div>
-            <div className="w-full pt-2 pb-4 border-t border-solid border-color bot-sidebar">
+            <div
+              className="grow cursor-pointer clickable-space"
+              onClick={handleClickSidebarLeft}
+            ></div>
+            <div className="pt-2 mt-2 border-t border-solid border-color bot-sidebar">
               <div className="sidebar-menu">
                 <Button
                   component="a"
@@ -1092,7 +1129,7 @@ const Detail = () => {
                   </span>
                 </Button>
               </div>
-              <div className="mt-2 mb-3 profile">
+              <div className="my-2 profile">
                 <button
                   type="button"
                   className="flex items-center info-account"
@@ -1140,7 +1177,9 @@ const Detail = () => {
                   {popoverAccount.child}
                 </Popover>
               </div>
-              <div className="btn-click-menu">
+            </div>
+            <div className="sticky bottom-0 z-10 pb-4 btn-click-menu">
+              <div className="py-1">
                 {isMobile && (
                   <IconButton
                     variant="plain"
@@ -1163,7 +1202,7 @@ const Detail = () => {
                   </IconButton>
                 )}
                 {!isMobile && (
-                  <div>
+                  <>
                     {sidebarOpenLeft ? (
                       <IconButton
                         variant="plain"
@@ -1205,7 +1244,7 @@ const Detail = () => {
                         </span>
                       </IconButton>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             </div>
@@ -1645,7 +1684,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-9 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -1692,11 +1731,11 @@ const Detail = () => {
                                 },
                               }}
                               placement="top"
-                              title="Move down"
+                              title="Move up"
                             >
                               <IconButton
                                 variant="plain"
-                                aria-label="Move down"
+                                aria-label="Move up"
                                 sx={{
                                   borderRadius: "100%",
                                   minWidth: "24px",
@@ -1872,9 +1911,9 @@ const Detail = () => {
                                       gradientUnits="userSpaceOnUse"
                                       gradientTransform="matrix(0,34.286,-34.286,0,12,-5.143)"
                                     >
-                                      <stop offset="0" stop-color="#87a9ff" />
-                                      <stop offset=".44" stop-color="#a7b8ee" />
-                                      <stop offset=".88" stop-color="#f1dcc7" />
+                                      <stop offset="0" stopColor="#87a9ff" />
+                                      <stop offset=".44" stopColor="#a7b8ee" />
+                                      <stop offset=".88" stopColor="#f1dcc7" />
                                     </linearGradient>
                                   </defs>
                                   <g id="Clip-Path" clip-path="url(#cp1)">
@@ -2103,7 +2142,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-9 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -2116,7 +2155,7 @@ const Detail = () => {
                                 },
                               }}
                               placement="top"
-                              title="Move down"
+                              title="Move up"
                             >
                               <IconButton
                                 variant="plain"
@@ -2414,7 +2453,7 @@ const Detail = () => {
                           </div>
                         </div>
                         <div className="flex justify-end sticky top-8 z-10 h-0 actions-wrap">
-                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-8 group-actions">
+                          <div className="h-6 flex gap-x-3 ml-4 opacity-0 rounded-4xl -mt-9 group-actions">
                             <Tooltip
                               componentsProps={{
                                 tooltip: {
@@ -2427,7 +2466,7 @@ const Detail = () => {
                                 },
                               }}
                               placement="top"
-                              title="Move down"
+                              title="Move up"
                             >
                               <IconButton
                                 variant="plain"
@@ -3045,11 +3084,11 @@ const Detail = () => {
                     <div className="w-full input-prompt">
                       {(selectedOption === "" || !selectedPromt) && (
                         <div className="grow mb-2 type-prompt">
-                          <textarea
+                          {/* <textarea
                             ref={textareaRefs.textarea2}
                             value={texts.textarea2}
                             onChange={(e) => handleChangeText(e, "textarea2")}
-                            onKeyDown={handleKeyDown}
+                            onKeyPress={onKeyPressHandler}
                             placeholder="Type something"
                             style={{
                               width: "100%",
@@ -3059,19 +3098,34 @@ const Detail = () => {
                               whiteSpace: "pre-wrap",
                               verticalAlign: "middle",
                             }}
-                          />
+                          /> */}
+                          <div
+                            ref={editableRef}
+                            className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                          >
+                            <ContentEditable
+                              onChange={handleChangePrompt}
+                              onBlur={handleChangePrompt}
+                              onKeyPress={onKeyPressHandler}
+                              html={contentPrompt}
+                              data-placeholder="Type something"
+                              suppressContentEditableWarning={true}
+                            />
+                          </div>
                         </div>
                       )}
                       {selectedOption === "content-creator" && (
                         <div className="grow type-prompt">
-                          <div className="max-h-24 overflow-hidden overflow-y-auto">
-                            {selectedPromt && (
+                          {selectedPromt && (
+                            <div
+                              ref={editableRef}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                            >
                               <div
                                 contentEditable
-                                className="content-wrap"
-                                onChange={onContentPromptChange}
-                                onBlur={onContentPromptChange}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
                               >
@@ -3081,7 +3135,7 @@ const Detail = () => {
                                     className="keyword"
                                     onClick={handleSpanClick}
                                   >
-                                    [ô tô, bất động sản...]
+                                    [marketting...]
                                   </span>
                                   &nbsp;tại khu vực&nbsp;
                                   <span
@@ -3117,20 +3171,22 @@ const Detail = () => {
                                   &nbsp;
                                 </p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {selectedOption === "chatbot" && (
                         <div className="grow type-prompt">
-                          <div className="max-h-24 overflow-hidden overflow-y-auto">
-                            {selectedPromt && (
+                          {selectedPromt && (
+                            <div
+                              ref={editableRef}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                            >
                               <div
                                 contentEditable
-                                className="content-wrap"
-                                onChange={onContentPromptChange}
-                                onBlur={onContentPromptChange}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
                               >
@@ -3140,7 +3196,7 @@ const Detail = () => {
                                     className="keyword"
                                     onClick={handleSpanClick}
                                   >
-                                    [ô tô]
+                                    [o tô...]
                                   </span>
                                   &nbsp;tại khu vực&nbsp;
                                   <span
@@ -3176,20 +3232,22 @@ const Detail = () => {
                                   &nbsp;
                                 </p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {selectedOption === "business-intelligent" && (
                         <div className="grow type-prompt">
-                          <div className="max-h-24 overflow-hidden overflow-y-auto">
-                            {selectedPromt && (
+                          {selectedPromt && (
+                            <div
+                              ref={editableRef}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                            >
                               <div
                                 contentEditable
-                                className="content-wrap"
-                                onChange={onContentPromptChange}
-                                onBlur={onContentPromptChange}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
                               >
@@ -3199,7 +3257,7 @@ const Detail = () => {
                                     className="keyword"
                                     onClick={handleSpanClick}
                                   >
-                                    [kế toán]
+                                    [business...]
                                   </span>
                                   &nbsp;tại khu vực&nbsp;
                                   <span
@@ -3235,20 +3293,22 @@ const Detail = () => {
                                   &nbsp;
                                 </p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {selectedOption === "scraping" && (
                         <div className="grow type-prompt">
-                          <div className="max-h-24 overflow-hidden overflow-y-auto">
-                            {selectedPromt && (
+                          {selectedPromt && (
+                            <div
+                              ref={editableRef}
+                              className="max-h-24 overflow-x-hidden overflow-y-auto content-wrap"
+                            >
                               <div
                                 contentEditable
-                                className="content-wrap"
-                                onChange={onContentPromptChange}
-                                onBlur={onContentPromptChange}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleChangePrompt}
+                                onBlur={handleChangePrompt}
+                                onKeyPress={onKeyPressHandler}
                                 data-placeholder="Type something"
                                 suppressContentEditableWarning={true}
                               >
@@ -3258,7 +3318,7 @@ const Detail = () => {
                                     className="keyword"
                                     onClick={handleSpanClick}
                                   >
-                                    [websites]
+                                    [website]
                                   </span>
                                   &nbsp;tại khu vực&nbsp;
                                   <span
@@ -3294,14 +3354,14 @@ const Detail = () => {
                                   &nbsp;
                                 </p>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {/* Preview Section */}
                       {files.length > 0 && (
                         <div
-                          className="flex flex-wrap gap-x-3 pt-4 mt-3 overflow-y-auto image-container"
+                          className="flex flex-wrap gap-x-3 pt-4 mt-3 overflow-y-auto file-container"
                           style={{
                             borderTop: "1px solid var(--cl-neutral-30)",
                             maxHeight: "33vh",
@@ -3310,7 +3370,7 @@ const Detail = () => {
                           {files.map((uploadedFile, index) => (
                             <div key={index} className="pb-2">
                               {uploadedFile.preview ? (
-                                <div className="border border-solid rounded overflow-hidden relative mb-3 image-wrap">
+                                <div className="border border-solid rounded overflow-hidden relative image-wrap">
                                   <Image
                                     width={200}
                                     height={218}
@@ -3340,27 +3400,36 @@ const Detail = () => {
                                   </IconButton>
                                 </div>
                               ) : (
-                                <div className="flex gap-x-2">
-                                  <p>{uploadedFile.file.name}</p>
+                                <div className="border border-solid rounded overflow-hidden relative flex flex-col file-wrap">
+                                  <div className="flex flex-col items-center justify-center file-icon">
+                                    <span className="material-symbols-outlined">
+                                      docs
+                                    </span>
+                                  </div>
+                                  <div className="file-info flex items-center justify-center">
+                                    <p className="truncate">
+                                      {uploadedFile.file.name}
+                                    </p>
+                                  </div>
                                   <IconButton
                                     variant="plain"
-                                    aria-label="Remove File"
+                                    aria-label="Remove image"
                                     sx={{
                                       borderRadius: "100%",
                                       bgcolor: "var(--cl-neutral-60)",
                                       color: "#FFF",
-                                      minWidth: "20px",
-                                      minHeight: "20px",
+                                      minWidth: "24px",
+                                      minHeight: "24px",
                                       ":hover": {
                                         background: "var(--cl-neutral-8)",
                                         color: "var(--cl-neutral-80)",
                                       },
                                     }}
-                                    className="flex items-center justify-center w-5 h-5 rounded-full transition"
+                                    className="absolute top-2 right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full transition"
                                     onClick={() => handleRemoveFile(index)}
                                   >
                                     <span className="material-symbols-outlined">
-                                      <span className="text-base">close</span>
+                                      close
                                     </span>
                                   </IconButton>
                                 </div>
@@ -3400,7 +3469,7 @@ const Detail = () => {
                               borderRadius: "100%",
                               minHeight: "36px",
                               background: "none",
-                              color: "var(--cl-primary)",
+                              color: "var(--cl-neutral-90)",
                               "&:hover": {
                                 background: "var(--bg-color)",
                               },
@@ -3435,7 +3504,7 @@ const Detail = () => {
                           <ClickAwayListener
                             onClickAway={(event) => {
                               if (event.target !== buttonRef.current) {
-                                handleClose();
+                                handleCloseDropdown();
                               }
                             }}
                           >
@@ -3443,7 +3512,11 @@ const Detail = () => {
                               variant="outlined"
                               onKeyDown={handleListKeyDown}
                               className="dropdown-menu"
-                              sx={{ boxShadow: "md", p: 0 }}
+                              sx={{
+                                bgcolor: "var(--cl-bg-dropdown)",
+                                borderColor: "var(--cl-neutral-8)",
+                                p: 0,
+                              }}
                             >
                               <Tooltip
                                 componentsProps={{
@@ -3614,7 +3687,7 @@ const Detail = () => {
                             },
                           },
                         }}
-                        title="Write text to run prompt (Ctrl + Enter)"
+                        title="Write text to run prompt (Shift + Enter to add a line break and Enter to view detail)"
                       >
                         <button
                           type="button"
@@ -3625,12 +3698,9 @@ const Detail = () => {
                             width="24"
                             height="24"
                             viewBox="0 0 24 24"
-                            fill="none"
+                            fill="currentColor"
                           >
-                            <path
-                              d="M12 21.5C12 20.1833 11.75 18.95 11.25 17.8C10.75 16.6333 10.075 15.625 9.225 14.775C8.375 13.925 7.36667 13.25 6.2 12.75C5.05 12.25 3.81667 12 2.5 12C3.81667 12 5.05 11.75 6.2 11.25C7.36667 10.75 8.375 10.075 9.225 9.225C10.075 8.375 10.75 7.375 11.25 6.225C11.75 5.05833 12 3.81667 12 2.5C12 3.81667 12.25 5.05833 12.75 6.225C13.25 7.375 13.925 8.375 14.775 9.225C15.625 10.075 16.625 10.75 17.775 11.25C18.9417 11.75 20.1833 12 21.5 12C20.1833 12 18.9417 12.25 17.775 12.75C16.625 13.25 15.625 13.925 14.775 14.775C13.925 15.625 13.25 16.6333 12.75 17.8C12.25 18.95 12 20.1833 12 21.5Z"
-                              fill="var(--bg-body)"
-                            ></path>
+                            <path d="M12 21.5C12 20.1833 11.75 18.95 11.25 17.8C10.75 16.6333 10.075 15.625 9.225 14.775C8.375 13.925 7.36667 13.25 6.2 12.75C5.05 12.25 3.81667 12 2.5 12C3.81667 12 5.05 11.75 6.2 11.25C7.36667 10.75 8.375 10.075 9.225 9.225C10.075 8.375 10.75 7.375 11.25 6.225C11.75 5.05833 12 3.81667 12 2.5C12 3.81667 12.25 5.05833 12.75 6.225C13.25 7.375 13.925 8.375 14.775 9.225C15.625 10.075 16.625 10.75 17.775 11.25C18.9417 11.75 20.1833 12 21.5 12C20.1833 12 18.9417 12.25 17.775 12.75C16.625 13.25 15.625 13.925 14.775 14.775C13.925 15.625 13.25 16.6333 12.75 17.8C12.25 18.95 12 20.1833 12 21.5Z"></path>
                           </svg>
                           <span className="hidden md:inline-block">Run</span>
                         </button>
@@ -3650,11 +3720,13 @@ const Detail = () => {
                 className="w-full h-full flex flex-col justify-between inner"
                 // ref={isMobile ? sideRightRef : refNull}
               >
-                <div
-                  onClick={() => setSidebarOpenRight(false)}
-                  className="overlay-sidebar"
-                ></div>
-                <div className="h-11 border-b border-solid border-color flex items-center justify-between whitespace-nowrap">
+                {isMobile && (
+                  <div
+                    onClick={() => setSidebarOpenRight(false)}
+                    className="overlay-sidebar"
+                  ></div>
+                )}
+                <div className="min-h-11 border-b border-solid border-color flex items-center justify-between whitespace-nowrap title-setting">
                   <h2 className="grow text-base font-medium">Run settings</h2>
                   <Button
                     variant="plain"
@@ -3799,8 +3871,8 @@ const Detail = () => {
                     </Dropdown>
                   )}
                 </div>
-                <div className="w-full grow overflow-y-auto top-sidebar">
-                  <div className="py-4 overflow-hidden settings">
+                <div className="w-full grow overflow-x-hidden overflow-y-auto flex flex-col top-sidebar">
+                  <div className="pt-4 settings">
                     <Box sx={{ width: "260px" }}>
                       <Stack>
                         <div className="item mb-6">
@@ -3903,7 +3975,6 @@ const Detail = () => {
                                 <Input
                                   type="number"
                                   className="input"
-                                  defaultValue="1"
                                   sx={{
                                     px: 0.5,
                                     width: "48px",
@@ -3962,7 +4033,6 @@ const Detail = () => {
                                 <Input
                                   type="number"
                                   className="input"
-                                  defaultValue="1"
                                   sx={{
                                     px: 0.5,
                                     width: "48px",
@@ -4516,6 +4586,10 @@ const Detail = () => {
                       </Stack>
                     </Box>
                   </div>
+                  <div
+                    className="grow cursor-pointer clickable-space"
+                    onClick={handleClickSidebarRight}
+                  ></div>
                 </div>
                 <div className="w-full py-3 flex justify-end bot-sidebar">
                   <div className="btn-click-menu">
@@ -4541,7 +4615,7 @@ const Detail = () => {
                       </IconButton>
                     )}
                     {!isMobile && (
-                      <div>
+                      <>
                         {sidebarOpenRight ? (
                           <IconButton
                             variant="plain"
@@ -4583,7 +4657,7 @@ const Detail = () => {
                             </span>
                           </IconButton>
                         )}
-                      </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -4785,7 +4859,7 @@ const Detail = () => {
             "&.MuiModalDialog-root": {
               width: "94%",
               borderRadius: "20px",
-              maxWidth: "480px",
+              maxWidth: "550px",
               fontFamily: "var(--font)",
               fontSize: "0.875rem",
               bgcolor: "var(--cl-bg-dropdown)",
@@ -4816,22 +4890,32 @@ const Detail = () => {
               Your name, custom instructions, and any messages you add after
               sharing stay private.
             </p>
-            <div className="mb-2 flex items-center justify-between rounded-full border border-token-border-medium bg-token-main-surface-primary p-1.5 text-token-text-secondary last:mb-2 sm:p-2">
+            <div className="mb-2 flex items-center justify-between rounded-lg border border-solid border-color p-1.5 last:mb-2 sm:p-2">
               <div className="relative ml-1 flex-grow">
                 <input
                   readOnly
-                  className="w-full rounded-xl border-0 bg-token-main-surface-primary px-2 py-1 text-lg sm:py-2.5 text-token-text-tertiary"
+                  className="w-full bg-transparent border-0 px-2 py-2 text-base focus-visible:outline-none focus-visible:ring-0"
                   type="text"
-                  defaultValue="https://chatgpt.com/share/..."
+                  defaultValue="https://ai.ci.com.vn/share/67404e1a-3b84-8001-a87d-51528675103d"
                 />
-                <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-token-main-surface-primary" />
+                <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-transparent" />
               </div>
-              <button
-                className="btn relative btn-primary ml-4 mr-0 mt-0 rounded-full px-4 py-1 text-base font-bold sm:py-3"
-                type="button"
-                data-testid="create-link-shared-chat-button"
+              <Button
+                aria-label="Create link shared chat button"
+                variant="solid"
+                sx={{
+                  minHeight: 40,
+                  bgcolor: "var(--cl-primary-70)",
+                  color: "var(--cl-neutral-10)",
+                  borderRadius: "8px",
+                  fontWeight: 400,
+                  "&:hover": {
+                    bgcolor: "var(--cl-primary-80)",
+                    color: "var(--cl-neutral-10)",
+                  },
+                }}
               >
-                <span className="flex w-full items-center justify-center gap-1.5">
+                <span className="flex w-full items-center justify-center gap-x-2 whitespace-nowrap">
                   <svg
                     width={24}
                     height={24}
@@ -4846,9 +4930,9 @@ const Detail = () => {
                       fill="currentColor"
                     />
                   </svg>
-                  Create link
+                  Copy link
                 </span>
-              </button>
+              </Button>
             </div>
           </DialogContent>
         </ModalDialog>
