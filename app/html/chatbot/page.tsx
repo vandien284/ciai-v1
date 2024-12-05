@@ -116,7 +116,7 @@ const Chatbot = () => {
                   key={value}
                   sx={{
                     px: 1.25,
-                    py: 0.5,
+                    py: 0.25,
                     borderRadius: "20px",
                     boxShadow: "none",
                     flexGrow: 1,
@@ -182,8 +182,38 @@ const Chatbot = () => {
                   </div>
                   <div className="grow">
                     <div className="inline-block px-3 py-2.5 rounded-2xl leading-relaxed word-break content-text">
-                      Để được hỗ trợ, anh/chị vui lòng Click chọn danh mục cần
-                      tư vấn.
+                      Để đc hỗ trợ, anh/chị vui lòng Click chọn danh mục cần tư
+                      vấn.
+                    </div>
+                  </div>
+                </div>
+                <div className="flex mb-4 virtual-assistant">
+                  <div className="mr-4 flex-shrink-0">
+                    <Image
+                      src="/images/favicon.png"
+                      alt=""
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div className="grow">
+                    <div className="inline-block px-3 py-2.5 rounded-2xl leading-relaxed word-break content-text">
+                      Anh/chị đã chọn danh mục Mua xe
+                    </div>
+                  </div>
+                </div>
+                <div className="flex mb-4 virtual-assistant">
+                  <div className="mr-4 flex-shrink-0">
+                    <Image
+                      src="/images/favicon.png"
+                      alt=""
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div className="grow">
+                    <div className="inline-block px-3 py-2.5 rounded-2xl leading-relaxed word-break content-text">
+                      Để đc hỗ trợ, anh/chị vui lòng cho em biết tên ạ?
                     </div>
                   </div>
                 </div>
@@ -208,6 +238,11 @@ const Chatbot = () => {
                   </div>
                 </div>
                 <div className="flex flex-col items-end mb-4 customer">
+                  <div className="inline-block px-3 py-2.5 rounded-2xl leading-relaxed word-break content-text">
+                    Tôi muốn mua xe cũ
+                  </div>
+                </div>
+                <div className="flex flex-col items-end mb-4 customer hidden">
                   {/* Preview Section */}
                   {files.length > 0 && (
                     <div className="file-container">
@@ -716,7 +751,7 @@ const Chatbot = () => {
                 </Tooltip>
               </Menu>
             </Dropdown>
-            <Tooltip
+            {/* <Tooltip
               componentsProps={{
                 tooltip: {
                   sx: {
@@ -756,7 +791,7 @@ const Chatbot = () => {
                   <span className="material-symbols-outlined">attach_file</span>
                 </Button>
               </div>
-            </Tooltip>
+            </Tooltip> */}
             <div className="grow ml-1 mr-3 type-prompt">
               <div
                 ref={editableRef}
